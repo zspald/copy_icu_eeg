@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/icu_eeg.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/danie.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/danie.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -25,6 +19,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="ProjectId" id="1X7ccv736Snemjtq7xcugIKsUD7" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -120,7 +115,7 @@
       <workItem from="1580483638029" duration="3920000" />
       <workItem from="1580487941003" duration="1546000" />
       <workItem from="1580687525448" duration="37821000" />
-      <workItem from="1581001774487" duration="14381000" />
+      <workItem from="1581001774487" duration="14839000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -143,7 +138,14 @@
       <option name="project" value="LOCAL" />
       <updated>1581001858302</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="data/annotation processing">
+      <created>1581027756610</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1581027756610</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -152,13 +154,14 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="New file for loading IEEG data" />
     <MESSAGE value="IEEG data extraction methods" />
-    <option name="LAST_COMMIT_MESSAGE" value="IEEG data extraction methods" />
+    <MESSAGE value="data/annotation processing" />
+    <option name="LAST_COMMIT_MESSAGE" value="data/annotation processing" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1581001857776">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1581027756160">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1581001857776" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1581027756160" />
     <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1581022333400">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -183,10 +186,14 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="150" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1580488000620" />
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1581001872470">
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1581028073530">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1581001872470" />
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1581028073530" />
+    <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1581028091821">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.680@0.0.1280.680" timestamp="1581028091821" />
     <state x="447" y="72" key="ftp.server.browser" timestamp="1580401307157">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
