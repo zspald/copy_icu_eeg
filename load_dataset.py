@@ -10,6 +10,8 @@ from ieeg.auth import Session
 from ieeg.ieeg_api import IeegConnectionError
 import math
 import numpy as np
+import pandas as pd
+import re
 from scipy.signal import butter, filtfilt
 
 # List of all scalp EEG channels
@@ -30,12 +32,33 @@ class IEEGDataLoader:
     #   montage: the current montage being used
     def __init__(self, dataset_id, user, pwd):
         # Open IEEG Session with the specified ID and password
+        self.id = dataset_id
         self.dataset = Session(user, pwd).open_dataset(dataset_id)
         self.channel_labels = self.dataset.get_channel_labels()
         self.channel_indices = self.dataset.get_channel_indices(self.channel_labels)
         self.details = self.dataset.get_time_series_details(self.channel_labels[0])
         self.fs = self.details.sample_rate
         self.montage = self.dataset.get_current_montage()
+
+    # Returns the sampling frequency
+    # Outputs
+    #   self.fs: sampling frequency of the recording
+    def sampling_frequency(self):
+        return self.fs
+
+    # Filters channels by allowing the user the specify which channels to remove
+    # Inputs
+    #   channels_to_exclude: a list of channels to exclude, consists of strings
+    # Outputs
+    #   channel_indices: a list of indices for channels that will be included
+    def filter_channels(self, channels_to_exclude=None):
+        channels = EEG_CHANNELS
+        if channels_to_exclude is not None:
+            for ch in channels_to_exclude:
+                if ch in channels:
+                    channels.remove(ch)
+        channel_indices = self.dataset.get_channel_indices(channels)
+        return channel_indices
 
     # Loads data from IEEG.org for the specified patient
     # Inputs
@@ -82,7 +105,7 @@ class IEEGDataLoader:
     def load_data_batch(self, num, start, length, use_filter=True, eeg_only=True, channels_to_filter=None):
         try:
             raw_data = self.load_data(start, num * length, use_filter, eeg_only, channels_to_filter)
-        except IeegConnectionError:  # Too much data is loaded from IEEG in this case
+        except IeegConnectionError:  # Too much data is loaded from IEEG
             data_left = self.load_data_batch(math.floor(num / 2), start, length, use_filter, channels_to_filter)
             data_right = self.load_data_batch(math.ceil(num / 2), start + math.floor(num / 2) * length, length,
                                               use_filter, channels_to_filter)
@@ -90,37 +113,79 @@ class IEEGDataLoader:
         batch_data = np.reshape(raw_data, (num, int(length * self.fs), np.size(raw_data, axis=-1)))
         return batch_data
 
-    # Loads annotations from IEEG.org for the specified patient
+    # Loads annotations from IEEG.org for the specified batch of EEG
     # Inputs
-    #   annot_idx - index of the annotation layer to use
+    #   num: number of EEG batches to load
+    #   start: starting point, in seconds
+    #   length: duration of each segment, in seconds
+    #   annot_idx: index of the annotation layer to use
+    #   use_file: whether to use a given .csv file as the annotation
     # Outputs
-    #   type - a string indicating which class of annotations to extract
-    def load_annots(self, annot_idx=0, type='seizure'):
-        annot_layers = self.dataset.get_annotation_layers()
-        layer_name = list(annot_layers.keys())[annot_idx]
-        annots = self.dataset.get_annotations(layer_name)
-        for annot in annots:
-            if type == 'seizure':
-                # TBD - possibly use regular expression to match seizure output format
-                continue
-        return None
+    #   annotations: a numpy array of length 'num' that contains annotations for each EEG segment
+    def load_annots(self, num, start, length, annot_idx=0, use_file=True):
+        sz_intervals = self.load_annots_source(annot_idx, use_file)
+        annotations = np.zeros(num)
+        for ii in range(num):
+            annotations[ii] = 1 if IEEGDataLoader.search_interval(sz_intervals, start, length) else 0
+            start += num
+        return annotations
 
-    # Filters channels by allowing the user the specify which channels to remove
+    # Loads seizure intervals from IEEG.org for the specified patient
     # Inputs
-    #   channels_to_exclude: a list of channels to exclude, consists of strings
+    #   annot_idx: index of the annotation layer to use
+    #   use_file: whether to use a given .csv file as the annotation
     # Outputs
-    #   channel_indices: a list of indices for channels that will be included
-    def filter_channels(self, channels_to_exclude=None):
-        channels = EEG_CHANNELS
-        if channels_to_exclude is not None:
-            for ch in channels_to_exclude:
-                if ch in channels:
-                    channels.remove(ch)
-        channel_indices = self.dataset.get_channel_indices(channels)
-        return channel_indices
+    #   sz_intervals: a numpy array of shape R x 2 where R is the number of seizure intervals.
+    #                 Each row contains the start and stop time, measured in seconds
+    def load_annots_source(self, annot_idx=0, use_file=True):
+        if use_file:
+            # Read the .csv file and return the seizure intervals
+            dataframe = pd.read_csv(self.id + '_annots.csv')
+            sz_start = np.asarray(dataframe)[:, 1]
+            sz_stop = np.asarray(dataframe)[:, 2]
+            sz_intervals = np.c_[sz_start, sz_stop]
+        else:
+            # Define regular expressions for seizure onset/stop
+            start_pattern = re.compile('osz', re.IGNORECASE)
+            stop_pattern = re.compile('sze|szstop', re.IGNORECASE)
+            sz_count = 0  # A counter to ensure that start and end times alternate
+            # Obtain annotation layers from IEEG
+            annot_layers = self.dataset.get_annotation_layers()
+            layer_name = list(annot_layers.keys())[annot_idx]
+            annots = self.dataset.get_annotations(layer_name)
+            # Initialize list of seizure type, start and stop times
+            sz_list, sz_start, sz_stop = list(), list(), list()
+            for annot in annots:
+                if re.match(start_pattern, annot.type) and sz_count == 0:
+                    sz_list.append('sz')
+                    sz_start.append(int(annot.start_time_offset_usec / 1e6))
+                    sz_count += 1
+                elif re.match(stop_pattern, annot.type) and sz_count == 1:
+                    sz_stop.append(int(annot.start_time_offset_usec / 1e6))
+                    sz_count -= 1
+            # Create a pandas dataframe and save it
+            sz_data = {'seizure_type': sz_list, 'start': sz_start, 'stop': sz_stop}
+            dataframe = pd.DataFrame(data=sz_data)
+            dataframe.to_csv(r'./%s_annots.csv' % self.id)
+            # Output the seizure intervals
+            sz_intervals = np.c_[sz_start, sz_stop]
+        return sz_intervals
 
-    # Returns the sampling frequency
-    # Outputs
-    #   self.fs: sampling frequency of the recording
-    def sampling_frequency(self):
-        return self.fs
+    # Performs a binary search over a list of intervals to decide whether an EEG segment is
+    # contained within a seizure interval
+    # Inputs
+    #   intervals: a numpy array of shape R x 2 where R is the number of seizure intervals.
+    #              Each row contains the start and stop time, measured in seconds
+    #   timepoint: the starting point of the EEG segment of interest, in seconds
+    #   length: length of the EEG segment, in seconds
+    @staticmethod
+    def search_interval(intervals, timepoint, length):
+        idx = int(np.size(intervals, axis=0) / 2)
+        if timepoint + length >= intervals[idx][0] and timepoint < intervals[idx][1]:
+            return True
+        elif timepoint + length < intervals[idx][0]:
+            return IEEGDataLoader.search_interval(intervals[:idx, :], timepoint, length)
+        elif timepoint >= intervals[idx][1]:
+            return IEEGDataLoader.search_interval(intervals[idx:, :], timepoint, length)
+        else:
+            return False
