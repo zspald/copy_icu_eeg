@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/icu_eeg.py" beforeDir="false" afterPath="$PROJECT_DIR$/icu_eeg.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +33,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../STAT431/HW/HW1" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../2019 Fall/_Research_/CHOP_CICU_TF" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -115,7 +117,7 @@
       <workItem from="1580487941003" duration="1546000" />
       <workItem from="1580687525448" duration="37821000" />
       <workItem from="1581001774487" duration="14839000" />
-      <workItem from="1581028851165" duration="219000" />
+      <workItem from="1581028851165" duration="1969000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -145,7 +147,14 @@
       <option name="project" value="LOCAL" />
       <updated>1581027756610</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="new example file">
+      <created>1581029081812</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1581029081812</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -155,17 +164,22 @@
     <MESSAGE value="New file for loading IEEG data" />
     <MESSAGE value="IEEG data extraction methods" />
     <MESSAGE value="data/annotation processing" />
-    <option name="LAST_COMMIT_MESSAGE" value="data/annotation processing" />
+    <MESSAGE value="new example file" />
+    <option name="LAST_COMMIT_MESSAGE" value="new example file" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1581027756160">
+    <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1581027756160" />
-    <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1581022333400">
+    <state x="234" y="0" key="#Notifications/0.0.1280.680@0.0.1280.680" timestamp="1581029098515" />
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1581029081219">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1581022333400" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1581029081219" />
+    <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1581089989084">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1581089989084" />
     <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1581025324182">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -186,10 +200,10 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="150" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1580488000620" />
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1581028073530">
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1581029088385">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1581028073530" />
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1581029088385" />
     <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1581028091821">
       <screen x="0" y="0" width="1280" height="680" />
     </state>

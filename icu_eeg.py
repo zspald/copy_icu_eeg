@@ -6,7 +6,6 @@
 
 # Import libraries
 import h5py
-import numpy as np
 from preprocess_dataset import IEEGDataProcessor
 
 
@@ -15,6 +14,7 @@ class IEEGData:
 
     # The constructor for the IEEGData class
     def __init__(self, dataset_id, user, pwd):
+        self.id = dataset_id
         self.processor = IEEGDataProcessor(dataset_id, user, pwd)
         self.feat_storage = list()
         self.label_storage = list()
@@ -30,8 +30,14 @@ class IEEGData:
     #   channels_to_filter: a list of EEG channels to filter
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True,
                           channels_to_filter=None):
+        # Iterate over all batches
         for ii in range(num_iter):
+            # Extract features using the given IEEGDataProcessor object
             feats, labels = self.processor.get_features(num_batches, start, length, norm='off', use_filter=use_filter
                                                         , eeg_only=eeg_only, channels_to_filter=channels_to_filter)
             self.feat_storage.append(feats)
             self.label_storage.append(labels)
+            # Save the numpy array and corresponding annotations to a hdf5 file
+            with h5py.File('%s_%d.h5' % (self.id, ii + 1), "w") as file:
+                file.create_dataset('feats', data=feats)
+                file.create_dataset('labels', data=labels)
