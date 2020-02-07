@@ -11,6 +11,7 @@ from ieeg.ieeg_api import IeegConnectionError
 import math
 import numpy as np
 import pandas as pd
+import pickle
 import re
 from scipy.signal import butter, filtfilt
 
@@ -140,7 +141,9 @@ class IEEGDataLoader:
     def load_annots_source(self, annot_idx=0, use_file=True):
         if use_file:
             # Read the .csv file and return the seizure intervals
-            dataframe = pd.read_csv(self.id + '_annots.csv')
+            with open('dataset/' + self.id + '.pkl', 'rb') as file:
+                dataframe = pickle.load(file)
+            dataframe = dataframe[dataframe.event == 'seizure']
             sz_start = np.asarray(dataframe)[:, 1]
             sz_stop = np.asarray(dataframe)[:, 2]
             sz_intervals = np.c_[sz_start, sz_stop]
@@ -164,9 +167,9 @@ class IEEGDataLoader:
                     sz_stop.append(int(annot.start_time_offset_usec / 1e6))
                     sz_count -= 1
             # Create a pandas dataframe and save it
-            sz_data = {'seizure_type': sz_list, 'start': sz_start, 'stop': sz_stop}
+            sz_data = {'event': sz_list, 'start': sz_start, 'stop': sz_stop}
             dataframe = pd.DataFrame(data=sz_data)
-            dataframe.to_csv(r'./%s_annots.csv' % self.id)
+            dataframe.to_pickle(r'./dataset/%s.pkl' % self.id)
             # Output the seizure intervals
             sz_intervals = np.c_[sz_start, sz_stop]
         return sz_intervals
@@ -183,6 +186,8 @@ class IEEGDataLoader:
         idx = int(np.size(intervals, axis=0) / 2)
         if timepoint + length >= intervals[idx][0] and timepoint < intervals[idx][1]:
             return True
+        elif idx == 0:
+            return False
         elif timepoint + length < intervals[idx][0]:
             return IEEGDataLoader.search_interval(intervals[:idx, :], timepoint, length)
         elif timepoint >= intervals[idx][1]:

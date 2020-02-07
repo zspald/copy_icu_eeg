@@ -6,8 +6,12 @@
 
 # Import libraries
 import numpy as np
+import pandas as pd
 import scipy.stats
 from features import EEGFeatures
+
+# A list of all artifacts
+ARTIFACTS = ['', 'NaN', 'range', 'line length', 'bandpower']
 
 
 # A class that provides methods for artifact rejection
@@ -25,11 +29,14 @@ class Artifacts:
     #           other methods to be incorporated soon
     # Outputs
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
+    #   returns empty list if data is solely comprised of NaN recordings
     @staticmethod
     def remove_artifacts(input_data, fs, method='default'):
         # Remove segments that include NaN values first
         output_data, indices_to_remove = Artifacts.remove_nans(input_data)
-        if method == 'default':
+        if len(output_data) == 0:
+            return list()
+        elif method == 'default':
             indices_to_remove = Artifacts.remove_artifacts_default(output_data, fs, indices_to_remove)
         return indices_to_remove
 
@@ -65,6 +72,7 @@ class Artifacts:
     #               number of samples within the EEG segment
     #   fs: sampling frequency of the EEG recording
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
+    # Outputs
     @staticmethod
     def remove_artifacts_default(input_data, fs, indices_to_remove=None):
         if indices_to_remove is None:
@@ -83,12 +91,29 @@ class Artifacts:
             if indices_to_remove[idx] == 0:
                 # Assign different numbers in case artifact information is needed
                 if range_z[cnt] > 3:
-                    indices_to_remove[idx] = 1
-                elif llength_z[cnt] > 3:
                     indices_to_remove[idx] = 2
-                elif bdpower_z[cnt] > 3:
+                elif llength_z[cnt] > 3:
                     indices_to_remove[idx] = 3
+                elif bdpower_z[cnt] > 3:
+                    indices_to_remove[idx] = 4
                 cnt += 1
             idx += 1
         print('Number of rejected segments: ', np.sum(indices_to_remove))
         return indices_to_remove
+
+    # Obtains time intervals of all EEG segments labeled as artifacts
+    # Inputs
+    #   patient_id: the id of the patient dataset
+    #   indicator: a list indicating the artifact type of each EEG segment
+    #   start: absolute starting time point of the EEG batch
+    #   length: length of each EEG segment
+    # Outputs
+    @staticmethod
+    def save_artifacts(patient_id, indicator, start, length):
+        events = [ARTIFACTS[idx] for idx in indicator if idx > 0]
+        start = [start + ii * length for ii in range(len(indicator)) if indicator[ii] > 0]
+        stop = start + length
+        artifact_data = {'event': events, 'start': start, 'stop': stop}
+        dataframe = pd.DataFrame(data=artifact_data)
+        dataframe.to_pickle(r'./dataset/%s_artifacts.pkl' % patient_id)
+        return
