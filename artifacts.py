@@ -34,7 +34,7 @@ class Artifacts:
     def remove_artifacts(input_data, fs, method='default'):
         # Remove segments that include NaN values first
         output_data, indices_to_remove = Artifacts.remove_nans(input_data)
-        if len(output_data) == 0:
+        if np.size(output_data, axis=0) == 0:
             return list()
         elif method == 'default':
             indices_to_remove = Artifacts.remove_artifacts_default(output_data, fs, indices_to_remove)
@@ -52,8 +52,8 @@ class Artifacts:
     @staticmethod
     def remove_nans(input_data):
         boolean_mask = np.isnan(input_data)
-        output_data = []
-        remove = np.zeros(np.size(input_data, axis=0), dtype=bool)
+        output_data = list()
+        remove = np.zeros(np.size(input_data, axis=0), dtype=int)
         # Iterate over all segments, adding non-NaN recordings to the output
         for ii in range(np.size(input_data, axis=0)):
             if not boolean_mask[ii].any():
@@ -77,6 +77,7 @@ class Artifacts:
     def remove_artifacts_default(input_data, fs, indices_to_remove=None):
         if indices_to_remove is None:
             indices_to_remove = np.zeros(np.size(input_data, axis=0))
+        # Calculate statistical features for artifact identification
         minmax = np.mean(np.amax(input_data, axis=2) - np.amin(input_data, axis=2), axis=1)
         range_z = scipy.stats.zscore(minmax)
         llength = np.mean(EEGFeatures.line_length(input_data), axis=1)
@@ -98,7 +99,6 @@ class Artifacts:
                     indices_to_remove[idx] = 4
                 cnt += 1
             idx += 1
-        print('Number of rejected segments: ', np.sum(indices_to_remove))
         return indices_to_remove
 
     # Obtains time intervals of all EEG segments labeled as artifacts
@@ -110,10 +110,11 @@ class Artifacts:
     # Outputs
     @staticmethod
     def save_artifacts(patient_id, indicator, start, length):
-        events = [ARTIFACTS[idx] for idx in indicator if idx > 0]
-        start = [start + ii * length for ii in range(len(indicator)) if indicator[ii] > 0]
-        stop = start + length
-        artifact_data = {'event': events, 'start': start, 'stop': stop}
-        dataframe = pd.DataFrame(data=artifact_data)
-        dataframe.to_pickle(r'./dataset/%s_artifacts.pkl' % patient_id)
+        if indicator is not None:
+            events = [ARTIFACTS[idx] for idx in indicator if idx > 0]
+            start = [start + ii * length for ii in range(len(indicator)) if indicator[ii] > 0]
+            stop = start + length
+            artifact_data = {'event': events, 'start': start, 'stop': stop}
+            dataframe = pd.DataFrame(data=artifact_data)
+            dataframe.to_pickle(r'./dataset/%s_artifacts.pkl' % patient_id)
         return

@@ -32,23 +32,28 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
     #   channels_to_filter: a list of EEG channels to filter
+    #   save: whether to save the results to a .hdf5 file
     # Outputs
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True,
-                          channels_to_filter=None):
+                          channels_to_filter=None, save=False):
         # Initialize counter
         cnt = 0
         # Iterate over all batches
         for ii in range(num_iter):
+            print('===Iteration %d===' % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
-            feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter
-                                                        , eeg_only=eeg_only, channels_to_filter=channels_to_filter)
+            feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
+                                              eeg_only=eeg_only, channels_to_filter=channels_to_filter)
+            start += num_batches * length
             # Ignore null outputs as they indicate that no clean data is available
             if feats is not None:
                 cnt += 1
                 # Save the numpy array and corresponding annotations to a hdf5 file
-                with h5py.File('%s_%d.h5' % (self.id, cnt), "w") as file:
-                    file.create_dataset('feats', data=feats)
-                    file.create_dataset('labels', data=labels)
+                if save:
+                    with h5py.File('%s_%d.h5' % (self.id, cnt), "w") as file:
+                        file.create_dataset('feats', data=feats)
+                        file.create_dataset('labels', data=labels)
+                print("Shape: ", np.shape(feats))
             else:
                 print("No data is available from batch #%d" % (ii + 1))
         return
@@ -124,7 +129,7 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Determine batches to remove
         remove = Artifacts.remove_artifacts(input_data, fs, method=artifact_rejection)
         # Remove artifact data
-        indices_to_keep = [idx for idx in remove if remove[idx] == 0]
+        indices_to_keep = [idx for idx in range(len(remove)) if remove[idx] == 0]
         output_data = input_data[indices_to_keep]
         # Return None if output data is unavailable
         if len(output_data) == 0:
