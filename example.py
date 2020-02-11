@@ -8,19 +8,32 @@
 from preprocess_dataset import IEEGDataProcessor
 
 # Define IEEG username and password here
-username = 'danieljkim0118'
-password = 'kjm39173917#'
+username = '___USERNAME___'
+password = '___PASSWORD___'
 
-# Load processed EEG recordings
+# Load processed EEG recordings with batch size 100 and segment length of 5 seconds. Save artifact info.
+print("==========Example #1==========")
+dataset1 = IEEGDataProcessor('RID0060', username, password)
+data, labels = dataset1.process_data(num=100, start=600, length=5, use_filter=True, eeg_only=True,
+                                     channels_to_filter=None, save_artifacts=True)
+print('shape of preprocessed data: ', data.shape)
+print('shape of preprocessed labels: ', labels.shape)
 
-# Extract features 50 times with batch size 20 and segment length of 5 seconds each.
-print("==========Loading Example #2==========")
+# Extract features 50 times with batch size 20 and segment length of 5 seconds.
+print("==========Example #2==========")
 dataset2 = IEEGDataProcessor('RID252_68561f5b', username, password)
-dataset2.process_all_feats(num_iter=10, num_batches=20, start=0, length=10, use_filter=True,
+dataset2.process_all_feats(num_iter=50, num_batches=20, start=0, length=5, use_filter=True,
                            eeg_only=True, channels_to_filter=None, save=False)
 
-# # Extract features, but all data is filtered out
-# print("==========Loading Example #2==========")
-# dataset3 = IEEGDataProcessor('RID0061', username, password)
-# dataset3.process_all_feats(num_iter=10, num_batches=20, start=600, length=5, use_filter=True, eeg_only=True)
+# Extract features 100 times with batch size 30 and segment length of 1 second each, starting at 10 mins.
+# Exclude the F8 and Pz channels.
+print("==========Example #3==========")
+dataset3 = IEEGDataProcessor('RID0061', username, password)
+dataset3.process_all_feats(num_iter=100, num_batches=30, start=600, length=1, use_filter=True,
+                           eeg_only=True, channels_to_filter=['F8', 'Pz'], save=False)
 
+# Extract features 10 times with batch size 50 and segment length of 3 seconds each. Save the results.
+print("==========Example #4==========")
+dataset4 = IEEGDataProcessor('RID0065', username, password)
+dataset4.process_all_feats(num_iter=10, num_batches=50, start=0, length=3, use_filter=True,
+                           eeg_only=True, channels_to_filter=None, save=True)

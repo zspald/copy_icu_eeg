@@ -25,7 +25,7 @@ class Artifacts:
     #   fs: sampling frequency of the EEG recording
     #   method: specific method for removing artifact-like segments. 'default' removes all
     #           segments that exceed a certain threshold under
-    #           1) Range 2) Line Length 3) Bandpower in beta frequency band (25 - 60 Hz)
+    #           1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
     #           other methods to be incorporated soon
     # Outputs
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
@@ -73,6 +73,7 @@ class Artifacts:
     #   fs: sampling frequency of the EEG recording
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     # Outputs
+    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N*
     @staticmethod
     def remove_artifacts_default(input_data, fs, indices_to_remove=None):
         if indices_to_remove is None:
@@ -82,7 +83,7 @@ class Artifacts:
         range_z = scipy.stats.zscore(minmax)
         llength = np.mean(EEGFeatures.line_length(input_data), axis=1)
         llength_z = scipy.stats.zscore(llength)
-        bdpower = np.mean(EEGFeatures.bandpower(input_data, fs, 25, 60), axis=1)
+        bdpower = np.mean(EEGFeatures.bandpower(input_data, fs, 12, 20), axis=1)
         bdpower_z = scipy.stats.zscore(bdpower)
         # Initialize iterator variables for update procedure
         cnt = 0
@@ -113,7 +114,7 @@ class Artifacts:
         if indicator is not None:
             events = [ARTIFACTS[idx] for idx in indicator if idx > 0]
             start = [start + ii * length for ii in range(len(indicator)) if indicator[ii] > 0]
-            stop = start + length
+            stop = np.array(start) + length
             artifact_data = {'event': events, 'start': start, 'stop': stop}
             dataframe = pd.DataFrame(data=artifact_data)
             dataframe.to_pickle(r'./dataset/%s_artifacts.pkl' % patient_id)

@@ -127,15 +127,13 @@ class IEEGDataProcessor(IEEGDataLoader):
     @staticmethod
     def clean_data(input_data, input_labels, fs, artifact_rejection='default'):
         # Determine batches to remove
-        remove = Artifacts.remove_artifacts(input_data, fs, method=artifact_rejection)
+        indicator = Artifacts.remove_artifacts(input_data, fs, method=artifact_rejection)
         # Remove artifact data
-        indices_to_keep = [idx for idx in range(len(remove)) if remove[idx] == 0]
+        indices_to_keep = [idx for idx in range(len(indicator)) if indicator[idx] == 0]
         output_data = input_data[indices_to_keep]
         # Return None if output data is unavailable
         if len(output_data) == 0:
             return None, None, None
         # Update labels to match the size of the clean recordings
-        indicator = np.array([1 if i > 0 else 0 for i in remove])
-        output_labels = np.multiply(input_labels, indicator)
-        output_labels = output_labels[output_labels > 0]
+        output_labels = np.array([input_labels[idx] for idx, element in enumerate(indicator) if element == 0])
         return output_data, output_labels, indicator
