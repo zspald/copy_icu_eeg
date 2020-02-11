@@ -49,11 +49,12 @@ class IEEGDataLoader:
 
     # Filters channels by allowing the user the specify which channels to remove
     # Inputs
+    #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
     #   channels_to_exclude: a list of channels to exclude, consists of strings
     # Outputs
     #   channel_indices: a list of indices for channels that will be included
-    def filter_channels(self, channels_to_exclude=None):
-        channels = EEG_CHANNELS
+    def filter_channels(self, eeg_only, channels_to_exclude=None):
+        channels = EEG_CHANNELS if eeg_only else self.channel_labels
         if channels_to_exclude is not None:
             for ch in channels_to_exclude:
                 if ch in channels:
@@ -72,10 +73,7 @@ class IEEGDataLoader:
     #                       and C is the number of valid channels
     def load_data(self, start, length, use_filter=True, eeg_only=True, channels_to_filter=None):
         # Determine channels to use for EEG extraction
-        if eeg_only:
-            channels_to_use = self.filter_channels(channels_to_exclude=channels_to_filter)
-        else:
-            channels_to_use = self.channel_indices
+        channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
         # Check whether too much data is requested for storage
         try:
             np.zeros((length, len(channels_to_use)))
@@ -173,6 +171,48 @@ class IEEGDataLoader:
             # Output the seizure intervals
             sz_intervals = np.c_[sz_start, sz_stop]
         return sz_intervals
+
+    # Crawls the patient recordings to locate the first timepoint that does not contain NaNs
+    # Inputs
+    #   start: starting point, in seconds
+    #   interval_length: length of each segment to inspect, in seconds
+    #   threshold: time to search before rejecting patient data, in seconds
+    #   channels_to_use:  list of the channels to pull data from
+    # Outputs
+    #   the first point that does not contain NaNs, in seconds
+    def crawl_data(self, start, interval_length, threshold, channels_to_use):
+        contains_nan_prev = True
+        while True:
+            data = self.dataset.get_data(start * 1e6, interval_length * 1e6, channels_to_use)
+            contains_nan = np.isnan(data).any()
+            if contains_nan_prev and not contains_nan:
+                return self.search_nans(start - interval_length, interval_length, channels_to_use)
+            elif contains_nan:
+                contains_nan_prev = contains_nan
+                start += interval_length
+                if start > threshold:
+                    return
+
+    # Performs a binary search for the first timepoint that does not contain NaNs
+    # Inputs
+    #   start: starting point, in seconds
+    #   duration: length of data pulled, in seconds
+    #   channels_to_use: a list of the channels to pull data from
+    # Outputs
+    #   begin_time: the first point that does not contain NaNs, in seconds
+    def search_nans(self, start, duration, channels_to_use):
+        if duration > 1:
+            start_usec, duration_usec = start * 1e6, duration * 1e6
+            data_left = self.dataset.get_data(start_usec, int(duration_usec / 2), channels_to_use)
+            data_right = self.dataset.get_data(start_usec + int(duration_usec / 2), math.ceil(duration_usec / 2),
+                                               channels_to_use)
+            left_contains, right_contains = np.isnan(data_left).any(), np.isnan(data_right).any()
+            if left_contains and right_contains:
+                return self.search_nans(start + int(duration / 2), math.ceil(duration / 2), channels_to_use)
+            elif left_contains and not right_contains:
+                return self.search_nans(start, int(duration / 2), channels_to_use)
+        begin_time = start + 1
+        return begin_time
 
     # Performs a binary search over a list of intervals to decide whether an EEG segment is
     # contained within a seizure interval

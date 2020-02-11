@@ -41,6 +41,13 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Iterate over all batches
         for ii in range(num_iter):
             print('===Iteration %d===' % (ii + 1))
+            # Search for the first point (in seconds) where non-NaN values occur
+            if ii == 0:
+                channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
+                start = self.crawl_data(start, interval_length=600, threshold=3600, channels_to_use=channels_to_use)
+                print("The starting point is: ", start)
+                if start is None:
+                    return
             # Extract features using the given IEEGDataProcessor object
             feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
                                               eeg_only=eeg_only, channels_to_filter=channels_to_filter)
