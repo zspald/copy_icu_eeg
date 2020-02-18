@@ -4,18 +4,19 @@
 # University of Pennsylvania, Department of Computer and Information Science
 ############################################################################
 
-# Import the IEEGDataProcessor to test its functionalities
+# Import the IEEGDataProcessor to test its functionality
 from preprocess_dataset import IEEGDataProcessor
 
 # Define IEEG username and password here
-username = '___USERNAME___'
-password = '___PASSWORD___'
+username = 'danieljkim0118'
+password = 'kjm39173917#'
 
 # Load processed EEG recordings with batch size 100 and segment length of 5 seconds. Save artifact info.
-print("==========Example #1==========")
+# print("==========Example #1==========")
 dataset1 = IEEGDataProcessor('RID0060', username, password)
 data, labels = dataset1.process_data(num=100, start=600, length=5, use_filter=True, eeg_only=True,
-                                     channels_to_filter=None, save_artifacts=True)
+                                     channels_to_filter=['Pz'], save_artifacts=True)
+
 print('shape of preprocessed data: ', data.shape)
 print('shape of preprocessed labels: ', labels.shape)
 
@@ -27,13 +28,13 @@ dataset2.process_all_feats(num_iter=50, num_batches=20, start=0, length=5, use_f
 
 # Extract features 100 times with batch size 30 and segment length of 1 second each, starting at 10 mins.
 # Exclude the F8 and Pz channels.
-print("==========Example #3==========")
-dataset3 = IEEGDataProcessor('RID0061', username, password)
-dataset3.process_all_feats(num_iter=100, num_batches=30, start=600, length=1, use_filter=True,
-                           eeg_only=True, channels_to_filter=['F8', 'Pz'], save=False)
+# print("==========Example #3==========")
+# dataset3 = IEEGDataProcessor('RID0061', username, password)
+# dataset3.process_all_feats(num_iter=3, num_batches=300, start=0, length=5, use_filter=True,
+#                            eeg_only=True, channels_to_filter=['F8', 'Pz'], save=False)
 
 # Extract features 10 times with batch size 50 and segment length of 3 seconds each. Save the results.
-print("==========Example #4==========")
-dataset4 = IEEGDataProcessor('RID0065', username, password)
-dataset4.process_all_feats(num_iter=10, num_batches=50, start=0, length=3, use_filter=True,
-                           eeg_only=True, channels_to_filter=None, save=True)
+# print("==========Example #4==========")
+# dataset4 = IEEGDataProcessor('RID0065', username, password)
+# dataset4.process_all_feats(num_iter=10, num_batches=50, start=0, length=3, use_filter=True,
+#                            eeg_only=True, channels_to_filter=None, save=True)

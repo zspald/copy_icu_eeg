@@ -8,6 +8,7 @@
 from artifacts import Artifacts
 from features import EEGFeatures
 from load_dataset import IEEGDataLoader
+from scipy.signal import butter, filtfilt
 import h5py
 import numpy as np
 
@@ -21,7 +22,7 @@ class IEEGDataProcessor(IEEGDataLoader):
 
     # The constructor for the IEEGDataProcessor class
     def __init__(self, dataset_id, user, pwd):
-        super(IEEGDataProcessor, self).__init__(dataset_id, user, pwd)
+        super().__init__(dataset_id, user, pwd)
 
     # Processes features over a multiple number of iterations to reduce storage space
     # Inputs
@@ -40,14 +41,14 @@ class IEEGDataProcessor(IEEGDataLoader):
         cnt = 0
         # Iterate over all batches
         for ii in range(num_iter):
-            print('===Iteration %d===' % (ii + 1))
             # Search for the first point (in seconds) where non-NaN values occur
             if ii == 0:
                 channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
                 start = self.crawl_data(start, interval_length=600, threshold=3600, channels_to_use=channels_to_use)
-                print("The starting point is: ", start)
                 if start is None:
                     return
+                print("The starting point is: %d seconds" % start)
+            print('===Iteration %d===' % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
             feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
                                               eeg_only=eeg_only, channels_to_filter=channels_to_filter)
@@ -80,7 +81,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns as None if no preprocessed data is available
     def get_features(self, num, start, length, norm='off', use_filter=True, eeg_only=True, channels_to_filter=None):
-        output_data, output_labels = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter)
+        output_data, output_labels = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter,
+                                                       save_artifacts=False)
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None
@@ -103,11 +105,16 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     def process_data(self, num, start, length, use_filter=True, eeg_only=True, channels_to_filter=None,
                      save_artifacts=False):
-        input_data = IEEGDataLoader.load_data_batch(self, num, start, length, use_filter, eeg_only, channels_to_filter)
+        input_data = IEEGDataLoader.load_data_batch(self, num, start, length, eeg_only, channels_to_filter)
         input_data = np.swapaxes(input_data, 1, 2)
         input_labels = IEEGDataLoader.load_annots(self, num, start, length, use_file=True)
         sample_freq = IEEGDataLoader.sampling_frequency(self)
         output_data, output_labels, timestamps = self.clean_data(input_data, input_labels, sample_freq, ARTIFACT_METHOD)
+        # Filter from 0.5 to 20 Hz if selected
+        if use_filter:
+            coeff = butter(4, [0.5 / (self.fs / 2), 20 / (self.fs / 2)], 'bandpass')
+            output_data = filtfilt(coeff[0], coeff[1], output_data, axis=-1)
+        # Save artifact information if required
         if save_artifacts:
             Artifacts.save_artifacts(self.id, timestamps, start, length)
         return output_data, output_labels

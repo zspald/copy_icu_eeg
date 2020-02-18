@@ -79,11 +79,11 @@ class Artifacts:
         if indices_to_remove is None:
             indices_to_remove = np.zeros(np.size(input_data, axis=0))
         # Calculate statistical features for artifact identification
-        minmax = np.mean(np.amax(input_data, axis=2) - np.amin(input_data, axis=2), axis=1)
+        minmax = np.amax(np.amax(input_data, axis=2) - np.amin(input_data, axis=2), axis=1)
         range_z = scipy.stats.zscore(minmax)
-        llength = np.mean(EEGFeatures.line_length(input_data), axis=1)
+        llength = np.amax(EEGFeatures.line_length(input_data), axis=1)
         llength_z = scipy.stats.zscore(llength)
-        bdpower = np.mean(EEGFeatures.bandpower(input_data, fs, 12, 20), axis=1)
+        bdpower = np.amax(EEGFeatures.bandpower(input_data, fs, 12, 20), axis=1)
         bdpower_z = scipy.stats.zscore(bdpower)
         # Initialize iterator variables for update procedure
         cnt = 0
