@@ -37,7 +37,7 @@ class Artifacts:
         if np.size(output_data, axis=0) == 0:
             return list()
         elif method == 'default':
-            indices_to_remove = Artifacts.remove_artifacts_default(output_data, fs, indices_to_remove)
+            indices_to_remove = Artifacts.remove_artifacts_basic(output_data, fs, indices_to_remove)
         return indices_to_remove
 
     # Removes NaN recordings from an input EEG dataset
@@ -75,7 +75,7 @@ class Artifacts:
     # Outputs
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N*
     @staticmethod
-    def remove_artifacts_default(input_data, fs, indices_to_remove=None):
+    def remove_artifacts_basic(input_data, fs, indices_to_remove=None):
         if indices_to_remove is None:
             indices_to_remove = np.zeros(np.size(input_data, axis=0))
         # Calculate statistical features for artifact identification
@@ -112,6 +112,7 @@ class Artifacts:
     @staticmethod
     def save_artifacts(patient_id, indicator, start, length):
         if indicator is not None:
+            print('Saving artifact info...')
             events = [ARTIFACTS[idx] for idx in indicator if idx > 0]
             start = [start + ii * length for ii in range(len(indicator)) if indicator[ii] > 0]
             stop = np.array(start) + length

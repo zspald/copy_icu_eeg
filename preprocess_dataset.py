@@ -13,7 +13,7 @@ import h5py
 import numpy as np
 
 # Artifact rejection method
-ARTIFACT_METHOD = 'default'
+ARTIFACT_METHOD = 'none'
 
 
 # A class that preprocesses IEEG data for the specified patient
@@ -35,10 +35,12 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   channels_to_filter: a list of EEG channels to filter
     #   save: whether to save the results to a .hdf5 file
     # Outputs
+    #
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True,
                           channels_to_filter=None, save=False):
-        # Initialize counter
-        cnt = 0
+        # Initialize patient-specific feature and label outputs
+        patient_feats = None
+        patient_labels = None
         # Iterate over all batches
         for ii in range(num_iter):
             # Search for the first point (in seconds) where non-NaN values occur
@@ -46,25 +48,27 @@ class IEEGDataProcessor(IEEGDataLoader):
                 channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
                 start = self.crawl_data(start, interval_length=600, threshold=3600, channels_to_use=channels_to_use)
                 if start is None:
+                    print("Patient contains NaN recordings for over an hour!")
                     return
                 print("The starting point is: %d seconds" % start)
-            print('===Iteration %d===' % (ii + 1))
+            print("===Iteration %d===" % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
             feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
                                               eeg_only=eeg_only, channels_to_filter=channels_to_filter)
             start += num_batches * length
-            # Ignore null outputs as they indicate that no clean data is available
-            if feats is not None:
-                cnt += 1
-                # Save the numpy array and corresponding annotations to a hdf5 file
-                if save:
-                    with h5py.File('%s_%d.h5' % (self.id, cnt), "w") as file:
-                        file.create_dataset('feats', data=feats)
-                        file.create_dataset('labels', data=labels)
-                print("Shape: ", np.shape(feats))
-            else:
+            # Add batch features and labels to patient-specific outputs
+            if feats is None:
                 print("No data is available from batch #%d" % (ii + 1))
-        return
+            else:
+                patient_feats = feats if patient_feats is None else np.r_[patient_feats, feats]
+                patient_labels = labels if patient_labels is None else np.r_[patient_labels, labels]
+        # Save features and labels if indicated by the user
+        if save:
+            with h5py.File('%s_feats.h5' % self.id, "w") as file:
+                file.create_dataset('feats', data=patient_feats)
+                file.create_dataset('labels', data=patient_labels)
+        print("Shape of the features: ", np.shape(patient_feats))
+        return patient_feats, patient_labels
 
     # Extracts features for a specified interval of EEG recordings from IEEG
     # Inputs
@@ -81,8 +85,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns as None if no preprocessed data is available
     def get_features(self, num, start, length, norm='off', use_filter=True, eeg_only=True, channels_to_filter=None):
-        output_data, output_labels = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter,
-                                                       save_artifacts=False)
+        output_data, output_labels, _ = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter,
+                                                          save_artifacts=False)
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None
@@ -109,15 +113,16 @@ class IEEGDataProcessor(IEEGDataLoader):
         input_data = np.swapaxes(input_data, 1, 2)
         input_labels = IEEGDataLoader.load_annots(self, num, start, length, use_file=True)
         sample_freq = IEEGDataLoader.sampling_frequency(self)
-        output_data, output_labels, timestamps = self.clean_data(input_data, input_labels, sample_freq, ARTIFACT_METHOD)
         # Filter from 0.5 to 20 Hz if selected
         if use_filter:
-            coeff = butter(4, [0.5 / (self.fs / 2), 20 / (self.fs / 2)], 'bandpass')
-            output_data = filtfilt(coeff[0], coeff[1], output_data, axis=-1)
+            coeff = butter(4, [0.5 / (sample_freq / 2), 20 / (sample_freq / 2)], 'bandpass')
+            input_data = filtfilt(coeff[0], coeff[1], input_data, axis=-1)
+        # Perform artifact rejection over the input data
+        output_data, output_labels, timestamps = self.clean_data(input_data, input_labels, sample_freq, ARTIFACT_METHOD)
         # Save artifact information if required
         if save_artifacts:
             Artifacts.save_artifacts(self.id, timestamps, start, length)
-        return output_data, output_labels
+        return output_data, output_labels, timestamps
 
     # Performs artifact rejection over all EEG recordings within the given dataset
     # and updates the annotation file in accordance with the processed EEG data
@@ -139,7 +144,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   indicator: a list indicating whether each EEG segment should be removed, with length N
     #   returns None if no preprocessed data is available
     @staticmethod
-    def clean_data(input_data, input_labels, fs, artifact_rejection='default'):
+    def clean_data(input_data, input_labels, fs, artifact_rejection='none'):
         # Determine batches to remove
         indicator = Artifacts.remove_artifacts(input_data, fs, method=artifact_rejection)
         # Remove artifact data

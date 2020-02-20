@@ -40,7 +40,7 @@ class EEGFeatures:
         # Alpha bandpower
         bdpower_alpha = EEGFeatures.bandpower(input_data, fs, 8, 12)
         # Beta bandpower
-        bdpower_beta = EEGFeatures.bandpower(input_data, fs, 12, 25)
+        bdpower_beta = EEGFeatures.bandpower(input_data, fs, 12, 20)
         # Skewness
         skew = scipy.stats.skew(input_data, axis=-1)
         # Kurtosis
