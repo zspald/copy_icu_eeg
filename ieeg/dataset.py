@@ -416,8 +416,9 @@ class Dataset:
         response = self.session.api.get_data(
             self, start, duration, raw_channels)
         # collect data in numpy array
+        print(response.content[:10])
         int_array = np.frombuffer(response.content, dtype='>i4')
-
+        print(int_array)
         # Check all channels are the same length
         samples_per_row_array = [int(numeric_string)
                                  for numeric_string in response.headers['samples-per-row'].split(',')]
@@ -427,7 +428,7 @@ class Dataset:
         samples_per_row = samples_per_row_array[0]
         conv_f = np.array([float(numeric_string)
                            for numeric_string in response.headers['voltage-conversion-factors-mv'].split(',')])
-
+        response.close()
         # Reshape to 2D array and Multiply by conversionFactor
         int_matrix = np.reshape(
             int_array, (samples_per_row, len(raw_channels)), order='F')

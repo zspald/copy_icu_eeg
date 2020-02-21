@@ -186,6 +186,8 @@ class IeegApi:
 
         response = self.http.post(url_str,
                                   params=params, data=data, headers=IeegApi._send_xml)
+        print(response.content[:10])
+
         return response
 
     def get_montages(self, dataset_id):

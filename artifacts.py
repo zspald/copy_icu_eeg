@@ -102,6 +102,22 @@ class Artifacts:
             idx += 1
         return indices_to_remove
 
+    # Removes artifacts using threshold measures
+    # Inputs
+    #   input_data: EEG data of shape N x C x S, where N is the number of EEG segments from
+    #               a patient's dataset, C is the number of valid EEG channels and S is the
+    #               number of samples within the EEG segment
+    #   fs: sampling frequency of the EEG recording
+    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
+    # Outputs
+    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N*
+    @staticmethod
+    def remove_artifacts_thresholds(input_data, fs, indices_to_remove=None):
+        if indices_to_remove is None:
+            indices_to_remove = np.zeros(np.size(input_data, axis=0))
+
+        return indices_to_remove
+
     # Obtains time intervals of all EEG segments labeled as artifacts
     # Inputs
     #   patient_id: the id of the patient dataset
