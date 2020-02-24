@@ -1,11 +1,7 @@
 import argparse
 import getpass
-<<<<<<< HEAD
-import numpy as np
-=======
-import numpy
->>>>>>> d0bb1b5... added test script and bash script to run it
 from ieeg.auth import Session
+import numpy as np
 
 
 def main():
@@ -42,4 +38,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    a = np.zeros((10, 10))
+    b = np.ones((10, 10))
+    x = np.array(a > 0, dtype=int)
+    a[1] = 10
+    print(a)

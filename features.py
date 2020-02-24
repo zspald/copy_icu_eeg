@@ -98,13 +98,35 @@ class EEGFeatures:
         bandpower_values = np.sum(bandpower_values, axis=-1)  # Sum the extracted bandpower values for every channel
         return bandpower_values
 
+    # Computes the rate of sharpest change of every EEG segment over every channel for a batch of EEG data
+    # Inputs
+    #   input_data: EEG data of shape N x C x S, where N is the number of EEG segments from
+    #               a patient's dataset, C is the number of valid EEG channels and S is the
+    #               number of samples within the EEG segment
+    #   fs: sampling frequency
+    #   window_size: size of the window to compute differences over
+    # Outputs
+    #   output_diff: an array of shape N x C that stores the sharpest transition for every segment & channel
+    @staticmethod
+    def diff_signal(input_data, fs, window_size=0.03):
+        output_diff = None
+        # Search over all possible differences
+        for num in range(int(fs * window_size)):
+            input_diff = np.amax(np.diff(input_data, n=num, axis=-1), axis=-1)
+            if output_diff is None:
+                output_diff = np.expand_dims(input_diff, axis=0)
+            else:
+                output_diff = np.r_[output_diff, np.expand_dims(input_diff, axis=0)]
+        output_diff = np.amax(output_diff, axis=0)
+        return output_diff
+
     # Computes the envelope of every EEG segment over every channel for a batch of EEG data
     # Inputs
     #   input_data: EEG data of shape N x C x S, where N is the number of EEG segments from
     #               a patient's dataset, C is the number of valid EEG channels and S is the
     #               number of samples within the EEG segment
     # Outputs
-    #   envelope_values: an array of shape N x C that stores the median envelope of each segment & channel
+    #   envelope_values: an array of shape N x C that stores the median envelope of every segment & channel
     @staticmethod
     def envelope(input_data):
         analytic_signal = hilbert(input_data, axis=-1)
