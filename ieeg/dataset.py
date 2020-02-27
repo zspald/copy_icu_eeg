@@ -416,9 +416,9 @@ class Dataset:
         response = self.session.api.get_data(
             self, start, duration, raw_channels)
         # collect data in numpy array
-        print(response.content[:10])
+        # print(response.content[:10])
         int_array = np.frombuffer(response.content, dtype='>i4')
-        print(int_array)
+        # print(int_array)
         # Check all channels are the same length
         samples_per_row_array = [int(numeric_string)
                                  for numeric_string in response.headers['samples-per-row'].split(',')]

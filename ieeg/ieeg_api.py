@@ -186,7 +186,7 @@ class IeegApi:
 
         response = self.http.post(url_str,
                                   params=params, data=data, headers=IeegApi._send_xml)
-        print(response.content[:10])
+        # print(response.content[:10])
 
         return response
 

@@ -59,8 +59,6 @@ if __name__ == "__main__":
     # print(np.shape(z))
     a = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
     b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]]) * -1
-    print(np.shape(a))
-    c = np.c_[a, b, b]
-    d = np.swapaxes(np.swapaxes(c, 0, 1), 1, 2)
-    print(np.shape(d))
-    print(np.shape(np.amin(d, axis=0)))
+    c = np.array([1, 0, 1, 0]).astype(bool)
+    a = a[c]
+    print(a)

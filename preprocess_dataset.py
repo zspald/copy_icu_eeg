@@ -57,7 +57,7 @@ class IEEGDataProcessor(IEEGDataLoader):
                 print("The starting point is: %d seconds" % start)
             print("===Iteration %d===" % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
-            feats, labels = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
+            feats, labels = self.get_features(num_batches, start, length, norm='on', use_filter=use_filter,
                                               eeg_only=eeg_only, channels_to_filter=channels_to_filter)
             start += num_batches * length
             # Add batch features and labels to patient-specific outputs
@@ -154,6 +154,7 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Determine batches to remove
         indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=3,
                                                                            method=artifact_rejection)
+        print('Number of rejected segments: ', np.sum(indices_to_remove))
         # Remove cross-channel artifact data
         indices_to_keep = (1 - indices_to_remove).astype('float')
         indices_to_keep[indices_to_keep == 0] = np.nan
@@ -165,6 +166,8 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Return None if output data is unavailable
         if len(output_data) == 0:
             return None, None, None
+        # Remove completely NaN-filled portions of the EEG data
+        output_data = output_data[(1-indices_to_remove).astype(bool), :, :]
         # Update labels to match the size of the clean recordings
         output_labels = np.array([input_labels[idx] for idx, element in enumerate(indices_to_remove) if element == 0])
         return output_data, output_labels, indices_to_remove
