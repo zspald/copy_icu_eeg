@@ -10,6 +10,13 @@ import numpy as np
 import pywt
 import scipy.stats
 from scipy.signal import hilbert
+from load_dataset import EEG_CHANNELS
+
+
+# EEG electrodes
+ALL = EEG_CHANNELS
+LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
+RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
 
 
 # A class that contains methods for extracting statistical EEG features
@@ -27,10 +34,11 @@ class EEGFeatures:
     #              'zscore' normalizes features according to their z-scores
     #              'minmax' normalizes features from -1 to 1
     # Outputs
-    #   output_feats: an array of shape N x C x F, where N is the number of EEG segments,
-    #                 C is the number of channels and F is the number of features
+    #   output_feats: an array of shape N x G x F, where N is the number of EEG segments,
+    #                 G is the number of feature groups and F is the number of features
     @staticmethod
     def extract_features(input_data, fs, normalize='off'):
+        output_feats = None
         # Line length
         llength = EEGFeatures.line_length(input_data)
         # Delta bandpower
@@ -47,9 +55,20 @@ class EEGFeatures:
         kurt = scipy.stats.kurtosis(input_data, axis=-1)
         # Envelope
         envp = EEGFeatures.envelope(input_data)
-        # Obtain all features
-        output_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
-                                 bdpower_beta, skew, kurt, envp])
+        # Aggregate all features and compute mean over specified channels
+        all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
+                                   bdpower_beta, skew, kurt, envp])
+        categories = [ALL, LEFT, RIGHT]
+        # Iterate through different types of electrode
+        for category in categories:
+            # Determine indices of intersection and filter the input data
+            indices_to_use = np.nonzero(np.in1d(ALL, category))[0]
+            category_feats = all_feats[:, :, indices_to_use]
+            category_feats = np.expand_dims(np.nanmean(category_feats, axis=-1), axis=-1)
+            if output_feats is None:
+                output_feats = category_feats
+            else:
+                output_feats = np.c_[output_feats, category_feats]
         output_feats = np.swapaxes(np.swapaxes(output_feats, 0, 1), 1, 2)
         # Normalize the features if a specific method is indicated
         if normalize != 'off':
@@ -72,8 +91,8 @@ class EEGFeatures:
     #   llength: an array of shape N x C containing the line length of each segment & channel
     @staticmethod
     def line_length(input_data):
-        llength = np.abs(np.diff(input_data, axis=2))
-        llength = np.sum(llength, axis=2)
+        llength = np.abs(np.diff(input_data, axis=-1))
+        llength = np.sum(llength, axis=-1)
         return llength
 
     # Computes the bandpower of every EEG segment over every channel for a batch of EEG data

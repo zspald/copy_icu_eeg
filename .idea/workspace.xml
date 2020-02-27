@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
@@ -203,7 +203,7 @@
       <workItem from="1582137581608" duration="28432000" />
       <workItem from="1582350261879" duration="667000" />
       <workItem from="1582420409740" duration="612000" />
-      <workItem from="1582566158846" duration="7577000" />
+      <workItem from="1582566158846" duration="14928000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -310,7 +310,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582566176649</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="artifacts (complete, vectorized operations)">
+      <created>1582816942802</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1582816942802</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -330,7 +337,8 @@
     <MESSAGE value="Feature outputs for each patient" />
     <MESSAGE value="checkpoint" />
     <MESSAGE value="artifacts (ongoing changes)" />
-    <option name="LAST_COMMIT_MESSAGE" value="artifacts (ongoing changes)" />
+    <MESSAGE value="artifacts (complete, vectorized operations)" />
+    <option name="LAST_COMMIT_MESSAGE" value="artifacts (complete, vectorized operations)" />
   </component>
   <component name="WindowStateProjectService">
     <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
@@ -345,30 +353,30 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="395" y="145" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680@0.0.1280.680" timestamp="1582079970832" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1582566176029">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1582816942368">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1582566176029" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1582816942368" />
     <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1582420772180">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1582420772180" />
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1582816714335">
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1582826044156">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1582816714335" />
-    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1582816714335">
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1582826044156" />
+    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1582826044156">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1582816714335" />
-    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1582816714335">
+    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1582826044156" />
+    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1582826044156">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1582816714335" />
-    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1582816714335">
+    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1582826044156" />
+    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1582826044156">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1582816714335" />
+    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1582826044156" />
     <state x="122" y="57" key="MergeDialog" timestamp="1582253798031">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -381,10 +389,10 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1582228690957" />
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1582566182796">
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1582816947581">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1582566182796" />
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1582816947581" />
     <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1582035221727">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -399,7 +407,7 @@
     <state x="447" y="72" key="ftp.server.browser/0.0.1280.680@0.0.1280.680" timestamp="1582228206006" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1582816714329" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1582826044150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$load_dataset.coverage" NAME="load_dataset Coverage Results" MODIFIED="1580484169417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1582083184079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

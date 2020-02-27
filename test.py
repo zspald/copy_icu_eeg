@@ -39,9 +39,28 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    # a = np.array([1, 0, 0, 1])
+    # a = np.array([np.nan, np.nan, np.nan, np.nan])
+    # print(np.size(a))
     # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
     # print(a[:, None, None] * b)
-    a = np.array([[1, 0], [1, 1], [0, 1], [1, 0]])
-    b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
-    print(np.product(np.expand_dims(a, axis=-1), b))
+    # a = np.array([[1, np.nan], [1, 1], [np.nan, 1], [1, np.nan]])
+    # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
+    # print(np.expand_dims(a, axis=-1) * b)
+    # a = np.array([[1, 0], [1, 1], [0, 1], [1, 0]])
+    # a = (1-a).astype('float')
+    # a[a == 0] = np.nan
+    # print(a)
+    # b = np.array([[[1, 2], [0, 0]], [[1, 0], [1, 2]]])
+    # a = ['a', 'b', 'c', 'd', 'e']
+    # b = ['a', 'd']
+    # x = np.nonzero(np.in1d(a, b))[0]
+    # y = np.ones((10, 5, 10))
+    # z = y[:, x, :]
+    # print(np.shape(z))
+    a = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
+    b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]]) * -1
+    print(np.shape(a))
+    c = np.c_[a, b, b]
+    d = np.swapaxes(np.swapaxes(c, 0, 1), 1, 2)
+    print(np.shape(d))
+    print(np.shape(np.amin(d, axis=0)))

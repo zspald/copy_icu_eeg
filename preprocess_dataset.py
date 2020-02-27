@@ -13,7 +13,7 @@ import h5py
 import numpy as np
 
 # Artifact rejection method
-ARTIFACT_METHOD = 'none'
+ARTIFACT_METHOD = 'threshold'
 
 
 # A class that preprocesses IEEG data for the specified patient
@@ -111,6 +111,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #                of clean EEG segments from the patient's dataset, C is the number of clean
     #                channels and D is the number of samples within each segment (S = fs * s_length)
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
+    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     def process_data(self, num, start, length, use_filter=True, eeg_only=True, channels_to_filter=None,
                      save_artifacts=False):
         input_data = IEEGDataLoader.load_data_batch(self, num, start, length, eeg_only, channels_to_filter)
@@ -122,11 +123,12 @@ class IEEGDataProcessor(IEEGDataLoader):
             coeff = butter(4, [0.5 / (sample_freq / 2), 20 / (sample_freq / 2)], 'bandpass')
             input_data = filtfilt(coeff[0], coeff[1], input_data, axis=-1)
         # Perform artifact rejection over the input data
-        output_data, output_labels, timestamps = self.clean_data(input_data, input_labels, sample_freq, ARTIFACT_METHOD)
+        output_data, output_labels, indices_to_remove = self.clean_data(input_data, input_labels, sample_freq,
+                                                                        ARTIFACT_METHOD)
         # Save artifact information if required
         if save_artifacts:
-            Artifacts.save_artifacts(self.id, timestamps, start, length)
-        return output_data, output_labels, timestamps
+            Artifacts.save_artifacts(self.id, indices_to_remove, start, length)
+        return output_data, output_labels, indices_to_remove
 
     # Performs artifact rejection over all EEG recordings within the given dataset
     # and updates the annotation file in accordance with the processed EEG data
@@ -150,11 +152,15 @@ class IEEGDataProcessor(IEEGDataLoader):
     @staticmethod
     def clean_data(input_data, input_labels, fs, artifact_rejection='none'):
         # Determine batches to remove
-        indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=3, method=artifact_rejection)
+        indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=3,
+                                                                           method=artifact_rejection)
         # Remove cross-channel artifact data
-        output_data = indices_to_remove[:, None, None] * input_data
+        indices_to_keep = (1 - indices_to_remove).astype('float')
+        indices_to_keep[indices_to_keep == 0] = np.nan
+        output_data = indices_to_keep[:, None, None] * input_data
         # Remove channel-specific artifact data
-        channels_to_keep = 1 - channels_to_remove
+        channels_to_keep = (1 - channels_to_remove).astype('float')
+        channels_to_keep[channels_to_keep == 0] = np.nan
         output_data = np.expand_dims(channels_to_keep, axis=-1) * output_data
         # Return None if output data is unavailable
         if len(output_data) == 0:
