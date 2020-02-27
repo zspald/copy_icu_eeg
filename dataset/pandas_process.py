@@ -3,9 +3,9 @@ import pandas as pd
 import h5py
 import scipy.io
 
-patient_no = 28
+patient_no = 94
 
-file1 = h5py.File(('dataset/annot_{}.mat').format(patient_no),'r')
+file1 = h5py.File(('annot_{}.mat').format(patient_no),'r')
 
 #patient_name = np.array2string(file1['/annot_1/patient'])
 
@@ -45,4 +45,4 @@ df = pd.DataFrame (data3, columns = ['event','start','stop'])
 print(df)
 print(patient_name)
 
-df.to_pickle(("dataset/{}.pkl").format(patient_name))
+df.to_pickle(("{}.pkl").format(patient_name))
