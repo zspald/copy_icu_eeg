@@ -20,23 +20,29 @@ class Artifacts:
     #               a patient's dataset, C is the number of valid EEG channels and S is the
     #               number of samples within the EEG segment
     #   fs: sampling frequency of the EEG recording
-    #   method: specific method for removing artifact-like segments. 'default' removes all
-    #           segments that exceed a certain threshold under
+    #   channel_limit: number of channels to allow for artifacts
+    #   method: specific method for removing artifact-like segments.
+    #           'stats' removes all segments that exceed a z-score of 5 under
     #           1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
     #           other methods to be incorporated soon
     # Outputs
-    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
-    #   returns empty list if data is solely comprised of NaN recordings
+    #   indices_to_remove: a list with length N that indicates whether each EEG segment should be removed
+    #   channels_to_remove: a N x C array that indicates whether each channel in each segment should be removed
     @staticmethod
-    def remove_artifacts(input_data, fs, method='default'):
+    def remove_artifacts(input_data, fs, channel_limit=3, method='threshold'):
         # Remove segments that include NaN values first
-        indices_to_remove = Artifacts.remove_nans(input_data)
+        indices_to_remove, channels_to_remove = Artifacts.remove_nans(input_data)
         input_data = np.nan_to_num(input_data)
         if np.size(input_data, axis=0) == 0:
             return list()
-        elif method == 'default':
-            indices_to_remove = Artifacts.remove_artifacts_basic(input_data, fs, indices_to_remove)
-        return indices_to_remove
+        elif method == 'stats':
+            indices_to_remove, channels_to_remove = \
+                Artifacts.remove_artifacts_stats(input_data, fs, channel_limit, indices_to_remove, channels_to_remove)
+        elif method == 'threshold':
+            indices_to_remove, channels_to_remove = \
+                Artifacts.remove_artifacts_thresholds(input_data, fs, channel_limit, indices_to_remove,
+                                                      channels_to_remove)
+        return indices_to_remove, channels_to_remove
 
     # Removes NaN recordings from an input EEG dataset
     # Inputs
@@ -73,32 +79,32 @@ class Artifacts:
     # Outputs
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N*
     @staticmethod
-    def remove_artifacts_basic(input_data, fs, indices_to_remove=None):
+    def remove_artifacts_stats(input_data, fs, channel_limit=3, indices_to_remove=None, channels_to_remove=None):
         if indices_to_remove is None:
             indices_to_remove = np.zeros(np.size(input_data, axis=0))
         # Calculate statistical features for artifact identification
-        minmax = np.amax(np.amax(input_data, axis=2) - np.amin(input_data, axis=2), axis=1)
-        range_z = scipy.stats.zscore(minmax)
-        llength = np.amax(EEGFeatures.line_length(input_data), axis=1)
-        llength_z = scipy.stats.zscore(llength)
-        bdpower = np.amax(EEGFeatures.bandpower(input_data, fs, 12, 20), axis=1)
-        bdpower_z = scipy.stats.zscore(bdpower)
+        minmax = np.amax(input_data, axis=2) - np.amin(input_data, axis=2)
+        range_z = scipy.stats.zscore(minmax, axis=None)
+        llength = EEGFeatures.line_length(input_data)
+        llength_z = scipy.stats.zscore(llength, axis=None)
+        bdpower = EEGFeatures.bandpower(input_data, fs, 12, 20)
+        bdpower_z = scipy.stats.zscore(bdpower, axis=None)
         diff = EEGFeatures.diff_signal(input_data, fs, window_size=0.03)
-        diff_z = scipy.stats.zscore(diff)
+        diff_z = scipy.stats.zscore(diff, axis=None)
         z_threshold = 5
-
-        # Update the removal list whenever statistical outliers are found
-        for idx in range(np.size(input_data, axis=0)):
-            if indices_to_remove[idx] == 0:
-                # Assign different numbers in case artifact information is needed
-                if range_z[idx] > 3:
-                    indices_to_remove[idx] = 2
-                elif llength_z[idx] > 3:
-                    indices_to_remove[idx] = 3
-                elif bdpower_z[idx] > 3:
-                    indices_to_remove[idx] = 4
-            idx += 1
-        return indices_to_remove
+        # Check threshold compliance for every channel
+        violations = (range_z > z_threshold) | (llength_z > z_threshold) | (bdpower_z > z_threshold) | \
+                     (diff_z > z_threshold)
+        violations = np.array(violations, dtype=int)
+        violation_sum = np.sum(violations, axis=-1)
+        # Iterate over each segment to check for channels that contain artifacts
+        for ii in range(np.size(input_data, axis=0)):
+            if violation_sum[ii] > channel_limit:
+                indices_to_remove[ii] = 1
+                channels_to_remove[ii] = 1
+            else:
+                channels_to_remove[ii] = violations[ii]
+        return indices_to_remove, channels_to_remove
 
     # Removes artifacts using threshold measures
     # Inputs

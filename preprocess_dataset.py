@@ -35,7 +35,11 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   channels_to_filter: a list of EEG channels to filter
     #   save: whether to save the results to a .hdf5 file
     # Outputs
-    #
+    #   patient_feats: a feature array that contains features for all EEG segments across all channels
+    #                 with shape N* x C x F, where N* is the number of clean EEG segments from the
+    #                 patient's dataset, C is the number of channels and F is the number of features
+    #   patient_labels: a modified list of seizure annotations of the given patient with length N*
+    #   returns None if no preprocessed data is available
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True,
                           channels_to_filter=None, save=False):
         # Initialize patient-specific feature and label outputs
@@ -83,7 +87,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #                 with shape N* x C x F, where N* is the number of clean EEG segments from the
     #                 patient's dataset, C is the number of channels and F is the number of features
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
-    #   returns as None if no preprocessed data is available
+    #   returns None if no preprocessed data is available
     def get_features(self, num, start, length, norm='off', use_filter=True, eeg_only=True, channels_to_filter=None):
         output_data, output_labels, _ = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter,
                                                           save_artifacts=False)
@@ -131,28 +135,30 @@ class IEEGDataProcessor(IEEGDataLoader):
     #               valid channels and D is the total number of samples within the given patient's EEG
     #   input_labels: a list of seizure annotations of the given patient for every segment
     #   fs: sampling frequency of the patient's EEG recording
-    #   s_length: length of each EEG segment to be inspected, in seconds
     #   artifact_rejection: specific method for removing artifact-like segments.
-    #                       'default' removes all segments that exceed a certain threshold under
-    #                       1) Range 2) Line Length 3) Bandpower in beta frequency band (25 - 60 Hz)
-    #                       other methods to be incorporated
+    #                       'stats' removes all segments with z-scores above 5 under
+    #                       1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
+    #                       'threshold' removes all segments exceeding certain thresholds under
+    #                       1) Variance 2) Range 3) Line Length 4) Bandpower 5) Signal difference
     # Outputs
     #   output_data: a set of processed EEG segments with shape N* x C x D, where N* is the number
     #                of valid EEG segments from the patient's dataset, C is the number of valid
     #                channels and D is the number of samples within each segment (S = fs * s_length)
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
-    #   indicator: a list indicating whether each EEG segment should be removed, with length N
+    #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     #   returns None if no preprocessed data is available
     @staticmethod
     def clean_data(input_data, input_labels, fs, artifact_rejection='none'):
         # Determine batches to remove
-        indicator = Artifacts.remove_artifacts(input_data, fs, method=artifact_rejection)
-        # Remove artifact data
-        indices_to_keep = [idx for idx in range(len(indicator)) if indicator[idx] == 0]
-        output_data = input_data[indices_to_keep]
+        indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=3, method=artifact_rejection)
+        # Remove cross-channel artifact data
+        output_data = indices_to_remove[:, None, None] * input_data
+        # Remove channel-specific artifact data
+        channels_to_keep = 1 - channels_to_remove
+        output_data = np.expand_dims(channels_to_keep, axis=-1) * output_data
         # Return None if output data is unavailable
         if len(output_data) == 0:
             return None, None, None
         # Update labels to match the size of the clean recordings
-        output_labels = np.array([input_labels[idx] for idx, element in enumerate(indicator) if element == 0])
-        return output_data, output_labels, indicator
+        output_labels = np.array([input_labels[idx] for idx, element in enumerate(indices_to_remove) if element == 0])
+        return output_data, output_labels, indices_to_remove

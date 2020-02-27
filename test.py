@@ -39,8 +39,9 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    a = np.zeros((10, 10))
-    b = np.ones((10, 10))
-    x = np.array(a > 0, dtype=int)
-    a[1] = 10
-    print(a)
+    # a = np.array([1, 0, 0, 1])
+    # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
+    # print(a[:, None, None] * b)
+    a = np.array([[1, 0], [1, 1], [0, 1], [1, 0]])
+    b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
+    print(np.product(np.expand_dims(a, axis=-1), b))
