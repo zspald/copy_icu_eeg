@@ -33,11 +33,13 @@ class EEGFeatures:
     #              'default' normalizes features from 0 to 1
     #              'zscore' normalizes features according to their z-scores
     #              'minmax' normalizes features from -1 to 1
+    #   pool_region: whether to manually pool statistics from a given region of electrodes
     # Outputs
     #   output_feats: an array of shape N x G x F, where N is the number of EEG segments,
     #                 G is the number of feature groups and F is the number of features
+    #                 (Note that G = C when pool_region is set to be false.)
     @staticmethod
-    def extract_features(input_data, fs, normalize='off'):
+    def extract_features(input_data, fs, normalize='off', pool_region=False):
         output_feats = None
         # Line length
         llength = EEGFeatures.line_length(input_data)
@@ -58,28 +60,49 @@ class EEGFeatures:
         # Aggregate all features and compute mean over specified channels
         all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
                                    bdpower_beta, skew, kurt, envp])
-        categories = [ALL, LEFT, RIGHT]
-        # Iterate through different types of electrode
-        for category in categories:
-            # Determine indices of intersection and filter the input data
-            indices_to_use = np.nonzero(np.in1d(ALL, category))[0]
-            category_feats = all_feats[:, :, indices_to_use]
-            category_feats = np.expand_dims(np.nanmean(category_feats, axis=-1), axis=-1)
-            if output_feats is None:
-                output_feats = category_feats
-            else:
-                output_feats = np.c_[output_feats, category_feats]
+        # Apply regional pooling over specified regions of scalp electrodes based on user input
+        if pool_region:
+            categories = [ALL, LEFT, RIGHT]
+            # Iterate through different types of electrode
+            for category in categories:
+                # Determine indices of intersection and filter the input data
+                indices_to_use = np.nonzero(np.in1d(ALL, category))[0]
+                category_feats = all_feats[:, :, indices_to_use]
+                category_feats = np.expand_dims(np.nanmean(category_feats, axis=-1), axis=-1)
+                if output_feats is None:
+                    output_feats = category_feats
+                else:
+                    output_feats = np.c_[output_feats, category_feats]
+        # Otherwise pass all features into the set of output features
+        else:
+            output_feats = all_feats
+        # Rearrange axes to match the desired output format
         output_feats = np.swapaxes(np.swapaxes(output_feats, 0, 1), 1, 2)
         # Normalize the features if a specific method is indicated
         if normalize != 'off':
-            output_feats = (output_feats - np.amin(output_feats, axis=0)) / \
-                           (np.amax(output_feats, axis=0) - np.amin(output_feats, axis=0))
-            # Normalize according to z-score
-            if normalize == 'zscore':
-                output_feats = scipy.stats.zscore(output_feats, axis=0)
-            # Normalize from -1 to +1
-            elif normalize == 'minmax':
-                output_feats = output_feats * 2 - 1
+            output_feats = EEGFeatures.normalize_feats(output_feats, option=normalize)
+        return output_feats
+
+    # Normalizes features
+    # Inputs
+    #   input_feats: an array of shape N x G x F, where N is the number of EEG segments,
+    #                G is the number of feature groups and F is the number of features
+    #   option: normalization method to be used for the extracted features
+    #           'default' normalizes features from 0 to 1
+    #           'zscore' normalizes features according to their z-scores
+    #           'minmax' normalizes features from -1 to 1
+    # Outputs
+    #   output_feats: array of same shape with normalized features
+    @staticmethod
+    def normalize_feats(input_feats, option='default'):
+        # Normalize features between 0 to 1
+        output_feats = (input_feats - np.amin(input_feats, axis=0)) / \
+                       (np.amax(input_feats, axis=0) - np.amin(input_feats, axis=0))
+        # Further normalize features based on user option
+        if option == 'zscore':
+            output_feats = scipy.stats.zscore(output_feats, axis=0)
+        elif option == 'minmax':
+            output_feats = output_feats * 2 - 1
         return output_feats
 
     # Computes the line length of every EEG segment over every channel for a batch of EEG data

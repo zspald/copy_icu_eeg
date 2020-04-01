@@ -50,15 +50,10 @@ class IEEGDataLoader:
     # Filters channels by allowing the user the specify which channels to remove
     # Inputs
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_exclude: a list of channels to exclude, consists of strings
     # Outputs
     #   channel_indices: a list of indices for channels that will be included
-    def filter_channels(self, eeg_only, channels_to_exclude=None):
+    def filter_channels(self, eeg_only):
         channels = EEG_CHANNELS if eeg_only else self.channel_labels
-        if channels_to_exclude is not None:
-            for ch in channels_to_exclude:
-                if ch in channels:
-                    channels.remove(ch)
         channel_indices = self.dataset.get_channel_indices(channels)
         return channel_indices
 
@@ -67,12 +62,11 @@ class IEEGDataLoader:
     #   start: starting point, in seconds
     #   length: duration of each segment, in seconds
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_filter: a list of EEG channels to filter
     # Outputs: data_pulled: a numpy array of shape D x C, where D is the number of samples
     #                       and C is the number of valid channels
-    def load_data(self, start, length, eeg_only=True, channels_to_filter=None):
+    def load_data(self, start, length, eeg_only=True):
         # Determine channels to use for EEG extraction
-        channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
+        channels_to_use = self.filter_channels(eeg_only)
         # Check whether too much data is requested for storage
         try:
             np.zeros((length, len(channels_to_use)))
@@ -92,17 +86,15 @@ class IEEGDataLoader:
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_filter: a list of EEG channels to filter
     # Outputs
     #   batch_data: numpy array of shape N x D x C, where N is the number of segments,
     #               D is the number of samples and C is the number of valid channels
-    def load_data_batch(self, num, start, length, eeg_only=True, channels_to_filter=None):
+    def load_data_batch(self, num, start, length, eeg_only=True):
         try:
-            raw_data = self.load_data(start, num * length, eeg_only, channels_to_filter)
+            raw_data = self.load_data(start, num * length, eeg_only)
         except IeegConnectionError:  # Too much data is loaded from IEEG
-            data_left = self.load_data_batch(math.floor(num / 2), start, length, channels_to_filter=channels_to_filter)
-            data_right = self.load_data_batch(math.ceil(num / 2), start + math.floor(num / 2) * length, length,
-                                              channels_to_filter=channels_to_filter)
+            data_left = self.load_data_batch(math.floor(num / 2), start, length)
+            data_right = self.load_data_batch(math.ceil(num / 2), start + math.floor(num / 2) * length, length)
             raw_data = np.r_[data_left, data_right]
         batch_data = np.reshape(raw_data, (num, int(length * self.fs), np.size(raw_data, axis=-1)))
         return batch_data

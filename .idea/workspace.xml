@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ieeg/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/ieeg/dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ieeg/ieeg_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/ieeg/ieeg_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +37,12 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../STAT431/HW/STAT_HW" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -109,6 +114,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="features_2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ICU_EEG" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/features_2d.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="load_dataset" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ICU_EEG" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -158,14 +185,15 @@
       <item itemvalue="Python.example" />
       <item itemvalue="Python.load_dataset" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.features_2d" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.example" />
+        <item itemvalue="Python.features_2d" />
         <item itemvalue="Python.test" />
         <item itemvalue="Python.artifact_detector" />
         <item itemvalue="Python.artifact_detector" />
-        <item itemvalue="Python.load_dataset" />
       </list>
     </recent_temporary>
   </component>
@@ -206,7 +234,13 @@
       <workItem from="1582137581608" duration="28432000" />
       <workItem from="1582350261879" duration="667000" />
       <workItem from="1582420409740" duration="612000" />
-      <workItem from="1582566158846" duration="17188000" />
+      <workItem from="1582566158846" duration="22318000" />
+      <workItem from="1583246125403" duration="4151000" />
+      <workItem from="1584198337574" duration="1914000" />
+      <workItem from="1584488745934" duration="2173000" />
+      <workItem from="1584553926824" duration="1199000" />
+      <workItem from="1584628578841" duration="10580000" />
+      <workItem from="1585515969663" duration="24642000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -327,7 +361,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582826157965</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="features (bug fixes)">
+      <created>1582832011671</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1582832011671</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -349,7 +390,8 @@
     <MESSAGE value="artifacts (ongoing changes)" />
     <MESSAGE value="artifacts (complete, vectorized operations)" />
     <MESSAGE value="features update (left and right hemisphere)" />
-    <option name="LAST_COMMIT_MESSAGE" value="features update (left and right hemisphere)" />
+    <MESSAGE value="features (bug fixes)" />
+    <option name="LAST_COMMIT_MESSAGE" value="features (bug fixes)" />
   </component>
   <component name="WindowStateProjectService">
     <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
@@ -364,30 +406,30 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="395" y="145" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680@0.0.1280.680" timestamp="1582079970832" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1582826157495">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1582832011267">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1582826157495" />
-    <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1582420772180">
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1582832011267" />
+    <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1585626515168">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1582420772180" />
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1582831922086">
+    <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1585626515168" />
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1585776702551">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1582831922086" />
-    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1582831922086">
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
+    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1585776702551">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1582831922086" />
-    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1582831922086">
+    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
+    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1585776702551">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1582831922086" />
-    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1582831922086">
+    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
+    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1585776702551">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1582831922086" />
+    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
     <state x="122" y="57" key="MergeDialog" timestamp="1582253798031">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -400,10 +442,10 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1582228690957" />
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1582826161197">
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1585777662849">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1582826161197" />
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1585777662849" />
     <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1582035221727">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
@@ -420,8 +462,9 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1582831809499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$features_2d.coverage" NAME="features_2d Coverage Results" MODIFIED="1585717475279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$load_dataset.coverage" NAME="load_dataset Coverage Results" MODIFIED="1580484169417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582214012350" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ieeg" />
-    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1582831922076" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1585776702546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

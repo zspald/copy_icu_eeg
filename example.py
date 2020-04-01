@@ -6,6 +6,8 @@
 
 # Import the IEEGDataProcessor to test its functionality
 from preprocess_dataset import IEEGDataProcessor
+from features_2d import EEGMap
+import numpy as np
 
 # Define IEEG username and password here
 username = 'danieljkim0118'
@@ -23,10 +25,13 @@ password = 'kjm39173917#'
 # Extract features 50 times with batch size 20 and segment length of 5 seconds.
 print("==========Example #2==========")
 dataset2 = IEEGDataProcessor('RID0061', username, password)
-feats, labels = dataset2.process_all_feats(num_iter=5, num_batches=200, start=0, length=5, use_filter=True,
-                                           eeg_only=True, channels_to_filter=None, save=False)
-print(feats.shape)
-print(labels.shape)
+feats, labels, channel_info = dataset2.process_all_feats(num_iter=5, num_batches=200, start=0, length=5, use_filter=True,
+                                                         eeg_only=True, save=False)
+map_outputs = EEGMap.generate_map(feats, channel_info)
+print(np.shape(map_outputs))
+# print(feats.shape)
+# print(np.isnan(feats).any())
+# print(labels.shape)
 
 # Extract features 100 times with batch size 30 and segment length of 1 second each, starting at 10 mins.
 # Exclude the F8 and Pz channels.

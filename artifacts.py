@@ -123,7 +123,7 @@ class Artifacts:
             indices_to_remove = np.zeros(np.size(input_data, axis=0))
         # Feature-specific thresholds for removing artifacts
         var_threshold = 5
-        minmax_threshold = 400
+        minmax_threshold = 300
         llength_threshold = 1e4
         bdpower_threshold = 1e6
         diff_threshold = 100

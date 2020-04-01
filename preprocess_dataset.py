@@ -32,7 +32,6 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_filter: a list of EEG channels to filter
     #   save: whether to save the results to a .hdf5 file
     # Outputs
     #   patient_feats: a feature array that contains features for all EEG segments across all channels
@@ -40,16 +39,14 @@ class IEEGDataProcessor(IEEGDataLoader):
     #                 patient's dataset, C is the number of channels and F is the number of features
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
-    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True,
-                          channels_to_filter=None, save=False):
+    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, save=False):
         # Initialize patient-specific feature and label outputs
-        patient_feats = None
-        patient_labels = None
+        patient_feats, patient_labels, channel_info = None, None, None
         # Iterate over all batches
         for ii in range(num_iter):
             # Search for the first point (in seconds) where non-NaN values occur
             if ii == 0:
-                channels_to_use = self.filter_channels(eeg_only, channels_to_exclude=channels_to_filter)
+                channels_to_use = self.filter_channels(eeg_only)
                 start = self.crawl_data(start, interval_length=600, threshold=3600, channels_to_use=channels_to_use)
                 if start is None:
                     print("Patient contains NaN recordings for over an hour!")
@@ -57,8 +54,8 @@ class IEEGDataProcessor(IEEGDataLoader):
                 print("The starting point is: %d seconds" % start)
             print("===Iteration %d===" % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
-            feats, labels = self.get_features(num_batches, start, length, norm='on', use_filter=use_filter,
-                                              eeg_only=eeg_only, channels_to_filter=channels_to_filter)
+            feats, labels, channels_to_remove = self.get_features(num_batches, start, length, norm='on', use_filter=use_filter,
+                                                                  eeg_only=eeg_only)
             start += num_batches * length
             # Add batch features and labels to patient-specific outputs
             if feats is None:
@@ -66,13 +63,15 @@ class IEEGDataProcessor(IEEGDataLoader):
             else:
                 patient_feats = feats if patient_feats is None else np.r_[patient_feats, feats]
                 patient_labels = labels if patient_labels is None else np.r_[patient_labels, labels]
+                channel_info = channels_to_remove if channel_info is None else np.r_[channel_info, channels_to_remove]
         # Save features and labels if indicated by the user
         if save:
             with h5py.File('%s_feats.h5' % self.id, "w") as file:
                 file.create_dataset('feats', data=patient_feats)
                 file.create_dataset('labels', data=patient_labels)
+                file.create_dataset('channels', data=channel_info)
         print("Shape of the features: ", np.shape(patient_feats))
-        return patient_feats, patient_labels
+        return patient_feats, patient_labels, channel_info
 
     # Extracts features for a specified interval of EEG recordings from IEEG
     # Inputs
@@ -81,21 +80,20 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_filter: a list of EEG channels to filter
     # Outputs
     #   output_feats: a feature array that contains features for all EEG segments across all channels
     #                 with shape N* x C x F, where N* is the number of clean EEG segments from the
     #                 patient's dataset, C is the number of channels and F is the number of features
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
-    def get_features(self, num, start, length, norm='off', use_filter=True, eeg_only=True, channels_to_filter=None):
-        output_data, output_labels, _ = self.process_data(num, start, length, use_filter, eeg_only, channels_to_filter,
-                                                          save_artifacts=False)
+    def get_features(self, num, start, length, norm='off', use_filter=True, eeg_only=True):
+        output_data, output_labels, _, channels_to_remove = self.process_data(num, start, length, use_filter, eeg_only,
+                                                                              save_artifacts=False)
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None
-        output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm)
-        return output_feats, output_labels
+        output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=False)
+        return output_feats, output_labels, channels_to_remove
 
     # Processes data from IEEG.org in multiple batches
     # Inputs
@@ -104,7 +102,6 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   channels_to_filter: a list of EEG channels to filter
     #   save_artifacts: whether to save timepoints of EEG artifacts
     # Outputs
     #   output_data: a set of processed EEG segments with shape N* x C x D, where N* is the number
@@ -112,23 +109,26 @@ class IEEGDataProcessor(IEEGDataLoader):
     #                channels and D is the number of samples within each segment (S = fs * s_length)
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
-    def process_data(self, num, start, length, use_filter=True, eeg_only=True, channels_to_filter=None,
-                     save_artifacts=False):
-        input_data = IEEGDataLoader.load_data_batch(self, num, start, length, eeg_only, channels_to_filter)
+    def process_data(self, num, start, length, use_filter=True, eeg_only=True, save_artifacts=False):
+        input_data = IEEGDataLoader.load_data_batch(self, num, start, length, eeg_only)
         input_data = np.swapaxes(input_data, 1, 2)
         input_labels = IEEGDataLoader.load_annots(self, num, start, length, use_file=True)
-        sample_freq = IEEGDataLoader.sampling_frequency(self)
+        fs = IEEGDataLoader.sampling_frequency(self)
         # Filter from 0.5 to 20 Hz if selected
         if use_filter:
-            coeff = butter(4, [0.5 / (sample_freq / 2), 20 / (sample_freq / 2)], 'bandpass')
+            coeff = butter(4, [0.5 / (fs / 2), 20 / (fs / 2)], 'bandpass')
             input_data = filtfilt(coeff[0], coeff[1], input_data, axis=-1)
         # Perform artifact rejection over the input data
-        output_data, output_labels, indices_to_remove = self.clean_data(input_data, input_labels, sample_freq,
-                                                                        ARTIFACT_METHOD)
+        output_data, output_labels, indices_to_remove, channels_to_remove = self.clean_data(input_data, input_labels,
+                                                                                            fs, ARTIFACT_METHOD)
+        # Postprocess data structure for channels removed
+        channels_to_remove = np.array([channels_to_remove[ii] for ii in range(np.size(channels_to_remove, axis=0))
+                                       if indices_to_remove[ii] == 0])
         # Save artifact information if required
         if save_artifacts:
             Artifacts.save_artifacts(self.id, indices_to_remove, start, length)
-        return output_data, output_labels, indices_to_remove
+        print('Channel shape: ', np.shape(channels_to_remove))
+        return output_data, output_labels, indices_to_remove, channels_to_remove
 
     # Performs artifact rejection over all EEG recordings within the given dataset
     # and updates the annotation file in accordance with the processed EEG data
@@ -170,4 +170,4 @@ class IEEGDataProcessor(IEEGDataLoader):
         output_data = output_data[(1-indices_to_remove).astype(bool), :, :]
         # Update labels to match the size of the clean recordings
         output_labels = np.array([input_labels[idx] for idx, element in enumerate(indices_to_remove) if element == 0])
-        return output_data, output_labels, indices_to_remove
+        return output_data, output_labels, indices_to_remove, channels_to_remove
