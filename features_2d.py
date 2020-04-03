@@ -9,7 +9,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
-from features import EEGFeatures
+from features import EEGFeatures, EEG_FEATS
 
 # List of electrode coordinates to be used for image construction
 EEG_X = [-0.4, 0.4, 0.0, -0.32, 0.32, -0.64, 0.64, 0.0, -0.24, 0.24, -0.8, 0.8, -0.64, 0.64,
@@ -19,7 +19,7 @@ EEG_Y = [0.0, 0.0, 0.0, 0.4, 0.4, 0.48, 0.48, 0.4, 0.76, 0.76, 0.0, 0.0, -0.48, 
          -0.5, -0.5, -0.76, -0.76]
 
 
-# A class that allows the user to obtain images of feature distribution across the brain
+# A class that allows the user to obtain images of feature distribution across the brain surface
 class EEGMap:
 
     # Generates a map of EEG feature distribution over the scalp map
@@ -35,6 +35,7 @@ class EEGMap:
     #                N* and F share the same definitions as above and W, H denote the image size
     @staticmethod
     def generate_map(input_feats, channel_info, normalize=True):
+        print(np.shape(input_feats), np.shape(channel_info))
         # Obtain coordinates for rectangular grid with pre-allocated size
         grid_x, grid_y = np.mgrid[-1:1:48j, -1:1:48j]
         x_zero, y_zero, zeros = EEGMap.zero_coordinates(grid_x, grid_y, rad=0.85)
@@ -95,3 +96,19 @@ class EEGMap:
         # Create a list of zeros to be used for suppression outside
         zeros = np.zeros(len(x_coords))
         return x_coords, y_coords, zeros
+
+    # Visualizes the feature distribution across the brain surface
+    # Inputs
+    #   input_maps: a multidimensional array of feature maps with shape (N* x F x W x H), where
+    #               N* and F share the same definitions as above and W, H denote the image size
+    #   feat_idx: index of the feature to be visualized, as given in EEG_FEATS in features.py
+    # Outputs
+    #   returns a plot of sample distribution of the designated feature over the scalp
+    @staticmethod
+    def visualize_map(input_maps, feat_idx):
+        sample_idx = np.random.randint(0, np.size(input_maps, axis=0))
+        feat_map = input_maps[sample_idx][feat_idx]
+        plt.imshow(feat_map, extent=(-1, 1, -1, 1), origin='lower', cmap='jet')
+        plt.title('Interpolated Map - %s' % EEG_FEATS[feat_idx])
+        plt.show()
+        return

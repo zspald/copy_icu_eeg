@@ -25,10 +25,10 @@ password = 'kjm39173917#'
 # Extract features 50 times with batch size 20 and segment length of 5 seconds.
 print("==========Example #2==========")
 dataset2 = IEEGDataProcessor('RID0061', username, password)
-feats, labels, channel_info = dataset2.process_all_feats(num_iter=5, num_batches=200, start=0, length=5, use_filter=True,
+feats, labels, channel_info = dataset2.process_all_feats(num_iter=5, num_batches=20, start=0, length=5, use_filter=True,
                                                          eeg_only=True, save=False)
-map_outputs = EEGMap.generate_map(feats, channel_info)
-print(np.shape(map_outputs))
+map_outputs = EEGMap.generate_map(feats, channel_info, normalize=True)
+EEGMap.visualize_map(map_outputs, 3)
 # print(feats.shape)
 # print(np.isnan(feats).any())
 # print(labels.shape)

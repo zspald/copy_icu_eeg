@@ -54,7 +54,7 @@ class IEEGDataProcessor(IEEGDataLoader):
                 print("The starting point is: %d seconds" % start)
             print("===Iteration %d===" % (ii + 1))
             # Extract features using the given IEEGDataProcessor object
-            feats, labels, channels_to_remove = self.get_features(num_batches, start, length, norm='on', use_filter=use_filter,
+            feats, labels, channels_to_remove = self.get_features(num_batches, start, length, norm='off', use_filter=use_filter,
                                                                   eeg_only=eeg_only)
             start += num_batches * length
             # Add batch features and labels to patient-specific outputs
@@ -127,7 +127,6 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Save artifact information if required
         if save_artifacts:
             Artifacts.save_artifacts(self.id, indices_to_remove, start, length)
-        print('Channel shape: ', np.shape(channels_to_remove))
         return output_data, output_labels, indices_to_remove, channels_to_remove
 
     # Performs artifact rejection over all EEG recordings within the given dataset

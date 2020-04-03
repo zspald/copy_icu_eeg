@@ -62,8 +62,9 @@ class IEEGDataLoader:
     #   start: starting point, in seconds
     #   length: duration of each segment, in seconds
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    # Outputs: data_pulled: a numpy array of shape D x C, where D is the number of samples
-    #                       and C is the number of valid channels
+    # Outputs
+    #   data_pulled: a numpy array of shape D x C, where D is the number of samples
+    #                and C is the number of valid channels
     def load_data(self, start, length, eeg_only=True):
         # Determine channels to use for EEG extraction
         channels_to_use = self.filter_channels(eeg_only)

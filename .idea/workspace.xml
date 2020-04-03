@@ -2,13 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ICU_EEG.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ICU_EEG.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features_2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -190,8 +192,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.example" />
-        <item itemvalue="Python.features_2d" />
         <item itemvalue="Python.test" />
+        <item itemvalue="Python.features_2d" />
         <item itemvalue="Python.artifact_detector" />
         <item itemvalue="Python.artifact_detector" />
       </list>
@@ -240,7 +242,7 @@
       <workItem from="1584488745934" duration="2173000" />
       <workItem from="1584553926824" duration="1199000" />
       <workItem from="1584628578841" duration="10580000" />
-      <workItem from="1585515969663" duration="24642000" />
+      <workItem from="1585515969663" duration="32496000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -368,7 +370,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582832011671</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="4D EEG Maps">
+      <created>1585777688654</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1585777688654</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -391,7 +400,8 @@
     <MESSAGE value="artifacts (complete, vectorized operations)" />
     <MESSAGE value="features update (left and right hemisphere)" />
     <MESSAGE value="features (bug fixes)" />
-    <option name="LAST_COMMIT_MESSAGE" value="features (bug fixes)" />
+    <MESSAGE value="4D EEG Maps" />
+    <option name="LAST_COMMIT_MESSAGE" value="4D EEG Maps" />
   </component>
   <component name="WindowStateProjectService">
     <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
@@ -406,65 +416,65 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="395" y="145" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680@0.0.1280.680" timestamp="1582079970832" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1582832011267">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1585777688134">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1582832011267" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585777688134" />
     <state x="422" y="97" key="FileChooserDialogImpl" timestamp="1585626515168">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1585626515168" />
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1585776702551">
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom" timestamp="1585889903985">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
-    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1585776702551">
+    <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
+    <state width="1237" height="163" key="GridCell.Tab.0.center" timestamp="1585889903985">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
-    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1585776702551">
+    <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
+    <state width="1237" height="163" key="GridCell.Tab.0.left" timestamp="1585889903985">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
-    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1585776702551">
+    <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
+    <state width="1237" height="163" key="GridCell.Tab.0.right" timestamp="1585889903985">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585776702551" />
-    <state x="122" y="57" key="MergeDialog" timestamp="1582253798031">
+    <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
+    <state x="122" y="57" key="MergeDialog" timestamp="1585777814499">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="122" y="57" key="MergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1582253798031" />
-    <state x="354" y="58" key="MultipleFileMergeDialog" timestamp="1582253798035">
+    <state x="122" y="57" key="MergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1585777814499" />
+    <state x="354" y="58" key="MultipleFileMergeDialog" timestamp="1585777816074">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="354" y="58" key="MultipleFileMergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1582253798035" />
-    <state x="167" y="0" key="SettingsEditor" timestamp="1582228690957">
+    <state x="354" y="58" key="MultipleFileMergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1585777816074" />
+    <state x="167" y="0" key="SettingsEditor" timestamp="1585777990553">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1582228690957" />
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1585777662849">
+    <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1585777990553" />
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2" timestamp="1585778083226">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1585777662849" />
-    <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1582035221727">
+    <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1585778083226" />
+    <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1585883739137">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1280.680@0.0.1280.680" timestamp="1582035221727" />
+    <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1280.680@0.0.1280.680" timestamp="1585883739137" />
     <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1582253708734">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.680@0.0.1280.680" timestamp="1582253708734" />
-    <state x="447" y="72" key="ftp.server.browser" timestamp="1582228206006">
+    <state x="447" y="72" key="ftp.server.browser" timestamp="1585777979738">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="447" y="72" key="ftp.server.browser/0.0.1280.680@0.0.1280.680" timestamp="1582228206006" />
+    <state x="447" y="72" key="ftp.server.browser/0.0.1280.680@0.0.1280.680" timestamp="1585777979738" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1582831809499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1585885626113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$features_2d.coverage" NAME="features_2d Coverage Results" MODIFIED="1585717475279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$load_dataset.coverage" NAME="load_dataset Coverage Results" MODIFIED="1580484169417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582214012350" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ieeg" />
-    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1585776702546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1585889903968" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

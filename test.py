@@ -43,9 +43,12 @@ if __name__ == "__main__":
     # print(np.size(a))
     # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
     # print(a[:, None, None] * b)
-    # a = np.array([[1, np.nan], [1, 1], [np.nan, 1], [1, np.nan]])
-    # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
-    # print(np.expand_dims(a, axis=-1) * b)
+    a = np.array([[1, np.nan], [1, 1], [np.nan, 1], [1, np.nan]])
+    b = np.array([[[1, 2, 1], [1, 2, 2]], [[1, 2, 3], [1, 2, 4]], [[1, 2, 5], [1, 2, 6]], [[1, 2, 7], [1, 2, 8]]])
+    print(np.shape(b))
+    c = np.expand_dims(a, axis=-1) * b
+    print(c)
+    print(np.shape(c))
     # a = np.array([[1, 0], [1, 1], [0, 1], [1, 0]])
     # a = (1-a).astype('float')
     # a[a == 0] = np.nan
@@ -57,8 +60,8 @@ if __name__ == "__main__":
     # y = np.ones((10, 5, 10))
     # z = y[:, x, :]
     # print(np.shape(z))
-    a = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
-    b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]]) * -1
-    c = np.array([1, 0, 1, 0]).astype(bool)
-    a = a[c]
-    print(a)
+    # a = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]])
+    # b = np.array([[[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]], [[1, 2], [1, 2]]]) * -1
+    # c = np.array([1, 0, 1, 0]).astype(bool)
+    # a = a[c]
+    # print(a)

@@ -12,11 +12,14 @@ import scipy.stats
 from scipy.signal import hilbert
 from load_dataset import EEG_CHANNELS
 
-
 # EEG electrodes
 ALL = EEG_CHANNELS
 LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
 RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
+
+# List of statistical EEG features
+EEG_FEATS = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
+             'Skewness', 'Kurtosis', 'Envelope']
 
 
 # A class that contains methods for extracting statistical EEG features
@@ -96,11 +99,11 @@ class EEGFeatures:
     @staticmethod
     def normalize_feats(input_feats, option='default'):
         # Normalize features between 0 to 1
-        output_feats = (input_feats - np.amin(input_feats, axis=0)) / \
-                       (np.amax(input_feats, axis=0) - np.amin(input_feats, axis=0))
+        output_feats = (input_feats - np.nanmin(input_feats, axis=0)) / \
+                       (np.nanmax(input_feats, axis=0) - np.nanmin(input_feats, axis=0))
         # Further normalize features based on user option
         if option == 'zscore':
-            output_feats = scipy.stats.zscore(output_feats, axis=0)
+            output_feats = (input_feats - np.nanmean(input_feats, axis=0)) / np.nanstd(input_feats, axis=0)
         elif option == 'minmax':
             output_feats = output_feats * 2 - 1
         return output_feats
@@ -210,6 +213,7 @@ class EEGFeatures:
         cwt_outputs = np.transpose(cwt_outputs, [1, 2, 0, 3])
         new_width = math.ceil(np.size(cwt_outputs, axis=2) / downsample_factor)
         new_length = math.ceil(np.size(cwt_outputs, axis=3) / downsample_factor)
+        # Build the output image array based on the user-defined map generation method
         if method == 'both':
             img_outputs = (
                 np.zeros((np.size(cwt_outputs, axis=0), np.size(cwt_outputs, axis=1), new_width, new_length)),
