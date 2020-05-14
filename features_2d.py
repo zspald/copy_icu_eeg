@@ -6,6 +6,7 @@
 #######################################################################################
 
 # Import libraries
+import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
@@ -22,8 +23,9 @@ EEG_Y = [0.0, 0.0, 0.0, 0.4, 0.4, 0.48, 0.48, 0.4, 0.76, 0.76, 0.0, 0.0, -0.48, 
 # A class that allows the user to obtain images of feature distribution across the brain surface
 class EEGMap:
 
-    # Generates a map of EEG feature distribution over the scalp map
+    # Generates a map of EEG feature distribution over the brain surface
     # Inputs
+    #   patient_id: ID of the patient
     #   input_feats: an array of EEG features with shape N* x C x F, where N* is the number of
     #                clean EEG segments from the patient's dataset, C is the number of channels
     #                and F is the number of features
@@ -34,23 +36,22 @@ class EEGMap:
     #   all_outputs: a multidimensional array of feature maps with shape (N* x F x W x H), where
     #                N* and F share the same definitions as above and W, H denote the image size
     @staticmethod
-    def generate_map(input_feats, channel_info, normalize=True):
-        print(np.shape(input_feats), np.shape(channel_info))
+    def generate_map(patient_id, input_feats, channel_info, normalize=False):
+        # Initialize HDF file to store the output array
+        file = h5py.File('%s_data.h5' % patient_id, 'a')
+        all_outputs = file.create_dataset('maps', (np.size(input_feats, axis=0), np.size(input_feats, axis=-1), 48, 48)
+                                          , compression='gzip', chunks=True)
         # Obtain coordinates for rectangular grid with pre-allocated size
         grid_x, grid_y = np.mgrid[-1:1:48j, -1:1:48j]
         x_zero, y_zero, zeros = EEGMap.zero_coordinates(grid_x, grid_y, rad=0.85)
         # Normalize features globally if indicated so
         if normalize:
             input_feats = EEGFeatures.normalize_feats(input_feats, option='default')
-        # Create placeholder for total output
-        all_outputs = None
         # Iterate over all samples
         for ii in range(np.size(input_feats, axis=0)):
             channels_to_zero = channel_info[ii]
-            # Create placeholder for sample output
-            sample_outputs = None
             # Iterate over all features
-            for jj in range(np.size(input_feats, axis=2)):
+            for jj in range(np.size(input_feats, axis=-1)):
                 # Check whether channel contains NaN features
                 x_coords = np.array([x for idx, x in enumerate(EEG_X) if channels_to_zero[idx] == 0])
                 y_coords = np.array([y for idx, y in enumerate(EEG_Y) if channels_to_zero[idx] == 0])
@@ -62,15 +63,7 @@ class EEGMap:
                 # Perform linear interpolation upon the map inputs
                 map_outputs = griddata(map_coords, map_inputs, (grid_x, grid_y), method='linear')
                 # Return map-generated outputs for the EEG sample
-                if jj == 0:
-                    sample_outputs = np.expand_dims(map_outputs, axis=0)
-                else:
-                    sample_outputs = np.r_[sample_outputs, np.expand_dims(map_outputs, axis=0)]
-            # Return sample outputs for the entire set of given features
-            if ii == 0:
-                all_outputs = np.expand_dims(sample_outputs, axis=0)
-            else:
-                all_outputs = np.r_[all_outputs, np.expand_dims(sample_outputs, axis=0)]
+                all_outputs[ii, jj, :, :] = map_outputs
         return all_outputs
 
     # Returns a list of coordinates outside the scalp region to be zeroed for interpolation.

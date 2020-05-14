@@ -111,10 +111,14 @@ class IEEGDataLoader:
     #   annotations: a numpy array of length 'num' that contains annotations for each EEG segment
     def load_annots(self, num, start, length, annot_idx=0, use_file=True):
         sz_intervals = self.load_annots_source(annot_idx, use_file)
-        annotations = np.zeros(num)
+        annotations = [(0, 0, 0) for _ in range(num)]
         for ii in range(num):
-            annotations[ii] = 1 if IEEGDataLoader.search_interval(sz_intervals, start, length) else 0
-            start += num
+            begin = start + ii * length
+            if IEEGDataLoader.search_interval(sz_intervals, start, length):
+                annotations[ii] = (1, begin, begin + length)
+            else:
+                annotations[ii] = (0, begin, begin + length)
+            start += num * length
         return annotations
 
     # Loads seizure intervals from IEEG.org for the specified patient
@@ -211,6 +215,8 @@ class IEEGDataLoader:
     #              Each row contains the start and stop time, measured in seconds
     #   timepoint: the starting point of the EEG segment of interest, in seconds
     #   length: length of the EEG segment, in seconds
+    # Outputs
+    #   a boolean indicating whether the given EEG segment should be labeled as 'seizure'
     @staticmethod
     def search_interval(intervals, timepoint, length):
         idx = int(np.size(intervals, axis=0) / 2)

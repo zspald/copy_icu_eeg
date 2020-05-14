@@ -10,10 +10,10 @@ import numpy as np
 import pywt
 import scipy.stats
 from scipy.signal import hilbert
-from load_dataset import EEG_CHANNELS
 
 # EEG electrodes
-ALL = EEG_CHANNELS
+ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
+       'T3', 'T4', 'T5', 'T6']
 LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
 RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
 
