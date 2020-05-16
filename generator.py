@@ -15,8 +15,10 @@ class EEGDataGenerator:
 
     # The constructor for the EEGDataGenerator class
     # Fields
-    #   patient_list: list of all patient IDs
+    #   batch_list: a list that contains number of batches in each dataset
     #   batch_size: the number of samples in each batch
+    #   indices: list of all patient indices hashed from IDs
+    #   patient_list: list of all patient IDs
     #   shuffle: whether to shuffle order of training/validation batches
     def __init__(self, patient_list, batch_size=1e4, shuffle=True):
         self.patient_list = patient_list
@@ -25,20 +27,33 @@ class EEGDataGenerator:
         self.indices = np.arange(len(self.patient_list))
         self.batch_list = list()
         # Iterate over all patients to determine the total number of samples and batches
-        for patient in patient_list:
-            with open('data/%s_data.h5' % patient, 'r') as file:
+        for patient_id in patient_list:
+            with open('data/%s_data.h5' % patient_id, 'r') as file:
                 self.batch_list.append(np.ceil(file['maps'].shape[0] / batch_size))
+        self.length = sum(self.batch_list)
         self.on_epoch_end()
 
     # Returns the total number of batches required for training each epoch
     def __len__(self):
-        return sum(self.batch_list)
+        return self.length
 
     # Re-shuffles the training/validation data for every epoch
     def on_epoch_end(self):
         if self.shuffle:
             np.random.shuffle(self.indices)
         return
+
+    # Returns labels from the given list of patient IDs
+    def get_labels(self):
+        labels = list()
+        # Iterate over all patients to extract associated labels
+        for patient_id in self.patient_list:
+            with open('data/%s_data.h5' % patient_id, 'r') as file:
+                label = file['labels'][:, 0]
+            labels.extend(list(label))
+        # Convert to numpy array
+        labels = np.asarray(labels)
+        return labels
 
     # Returns the next batch of data and labels
     # Inputs
