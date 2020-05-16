@@ -2,6 +2,7 @@ import argparse
 import getpass
 from ieeg.auth import Session
 import numpy as np
+import os
 
 
 def main():
@@ -35,3 +36,7 @@ def main():
 
         # Close dataset for RID0061
         session.close_dataset(dataset_name)
+
+
+if __name__ == "__main__":
+    print(os.cpu_count())

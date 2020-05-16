@@ -1,3 +1,10 @@
+############################################################################
+# Generates EEG maps for multiple patients with user-friendly interface
+# Written by Daniel Joongwon Kim
+# University of Pennsylvania, Department of Computer and Information Science
+############################################################################
+
+# Import libraries
 from preprocess_dataset import IEEGDataProcessor
 import argparse
 

@@ -11,7 +11,6 @@ from tensorflow.keras.layers import Conv2D, ConvLSTM2D, CuDNNGRU, CuDNNLSTM, \
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
-import numpy as np
 import tensorflow as tf
 
 
@@ -20,12 +19,12 @@ class EEGModel:
 
     # A 2D convolutional neural network model that resembles Inception v1 approach
     # Inputs
-    #   input_data: sample input that defines the size of the input layer
+    #   input_shape: shape of the input data
     # Outputs
     #   model: the model that
     @staticmethod
-    def convolutional_network(input_data):
-        input_layer = Input(shape=np.shape(input_data))
+    def convolutional_network(input_shape):
+        input_layer = Input(shape=input_shape)
         conv1a = Conv2D(8, kernel_size=(3, 3), activation=tf.nn.relu)(input_layer)
         conv2a = Conv2D(16, kernel_size=(3, 3), activation=tf.nn.relu)(conv1a)
         pool1a = MaxPool2D(pool_size=(2, 2))(conv2a)

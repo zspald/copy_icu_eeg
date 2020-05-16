@@ -43,7 +43,7 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
         # Create a gzipped HDF file to store the processed features
-        file = h5py.File('%s_data.h5' % self.id, 'w')
+        file = h5py.File('data/%s_data.h5' % self.id, 'w')
         patient_feats = file.create_dataset('feats', (0, len(channels_to_use), len(EEG_FEATS)),
                                             maxshape=(None, len(channels_to_use), len(EEG_FEATS)),
                                             compression='gzip', chunks=True)
