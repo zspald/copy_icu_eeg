@@ -10,7 +10,6 @@ from tensorflow.keras.layers import Conv2D, ConvLSTM2D, CuDNNGRU, CuDNNLSTM, \
     concatenate, Dense, Dropout, Flatten, Input, MaxPool2D
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import load_model
-from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 
 
@@ -39,7 +38,7 @@ class EEGModel:
         conv3b = Conv2D(32, kernel_size=(3, 3), activation=tf.nn.relu)(conv2b)
         conv4b = Conv2D(32, kernel_size=(2, 2), activation=tf.nn.relu)(conv3b)
         pool1b = MaxPool2D(pool_size=(2, 2))(conv4b)
-        flat2 = Flatten(pool1b)
+        flat2 = Flatten()(pool1b)
         # Concatenate flattened representations
         concat = concatenate([flat1, flat2])
         fc1 = Dense(64, activation=tf.nn.relu)(concat)
@@ -49,5 +48,5 @@ class EEGModel:
         out = Dense(2, activation=tf.nn.softmax)(drop2)
         # Initialize and compile the model
         model = Model(inputs=input_layer, outputs=out)
-        model.compile(loss=CategoricalCrossentropy, optimizer=Adam, metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         return model

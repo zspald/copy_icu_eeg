@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
@@ -41,7 +44,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../2019 Fall/_Research_/NICU_EEG" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../CIS530/doc-word2vec" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -242,7 +245,7 @@
       <workItem from="1585515969663" duration="44105000" />
       <workItem from="1587133281294" duration="1319000" />
       <workItem from="1589222316851" duration="39464000" />
-      <workItem from="1589552473093" duration="37601000" />
+      <workItem from="1589552473093" duration="65818000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -426,7 +429,14 @@
       <option name="project" value="LOCAL" />
       <updated>1589655260649</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="visualizations">
+      <created>1589666003418</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1589666003418</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -457,7 +467,8 @@
     <MESSAGE value="CNN model" />
     <MESSAGE value="Training+Evaluation" />
     <MESSAGE value="post-processing" />
-    <option name="LAST_COMMIT_MESSAGE" value="post-processing" />
+    <MESSAGE value="visualizations" />
+    <option name="LAST_COMMIT_MESSAGE" value="visualizations" />
   </component>
   <component name="WindowStateProjectService">
     <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
@@ -472,39 +483,39 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="395" y="145" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680@0.0.1280.680" timestamp="1582079970832" />
-    <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser" timestamp="1589326768617">
+    <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser" timestamp="1589753626062">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589326768617" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1589655260224">
+    <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589753626062" />
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1589666003009">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1589655260224" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1589666003009" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
-    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1589585340269">
+    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1589833413512">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1589585340269" />
+    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1589833413512" />
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1586806612780" />
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1589665607019">
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1589831721485">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1589665607019" />
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1589831721485" />
     <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1589665607019">
+    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1589831721485">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1589665607019" />
+    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1589831721485" />
     <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1589665607019">
+    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1589831721485">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1589665607019" />
+    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1589831721485" />
     <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1589665607019">
+    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1589831721485">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1589665607019" />
+    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1589831721485" />
     <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
     <state x="122" y="57" key="MergeDialog" timestamp="1585777814499">
       <screen x="0" y="0" width="1280" height="680" />
@@ -514,15 +525,15 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="354" y="58" key="MultipleFileMergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1585777816074" />
-    <state x="167" y="0" key="SettingsEditor" timestamp="1589586027775">
+    <state x="167" y="0" key="SettingsEditor" timestamp="1589826894827">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1589586027775" />
+    <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1589826894827" />
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1585777990553" />
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1589605349844">
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1589666010479">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1589605349844" />
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1589666010479" />
     <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1586150325201" />
     <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1585883739137">
       <screen x="0" y="0" width="1280" height="680" />
@@ -532,9 +543,10 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="448" y="259" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.680@0.0.1280.680" timestamp="1582253708734" />
-    <state x="447" y="72" key="ftp.server.browser" timestamp="1585777979738">
-      <screen x="0" y="0" width="1280" height="680" />
+    <state x="447" y="68" key="ftp.server.browser" timestamp="1589677597858">
+      <screen x="0" y="0" width="1280" height="639" />
     </state>
+    <state x="447" y="68" key="ftp.server.browser/0.0.1280.639@0.0.1280.639" timestamp="1589677597858" />
     <state x="447" y="72" key="ftp.server.browser/0.0.1280.680@0.0.1280.680" timestamp="1585777979738" />
     <state x="303" y="-1" key="search.everywhere.popup" timestamp="1589412297490">
       <screen x="0" y="0" width="1280" height="639" />
@@ -542,12 +554,12 @@
     <state x="303" y="-1" key="search.everywhere.popup/0.0.1280.639@0.0.1280.639" timestamp="1589412297490" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1589665607008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1589831721476" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$features_2d.coverage" NAME="features_2d Coverage Results" MODIFIED="1585717475279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$multi_processor.coverage" NAME="run_processor Coverage Results" MODIFIED="1589430043367" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$load_dataset.coverage" NAME="load_dataset Coverage Results" MODIFIED="1580484169417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582214012350" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ieeg" />
-    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1589642612090" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$example.coverage" NAME="example Coverage Results" MODIFIED="1589831713215" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

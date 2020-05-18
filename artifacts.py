@@ -104,6 +104,9 @@ class Artifacts:
                 channels_to_remove[ii] = 1
             else:
                 channels_to_remove[ii] = violations[ii]
+        # Remove noise-filled channels (threshold is 50% of all input samples)
+        channels_to_filter = np.sum(channels_to_remove, axis=0) > int(0.5 * np.size(channels_to_remove, axis=0))
+        channels_to_remove[:, channels_to_filter] = 1
         return indices_to_remove, channels_to_remove
 
     # Removes artifacts using threshold measures
@@ -145,6 +148,9 @@ class Artifacts:
                 channels_to_remove[ii] = 1
             else:
                 channels_to_remove[ii] = violations[ii]
+        # Remove noise-filled channels (threshold is 50% of all input samples)
+        channels_to_filter = np.sum(channels_to_remove, axis=0) > int(0.5 * np.size(channels_to_remove, axis=0))
+        channels_to_remove[:, channels_to_filter] = 1
         return indices_to_remove, channels_to_remove
 
     # Obtains time intervals of all EEG segments labeled as artifacts

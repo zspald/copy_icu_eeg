@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="danieljkim0118@158.130.14.13:22">
+  <component name="PublishConfigData" autoUpload="Always" serverName="danieljkim0118@192.168.1.23:443">
     <serverData>
       <paths name="danieljkim0118@158.130.14.13:22">
         <serverdata>
@@ -12,7 +12,7 @@
       <paths name="danieljkim0118@192.168.1.23:443">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/mnt/d/projects/ICU_EEG" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

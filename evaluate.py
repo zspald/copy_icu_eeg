@@ -173,7 +173,7 @@ class EEGEvaluator:
         print("Precision (normal): ", metrics[4])
         # Create a bar chart of the test metrics
         plt.bar(np.arange(len(metrics)), list(metrics), width=0.4, color='g')
-        plt.xticks(width / 2 + np.arange(len(metrics)), ['%s' % x for x in test_metrics])
+        plt.xticks(0.2 + np.arange(len(metrics)), ['%s' % x for x in test_metrics])
         plt.yticks(0.2 * np.arange(6), np.round(0.2 * np.arange(6), decimals=1))
         plt.xlabel('Metrics')
         plt.ylabel('Value')
@@ -201,7 +201,7 @@ class EEGEvaluator:
         for idx in range(num_metrics):
             title = test_metrics[idx]
             plt.bar(np.arange(num_metrics), metric_array[idx, :], width=0.4)
-            plt.xticks(width / 2 + np.arange(num_patients), ['%d' % x for x in np.arange(num_patients) + 1])
+            plt.xticks(0.2 + np.arange(num_patients), ['%d' % x for x in np.arange(num_patients) + 1])
             plt.yticks(0.2 * np.arange(6), np.round(0.2 * np.arange(6), decimals=1))
             plt.xlabel('Patient')
             plt.ylabel(title)

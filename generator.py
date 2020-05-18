@@ -5,13 +5,15 @@
 ############################################################################
 
 # Import libraries
+import copy
 import h5py
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.utils.data_utils import Sequence
 
 
 # A class that generates EEG training/validation data in batches
-class EEGDataGenerator:
+class EEGDataGenerator(Sequence):
 
     # The constructor for the EEGDataGenerator class
     # Fields
@@ -28,9 +30,10 @@ class EEGDataGenerator:
         self.batch_list = list()
         # Iterate over all patients to determine the total number of samples and batches
         for patient_id in patient_list:
-            with open('data/%s_data.h5' % patient_id, 'r') as file:
-                self.batch_list.append(np.ceil(file['maps'].shape[0] / batch_size))
-        self.length = sum(self.batch_list)
+            file = h5py.File('data/%s_data.h5' % patient_id, 'r')
+            self.batch_list.append(np.ceil(file['maps'].shape[0] / batch_size))
+            file.close()
+        self.length = int(sum(self.batch_list))
         self.on_epoch_end()
 
     # Returns the total number of batches required for training each epoch
@@ -48,9 +51,10 @@ class EEGDataGenerator:
         labels = list()
         # Iterate over all patients to extract associated labels
         for patient_id in self.patient_list:
-            with open('data/%s_data.h5' % patient_id, 'r') as file:
-                label = file['labels'][:, 0]
+            file = h5py.File('data/%s_data.h5' % patient_id, 'r')
+            label = file['labels'][:, 0]
             labels.extend(list(label))
+            file.close()
         # Convert to numpy array
         labels = np.asarray(labels)
         return labels
@@ -79,12 +83,15 @@ class EEGDataGenerator:
     #   output_data: EEG maps returned by the generator
     #   output_labels: labels corresponding to the generated EEG maps
     def __data_generation(self, patient_idx, batch_idx):
-        with open('data/%s_data.h5' % self.patient_list[patient_idx], 'r') as file:
-            if batch_idx == self.batch_list[patient_idx] - 1:
-                output_data = file['maps'][batch_idx * self.batch_size:, :, :, :]
-                output_labels = file['labels'][batch_idx * self.batch_size:, 0]
-            else:
-                output_data = file['maps'][batch_idx * self.batch_size:(batch_idx + 1) * self.batch_size, :, :, :]
-                output_labels = file['labels'][batch_idx * self.batch_size:(batch_idx + 1) * self.batch_size, 0]
+        file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
+        if batch_idx == self.batch_list[patient_idx] - 1:
+            output_data = file['maps'][-1 * int(self.batch_size):, :, :, :]
+            output_labels = file['labels'][-1 * int(self.batch_size):, 0]
+        else:
+            output_data = file['maps'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), :, :, :]
+            output_labels = file['labels'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), 0]
+        output_data = copy.deepcopy(output_data)
+        output_labels = copy.deepcopy(output_labels)
+        file.close()
         output_labels = tf.keras.utils.to_categorical(output_labels, num_classes=2)
         return output_data, output_labels
