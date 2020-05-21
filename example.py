@@ -15,10 +15,15 @@ import numpy as np
 username = 'danieljkim0118'
 password = 'kjm39173917#'
 
-# Extract features 50 times with batch size 20 and segment length of 5 seconds. Generate the corresponding map.
+# Extract features 50 times with batch size 20 and segment length of 5 seconds.
+# Generate the corresponding map.
 print("==========Example==========")
 dataset = IEEGDataProcessor('RID0061', username, password)
 print(dataset.id)
-map_outputs = dataset.generate_map(num_iter=5, num_batches=20, start=0, length=5, use_filter=True, eeg_only=True,
-                                   normalize=False)
-# EEGLearner().train_cnn(epochs=10, cross_val=False, save=False)
+map_outputs = dataset.generate_map(num_iter=10, num_batches=200, start=0, length=5, use_filter=True, eeg_only=True,
+                                   normalize=False, has_seizure=True)
+
+# Train a CNN model on sample patient data
+patient_list = ['RID0061', 'RID0062', 'RID0063', 'RID0064']
+train_module = EEGLearner(patient_list)
+train_module.train_cnn(epochs=10, cross_val=False, save=False)

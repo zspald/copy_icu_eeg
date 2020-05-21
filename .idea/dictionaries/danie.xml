@@ -5,10 +5,12 @@
       <w>annots</w>
       <w>convolutional</w>
       <w>dataframe</w>
+      <w>disp</w>
       <w>ieeg</w>
       <w>joongwon</w>
       <w>preprocesses</w>
       <w>timepoint</w>
+      <w>timepoints</w>
     </words>
   </dictionary>
 </component>

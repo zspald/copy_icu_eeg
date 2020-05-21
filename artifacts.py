@@ -22,9 +22,10 @@ class Artifacts:
     #   fs: sampling frequency of the EEG recording
     #   channel_limit: number of channels to allow for artifacts
     #   method: specific method for removing artifact-like segments.
-    #           'stats' removes all segments that exceed a z-score of 5 under
+    #           'stats' - removes all segments that exceed a z-score of 5 under
     #           1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
-    #           other methods to be incorporated soon
+    #           'threshold' - removes all segments that exceed/fall below certain thresholds under
+    #           1) Variance 2) Range 3) Line Length 4) Bandpower 5) Signal difference
     # Outputs
     #   indices_to_remove: a list with length N that indicates whether each EEG segment should be removed
     #   channels_to_remove: a N x C array that indicates whether each channel in each segment should be removed
@@ -160,6 +161,7 @@ class Artifacts:
     #   start: absolute starting time point of the EEG batch
     #   length: length of each EEG segment
     # Outputs
+    #   a pandas dataframe storing the timepoints of detected artifacts
     @staticmethod
     def save_artifacts(patient_id, indicator, start, length):
         if indicator is not None:

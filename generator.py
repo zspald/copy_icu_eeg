@@ -22,7 +22,7 @@ class EEGDataGenerator(Sequence):
     #   indices: list of all patient indices hashed from IDs
     #   patient_list: list of all patient IDs
     #   shuffle: whether to shuffle order of training/validation batches
-    def __init__(self, patient_list, batch_size=1e4, shuffle=True):
+    def __init__(self, patient_list, batch_size, shuffle=True):
         self.patient_list = patient_list
         self.batch_size = batch_size
         self.shuffle = shuffle

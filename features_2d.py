@@ -37,6 +37,9 @@ class EEGMap:
     #                N* and F share the same definitions as above and W, H denote the image size
     @staticmethod
     def generate_map(patient_id, input_feats, channel_info, normalize=False):
+        # Check whether the set of input features is valid
+        if input_feats is None:
+            return None
         # Initialize HDF file to store the output array
         file = h5py.File('data/%s_data.h5' % patient_id, 'a')
         all_outputs = file.create_dataset('maps', (np.size(input_feats, axis=0), np.size(input_feats, axis=-1), 48, 48)
@@ -48,10 +51,10 @@ class EEGMap:
         if normalize:
             input_feats = EEGFeatures.normalize_feats(input_feats, option='default')
         # Iterate over all samples
-        for ii in range(np.size(input_feats, axis=0)):
+        for ii in range(input_feats.shape[0]):
             channels_to_zero = channel_info[ii]
             # Iterate over all features
-            for jj in range(np.size(input_feats, axis=-1)):
+            for jj in range(input_feats.shape[-1]):
                 # Check whether channel contains NaN features
                 x_coords = np.array([x for idx, x in enumerate(EEG_X) if channels_to_zero[idx] == 0])
                 y_coords = np.array([y for idx, y in enumerate(EEG_Y) if channels_to_zero[idx] == 0])

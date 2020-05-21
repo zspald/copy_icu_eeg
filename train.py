@@ -14,9 +14,6 @@ import numpy as np
 import os
 import random
 
-# List of all patient IDs
-patient_list = ['RID0061', 'RID0062', 'RID0063', 'RID0064']
-
 
 # A class that runs a 2D convolutional neural network
 class EEGLearner:
@@ -25,14 +22,16 @@ class EEGLearner:
     # Fields
     #   length: the length of each EEG sample
     #   model: the model used for the classifier
+    #   patient_list: list of all patient IDs
     #   shape: the shape of the EEG data
     #   train: the method used for training the EEG data
-    def __init__(self):
+    def __init__(self, patient_list):
         # Reset the image ordering so that channels occupy the first dimension
         set_image_data_format('channels_first')
         # Initialize fields
-        self.train = None
         self.model = None
+        self.patient_list = patient_list
+        self.train = None
         # Check the shape of the EEG data
         file = h5py.File('data/%s_data.h5' % patient_list[0], 'r')
         self.shape = file['maps'][0].shape
@@ -50,15 +49,15 @@ class EEGLearner:
         self.train = 'conv'
         if cross_val:
             # Initialize list containers for training history and metrics
-            history_list = [None for _ in range(len(patient_list))]
-            metric_list = [None for _ in range(len(patient_list))]
+            history_list = [None for _ in range(len(self.patient_list))]
+            metric_list = [None for _ in range(len(self.patient_list))]
             # Iterate over all patients for cross validation
-            for ii in range(len(patient_list)):
+            for ii in range(len(self.patient_list)):
                 # Initialize generators for training, validation and testing data
-                train_patients, validation_patients, test_patients = self.split_data_fix(0.9, ii)
-                train_generator = EEGDataGenerator(train_patients, batch_size=1e4, shuffle=True)
-                validation_generator = EEGDataGenerator(validation_patients, batch_size=1e4, shuffle=True)
-                test_generator = EEGDataGenerator(test_patients, batch_size=1e4, shuffle=True)
+                train_patients, validation_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
+                train_generator = EEGDataGenerator(train_patients, batch_size=1e3, shuffle=True)
+                validation_generator = EEGDataGenerator(validation_patients, batch_size=1e3, shuffle=True)
+                test_generator = EEGDataGenerator(test_patients, batch_size=1e3, shuffle=True)
                 # Load and train the model
                 model = EEGModel.convolutional_network(self.shape)
                 history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
@@ -81,7 +80,7 @@ class EEGLearner:
                 EEGEvaluator.test_results_cv(metric_list)
         else:
             # Initialize generators for training, validation and testing data
-            train_patients, validation_patients, test_patients = self.split_data(0.5, 0.25)
+            train_patients, validation_patients, test_patients = self.split_data(self.patient_list, 0.8, 0.1)
             train_generator = EEGDataGenerator(train_patients, batch_size=1e3, shuffle=True)
             validation_generator = EEGDataGenerator(validation_patients, batch_size=1e3, shuffle=True)
             test_generator = EEGDataGenerator(test_patients, batch_size=1e3, shuffle=True)
@@ -103,6 +102,7 @@ class EEGLearner:
             if visualize:
                 EEGEvaluator.training_curve(history)
                 EEGEvaluator.test_results(metrics)
+            self.model = model
         return
 
     # Divides training, validation and testing data
@@ -114,7 +114,7 @@ class EEGLearner:
     #   validation_patients: list of patient IDs to be used for validation
     #   test_patients: list of patient IDs to be used for testing
     @staticmethod
-    def split_data(train_split, validation_split):
+    def split_data(patient_list, train_split, validation_split):
         # Reject any invalid input
         if train_split + validation_split > 1:
             print("Please provide an appropriate split input.")
@@ -137,7 +137,7 @@ class EEGLearner:
     #   validation_patients: list of patient IDs to be used for validation
     #   test_patients: list of patient IDs to be used for testing
     @staticmethod
-    def split_data_fix(train_split, idx):
+    def split_data_fix(patient_list, train_split, idx):
         # Reject any invalid input
         if train_split > 1:
             print("Please provide an appropriate split input.")

@@ -24,6 +24,8 @@ class IEEGDataLoader:
 
     # The constructor for the IEEGDataLoader class
     # Fields
+    #   id: ID of the patient dataset
+    #   session: the IEEG session object for opening the associated dataset
     #   dataset: the IEEG dataset object which contains all information about the given dataset
     #   channel_labels: a list of strings containing channel names
     #   channel_indices: a list of integers containing channel indices
@@ -111,14 +113,14 @@ class IEEGDataLoader:
     #   annotations: a numpy array of length 'num' that contains annotations for each EEG segment
     def load_annots(self, num, start, length, annot_idx=0, use_file=True):
         sz_intervals = self.load_annots_source(annot_idx, use_file)
-        annotations = [(0, 0, 0) for _ in range(num)]
+        annotations = [[0, 0, 0] for _ in range(num)]
         for ii in range(num):
             begin = start + ii * length
-            if IEEGDataLoader.search_interval(sz_intervals, start, length):
-                annotations[ii] = (1, begin, begin + length)
+            if IEEGDataLoader.search_interval(sz_intervals, begin, length):
+                annotations[ii] = [1, begin, begin + length]
             else:
-                annotations[ii] = (0, begin, begin + length)
-            start += num * length
+                annotations[ii] = [0, begin, begin + length]
+        annotations = np.array(annotations)
         return annotations
 
     # Loads seizure intervals from IEEG.org for the specified patient
@@ -127,7 +129,7 @@ class IEEGDataLoader:
     #   use_file: whether to use a given .csv file as the annotation
     # Outputs
     #   sz_intervals: a numpy array of shape R x 2 where R is the number of seizure intervals.
-    #                 Each row contains the start and stop time, measured in seconds
+    #                 Each row contains the start and stop time, measured in seconds.
     def load_annots_source(self, annot_idx=0, use_file=True):
         if use_file:
             # Read the .csv file and return the seizure intervals
@@ -209,7 +211,7 @@ class IEEGDataLoader:
         return begin_time
 
     # Performs a binary search over a list of intervals to decide whether an EEG segment is
-    # contained within a seizure interval
+    # overlaps with a seizure interval
     # Inputs
     #   intervals: a numpy array of shape R x 2 where R is the number of seizure intervals.
     #              Each row contains the start and stop time, measured in seconds
@@ -219,6 +221,8 @@ class IEEGDataLoader:
     #   a boolean indicating whether the given EEG segment should be labeled as 'seizure'
     @staticmethod
     def search_interval(intervals, timepoint, length):
+        if intervals is None:
+            return False
         idx = int(np.size(intervals, axis=0) / 2)
         if timepoint + length >= intervals[idx][0] and timepoint < intervals[idx][1]:
             return True

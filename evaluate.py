@@ -67,17 +67,17 @@ class EEGEvaluator:
     # Outputs
     #   predictions_outputs: a list of post-processed seizure predictions
     @staticmethod
-    def postprocess_outputs(predictions, length, sz_length=120, threshold=0.8):
+    def postprocess_outputs(predictions, length, sz_length=30, threshold=0.8):
         # Initialize outputs and parameters for the sliding window
         predictions_outputs = np.array([pred for pred in predictions])
         window_size = int(sz_length / length)
-        window_stride = int(window_size / 3)
+        window_disp = int(window_size / 3)
         window_pos = 0
         # Slide the window and fill in regions frequently predicted as seizure
         while window_pos + window_size <= np.size(predictions_outputs, axis=0):
             if np.sum(predictions[window_pos:window_pos + window_size]) >= int(0.5 * window_size * threshold):
                 predictions_outputs[window_pos:window_pos + window_size] = 1
-            window_pos += window_stride
+            window_pos += window_disp
         # Initialize a smaller window to be run over the predictions
         window_size = int(window_size / 6)
         window_pos = 0
