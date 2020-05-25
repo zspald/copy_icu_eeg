@@ -20,7 +20,7 @@ password = 'kjm39173917#'
 print("==========Example==========")
 dataset = IEEGDataProcessor('RID0061', username, password)
 print(dataset.id)
-map_outputs = dataset.generate_map(num_iter=10, num_batches=200, start=0, length=5, use_filter=True, eeg_only=True,
+map_outputs = dataset.generate_map(num_iter=10, num_batches=1000, start=0, length=1, use_filter=True, eeg_only=True,
                                    normalize=False, has_seizure=True)
 
 # Train a CNN model on sample patient data

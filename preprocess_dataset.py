@@ -225,7 +225,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   returns None if no preprocessed data is available
     def clean_data(self, input_data, input_labels, fs, start, length, artifact='threshold', method='none'):
         # Perform artifact rejection
-        indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=3,
+        indices_to_remove, channels_to_remove = Artifacts.remove_artifacts(input_data, fs, channel_limit=6,
                                                                            method=artifact)
         timepoints = [start + idx * length for idx in range(len(indices_to_remove))]
         # Remove non-seizure segments if indicated by the user

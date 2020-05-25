@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="bug fixes">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/danie.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/danie.xml" afterDir="false" />
+    <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/artifacts.py" beforeDir="false" afterPath="$PROJECT_DIR$/artifacts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features_2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_processor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +42,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../CIS530_new" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -247,7 +243,8 @@
       <workItem from="1585515969663" duration="44105000" />
       <workItem from="1587133281294" duration="1319000" />
       <workItem from="1589222316851" duration="39464000" />
-      <workItem from="1589552473093" duration="106121000" />
+      <workItem from="1589552473093" duration="113356000" />
+      <workItem from="1590377280080" duration="5522000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -445,14 +442,20 @@
       <option name="project" value="LOCAL" />
       <updated>1589841503657</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="data balancing pipeline">
+      <created>1590102400605</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1590102400605</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="IEEG data extraction methods" />
     <MESSAGE value="data/annotation processing" />
     <MESSAGE value="new example file" />
     <MESSAGE value="use of h5py for storing files" />
@@ -477,7 +480,8 @@
     <MESSAGE value="post-processing" />
     <MESSAGE value="visualizations" />
     <MESSAGE value="bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fixes" />
+    <MESSAGE value="data balancing pipeline" />
+    <option name="LAST_COMMIT_MESSAGE" value="data balancing pipeline" />
   </component>
   <component name="WindowStateProjectService">
     <state x="234" y="0" key="#Notifications" timestamp="1581029098515">
@@ -496,35 +500,35 @@
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589753626062" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1590102339751">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1590102400122">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1590102339751" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1590102400122" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
     <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1589845593629">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1589845593629" />
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1586806612780" />
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1590100681617">
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1590377253500">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1590100681617" />
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1590377253500" />
     <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1590100681617">
+    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1590377253499">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1590100681617" />
+    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1590377253499" />
     <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1590100681617">
+    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1590377253499">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1590100681617" />
+    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1590377253499" />
     <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1590100681617">
+    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1590377253499">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1590100681617" />
+    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1590377253499" />
     <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
     <state x="122" y="57" key="MergeDialog" timestamp="1585777814499">
       <screen x="0" y="0" width="1280" height="680" />
@@ -539,10 +543,10 @@
     </state>
     <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1590097093380" />
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1585777990553" />
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1589841506987">
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1590102407640">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1589841506987" />
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1590102407640" />
     <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1586150325201" />
     <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1585883739137">
       <screen x="0" y="0" width="1280" height="680" />

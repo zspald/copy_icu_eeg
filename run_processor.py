@@ -45,6 +45,7 @@ if __name__ == "__main__":
         use_filter = input('Enter 1 to apply a bandpass filter (0.5-20 Hz) and 0 otherwise: ') > '0'
         eeg_only = input('Enter 1 to only use EEG channels and 0 otherwise: ') > '0'
         normalize = input('Enter 1 to apply normalization and 0 otherwise: ') > '0'
+        seizure = input('Enter 1 to indicate that the patient has seizure and 0 otherwise') > '0'
     else:
         username = args.username
         password = args.password
@@ -56,6 +57,8 @@ if __name__ == "__main__":
         use_filter = args.filter > '0'
         eeg_only = args.eeg_only > '0'
         normalize = args.normalize > '0'
+        seizure = 'RID' in patient_id
     # Create the IEEGDataProcessor object and generate the map
     dataset = IEEGDataProcessor(patient_id, username, password)
-    dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only, normalize)
+    dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only, normalize,
+                         seizure)

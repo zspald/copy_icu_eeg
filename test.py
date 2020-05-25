@@ -3,6 +3,7 @@ import getpass
 from ieeg.auth import Session
 import numpy as np
 import os
+import pickle
 
 
 def main():
@@ -40,3 +41,24 @@ def main():
 
 if __name__ == "__main__":
     print(os.cpu_count())
+    # patients = ['RID0060', 'RID0061', 'RID0062', 'RID0063', 'RID0064', 'RID0065', 'RID0066'
+    #             , 'RID0067', 'RID0068', 'RID0069', 'RID0072', 'RID0073', 'RID0074',
+    #             'RID235_1d807e48', 'RID244_2aa72934', 'RID249_9f3b5d22']
+    # x = 0
+    # for patient in patients:
+    #     with open('dataset/%s.pkl' % patient, 'rb') as file:
+    #         dataframe = pickle.load(file)
+    #     dataframe = dataframe[dataframe.event == 'seizure']
+    #     print(dataframe)
+    #     sz_start = np.asarray(dataframe)[:, 1]
+    #     sz_stop = np.asarray(dataframe)[:, 2]
+    #     x += int(np.sum(sz_stop - sz_start))
+    # # print(x / len(patients))
+    # x = np.array([[1, 2], [3, 2], [5, 1]])
+    # y = np.array([1, 2, 3])
+    # y[x[:, 1] == 2] = 0
+    # print(y)
+    with open('dataset/%s.pkl' % 'CNT685', 'rb') as file:
+        dataframe = pickle.load(file)
+    # dataframe = dataframe[dataframe.event == 'seizure']
+    print(dataframe)
