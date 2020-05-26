@@ -23,7 +23,7 @@ EEG_CHANNELS = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O
 class IEEGDataLoader:
 
     # The constructor for the IEEGDataLoader class
-    # Fields
+    # Attributes
     #   id: ID of the patient dataset
     #   session: the IEEG session object for opening the associated dataset
     #   dataset: the IEEG dataset object which contains all information about the given dataset
@@ -42,6 +42,7 @@ class IEEGDataLoader:
         self.details = self.dataset.get_time_series_details(self.channel_labels[0])
         self.fs = self.details.sample_rate
         self.montage = self.dataset.get_current_montage()
+        print("Dataset ID: ", self.id)
 
     # Returns the sampling frequency
     # Outputs
@@ -116,7 +117,7 @@ class IEEGDataLoader:
         annotations = [[0, 0, 0] for _ in range(num)]
         for ii in range(num):
             begin = start + ii * length
-            if IEEGDataLoader.search_interval(sz_intervals, begin, length):
+            if np.size(sz_intervals, axis=0) > 0 and IEEGDataLoader.search_interval(sz_intervals, begin, length):
                 annotations[ii] = [1, begin, begin + length]
             else:
                 annotations[ii] = [0, begin, begin + length]

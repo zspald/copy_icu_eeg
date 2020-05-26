@@ -16,7 +16,7 @@ from tensorflow.python.keras.utils.data_utils import Sequence
 class EEGDataGenerator(Sequence):
 
     # The constructor for the EEGDataGenerator class
-    # Fields
+    # Attributes
     #   batch_list: a list that contains number of batches in each dataset
     #   batch_size: the number of samples in each batch
     #   indices: list of all patient indices hashed from IDs

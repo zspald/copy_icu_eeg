@@ -102,8 +102,8 @@ class EEGMap:
     #   returns a plot of sample distribution of the designated feature over the scalp
     @staticmethod
     def visualize_map(input_maps, feat_idx):
-        sample_idx = np.random.randint(0, np.size(input_maps, axis=0))
-        feat_map = input_maps[sample_idx][feat_idx]
+        sample_idx = np.random.randint(0, input_maps.shape[0])
+        feat_map = input_maps[sample_idx, feat_idx, :, :]
         plt.imshow(feat_map, extent=(-1, 1, -1, 1), origin='lower', cmap='jet')
         plt.title('Interpolated Map - %s' % EEG_FEATS[feat_idx])
         plt.show()

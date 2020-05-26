@@ -1,7 +1,14 @@
 #!/bin/bash
-declare -a PATIENTS=("RID0061" "RID0062" "RID0063" "RID0064")
+declare -a PATIENTS=("RID0060" "RID0061" "RID0062" "RID0064" "RID0068" "RID0069" "RID0072" "RID0074" "RID235_1d807e48"
+"RID244_2aa72934" "RID249_9f3b5d22" "RID250_ac5b1126" "RID251_702ac93f" "RID252_68561f5b" "RID253_ae81bb9b"
+"RID254_a69203f2" "RID256_a80ca08c" "RID257_5e2a16b8" "RID258_d6280c8b")
 for patient in "${PATIENTS[@]}"
 do
-	python run_processor.py -u danieljkim0118 -p kjm39173917# -id $patient -n 5 -b 20 -s 0 -l 5 -f 1 -eo 1 -no 0 &
+	python run_processor.py -u danieljkim0118 -p kjm39173917# -id $patient -n 20 -b 1000 -s 0 -l 1 -f 1 -eo 1 -no 0 &
 done
 wait
+# RID0063, RID0065, RID0066, RID0067, RID0073 to be processed later
+# All Patients:
+# "RID0060" "RID0061" "RID0062" "RID0063" "RID0064" "RID0065" "RID0066" "RID0067" "RID0068" "RID0069" "RID0072"
+# "RID0073" "RID0074" "RID235_1d807e48" "RID244_2aa72934" "RID249_9f3b5d22" "RID250_ac5b1126" "RID251_702ac93f"
+# "RID252_68561f5b" "RID253_ae81bb9b" "RID254_a69203f2" "RID256_a80ca08c" "RID257_5e2a16b8" "RID258_d6280c8b"

@@ -19,7 +19,7 @@ import random
 class EEGLearner:
 
     # The constructor for the EEGLearner class
-    # Fields
+    # Attributes
     #   length: the length of each EEG sample
     #   model: the model used for the classifier
     #   patient_list: list of all patient IDs

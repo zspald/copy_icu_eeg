@@ -22,7 +22,7 @@ ARTIFACT_METHOD = 'threshold'
 class IEEGDataProcessor(IEEGDataLoader):
 
     # The constructor for the IEEGDataProcessor class
-    # Fields
+    # Attributes
     #   normal_count: the number of non-seizure samples accepted
     #   seizure_count: the number of seizure samples accepted
     #   sz_intervals: a numpy array that contains pairs of start/stop times of
@@ -41,14 +41,13 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
-    #   has_seizure: whether the patient has seizure or not
     # Outputs
     #   patient_feats: a feature array that contains features for all EEG segments across all channels
     #                 with shape N* x C x F, where N* is the number of clean EEG segments from the
     #                 patient's dataset, C is the number of channels and F is the number of features
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
-    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, has_seizure=True):
+    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True):
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
         # Create a gzipped HDF file to store the processed features
@@ -66,9 +65,11 @@ class IEEGDataProcessor(IEEGDataLoader):
             return None, None, None
         start = start_origin
         print("The starting point is: %d seconds" % start)
-        # Load all seizure intervals if the patient has seizure
+        # Extract all seizure intervals of the patient, and check if there are any
+        self.sz_intervals = self.load_annots_source(use_file=True)
+        has_seizure = np.size(self.sz_intervals, axis=0) > 0
+        # Proceed with seizure feature extraction if the patient has seizure
         if has_seizure:
-            self.sz_intervals = self.load_annots_source(use_file=True)
             print("Extracting seizure data")
             # Iterate over all batches and extract seizure data
             for idx in range(num_iter):
@@ -123,15 +124,13 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
     #   normalize: whether to normalize the feature inputs for map generation
-    #   has_seizure: whether the patient has seizure or not
     # Outputs
     #   map_outputs: a multidimensional array of feature maps with shape (N* x F x W x H), where
     #                N* and F share the same definitions as above and W, H denote the image size
-    def generate_map(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, normalize=False,
-                     has_seizure=True):
+    def generate_map(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, normalize=False):
         # Process and return features for user-designated EEG intervals
         patient_feats, _, patient_channels = self.process_all_feats(num_iter, num_batches, start, length, use_filter,
-                                                                    eeg_only, has_seizure)
+                                                                    eeg_only)
         # Compute map renderings of the features across the patient's scalp
         map_outputs = EEGMap.generate_map(self.id, patient_feats, patient_channels, normalize=normalize)
         return map_outputs
@@ -278,7 +277,7 @@ class IEEGDataProcessor(IEEGDataLoader):
         window_disp = int(window_size / 3)
         window_pos = 0
         # Check whether the given sequence of timepoints overlaps with a seizure interval
-        if self.search_interval(self.sz_intervals, timepoints[0], length):
+        if np.size(self.sz_intervals, axis=0) > 0 and self.search_interval(self.sz_intervals, timepoints[0], length):
             intervals = self.find_seizures(self.sz_intervals, timepoints, sep_length=sep_length)
             for interval in intervals:
                 low = min(0, int((interval[0] - sep_length - timepoints[0]) / length))
