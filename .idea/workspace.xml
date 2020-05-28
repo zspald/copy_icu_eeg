@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="">
+    <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="non-seizure handling">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/execute_processor.sh" beforeDir="false" afterPath="$PROJECT_DIR$/execute_processor.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features_2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_processor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
@@ -46,7 +43,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../2019 Fall/_Research_/CHOP_CICU_TF" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -248,7 +245,7 @@
       <workItem from="1587133281294" duration="1319000" />
       <workItem from="1589222316851" duration="39464000" />
       <workItem from="1589552473093" duration="113356000" />
-      <workItem from="1590377280080" duration="14901000" />
+      <workItem from="1590377280080" duration="36096000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -460,14 +457,20 @@
       <option name="project" value="LOCAL" />
       <updated>1590384641095</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="non-seizure handling">
+      <created>1590465822541</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1590465822541</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="new example file" />
     <MESSAGE value="use of h5py for storing files" />
     <MESSAGE value="bug fixes, exception handling, artifact identification" />
     <MESSAGE value="more bug fixes" />
@@ -492,7 +495,8 @@
     <MESSAGE value="bug fixes" />
     <MESSAGE value="data balancing pipeline" />
     <MESSAGE value="seizure-artifact rejection" />
-    <option name="LAST_COMMIT_MESSAGE" value="seizure-artifact rejection" />
+    <MESSAGE value="non-seizure handling" />
+    <option name="LAST_COMMIT_MESSAGE" value="non-seizure handling" />
   </component>
   <component name="WindowStateProjectService">
     <state x="97" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582083968427">
@@ -507,15 +511,15 @@
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589753626062" />
-    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1590384640560">
+    <state x="256" y="0" key="CommitChangelistDialog2" timestamp="1590674735330">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1590384640560" />
+    <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1590674735330" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
-    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1589845593629">
+    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1590640424705">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1589845593629" />
+    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1590640424705" />
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1586806612780" />
     <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1590377253500">
       <screen x="0" y="0" width="1280" height="639" />
@@ -550,10 +554,10 @@
     </state>
     <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1590464869156" />
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1585777990553" />
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1590384644960">
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1590465827628">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1590384644960" />
+    <state x="234" y="70" key="Vcs.Push.Dialog.v2/0.0.1280.639@0.0.1280.639" timestamp="1590465827628" />
     <state x="234" y="75" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1586150325201" />
     <state x="275" y="0" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1585883739137">
       <screen x="0" y="0" width="1280" height="680" />

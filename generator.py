@@ -27,11 +27,11 @@ class EEGDataGenerator(Sequence):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.indices = np.arange(len(self.patient_list))
-        self.batch_list = list()
+        self.batch_list = np.zeros(len(self.patient_list))
         # Iterate over all patients to determine the total number of samples and batches
-        for patient_id in patient_list:
+        for idx, patient_id in enumerate(patient_list):
             file = h5py.File('data/%s_data.h5' % patient_id, 'r')
-            self.batch_list.append(np.ceil(file['maps'].shape[0] / batch_size))
+            self.batch_list[idx] = np.ceil(file['maps'].shape[0] / batch_size)
             file.close()
         self.length = int(sum(self.batch_list))
         self.on_epoch_end()
@@ -50,11 +50,14 @@ class EEGDataGenerator(Sequence):
     def get_labels(self):
         labels = list()
         # Iterate over all patients to extract associated labels
-        for patient_id in self.patient_list:
-            file = h5py.File('data/%s_data.h5' % patient_id, 'r')
-            label = file['labels'][:, 0]
-            labels.extend(list(label))
-            file.close()
+        # for patient_id in self.patient_list:
+        #     file = h5py.File('data/%s_data.h5' % patient_id, 'r')
+        #     label = file['labels'][:, 0]
+        #     labels.extend(list(label))
+        #     file.close()
+        for idx in range(self.length):
+            _, label = self.__getitem__(idx)
+            labels.extend(list(np.argmax(label, axis=1)))
         # Convert to numpy array
         labels = np.asarray(labels)
         return labels
@@ -67,7 +70,7 @@ class EEGDataGenerator(Sequence):
     #   output_labels: labels corresponding to the generated EEG maps
     def __getitem__(self, idx):
         patient_num = 0
-        batch_sum = self.batch_list[0]
+        batch_sum = self.batch_list[self.indices[patient_num]]
         while batch_sum < idx:
             patient_num += 1
             batch_sum += self.batch_list[self.indices[patient_num]]

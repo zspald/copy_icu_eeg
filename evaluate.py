@@ -100,6 +100,10 @@ class EEGEvaluator:
     #   plots displaying training/validation loss and accuracy of the model over epochs
     @staticmethod
     def training_curve(history):
+        print('Training Loss History: ', history.history['loss'])
+        print('Training Accuracy History: ', history.history['acc'])
+        print('Validation Loss History: ', history.history['val_loss'])
+        print('Validation Accuracy History: ', history.history['val_acc'])
         plt.plot(history.history['loss'], 'b')
         plt.plot(history.history['val_loss'], 'r')
         plt.xlabel('epoch')
