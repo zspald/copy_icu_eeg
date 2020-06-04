@@ -41,13 +41,17 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   length: duration of each segment, in seconds
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
+    #   normalize: normalization method to be used for the extracted features
+    #              'default' normalizes features from 0 to 1
+    #              'zscore' normalizes features according to their z-scores
+    #              'minmax' normalizes features from -1 to 1
     # Outputs
     #   patient_feats: a feature array that contains features for all EEG segments across all channels
     #                 with shape N* x C x F, where N* is the number of clean EEG segments from the
     #                 patient's dataset, C is the number of channels and F is the number of features
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
-    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True):
+    def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, normalize=None):
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
         # Create a gzipped HDF file to store the processed features
@@ -80,6 +84,9 @@ class IEEGDataProcessor(IEEGDataLoader):
                 start += num_batches * length
                 # Save the features, labels and channel info into the HDF file
                 if feats is not None:
+                    # Normalize features in each batch if indicated by the user
+                    if normalize is not None:
+                        feats = EEGFeatures.normalize_feats(feats, option=normalize)
                     num_feats = np.size(feats, axis=0)
                     patient_feats.resize((patient_feats.shape[0] + num_feats, len(channels_to_use), len(EEG_FEATS)))
                     patient_feats[-num_feats:, :, :] = feats
@@ -128,11 +135,13 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   map_outputs: a multidimensional array of feature maps with shape (N* x F x W x H), where
     #                N* and F share the same definitions as above and W, H denote the image size
     def generate_map(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, normalize=False):
+        # Indicate default normalization method
+        normalize = 'zscore' if normalize else None
         # Process and return features for user-designated EEG intervals
         patient_feats, _, patient_channels = self.process_all_feats(num_iter, num_batches, start, length, use_filter,
-                                                                    eeg_only)
+                                                                    eeg_only, normalize)
         # Compute map renderings of the features across the patient's scalp
-        map_outputs = EEGMap.generate_map(self.id, patient_feats, patient_channels, normalize=normalize)
+        map_outputs = EEGMap.generate_map(self.id, patient_feats, patient_channels)
         return map_outputs
 
     # Extracts features for a specified interval of EEG recordings from IEEG
@@ -270,7 +279,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   ratio: the balance ratio between seizure and non-seizure data
     # Outputs
     #   indices_to_remove: a post-processed list indicating whether each EEG segment should be removed, with length N
-    def extract_norm(self, indices_to_remove, timepoints, balance, cont_length=30, sep_length=60, ratio=1.5):
+    def extract_norm(self, indices_to_remove, timepoints, balance, cont_length=30, sep_length=1200, ratio=1.5):
         # Load seizure intervals and initialize parameters for the sliding window
         length = timepoints[1] - timepoints[0]
         window_size = int(cont_length / length)
@@ -307,7 +316,7 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   seizure_outputs: identical format to the input *intervals*, but only intervals overlapping with the
     #                    given sequence of timepoints
     @staticmethod
-    def find_seizures(intervals, timepoints, sep_length=60):
+    def find_seizures(intervals, timepoints, sep_length=1200):
         seizure_outputs = []
         # Iterate over all seizure intervals in the annotations
         for interval in intervals:

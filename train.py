@@ -21,6 +21,7 @@ class EEGLearner:
     # The constructor for the EEGLearner class
     # Attributes
     #   length: the length of each EEG sample
+    #   loss_weights: the weights for non-seizure/seizure loss
     #   model: the model used for the classifier
     #   patient_list: list of all patient IDs
     #   shape: the shape of the EEG data
@@ -32,6 +33,7 @@ class EEGLearner:
         self.model = None
         self.patient_list = patient_list
         self.train = None
+        self.loss_weights = {0: 1.0, 1: 1.5}
         # Check the shape of the EEG data
         file = h5py.File('data/%s_data.h5' % patient_list[0], 'r')
         self.shape = file['maps'][0].shape
@@ -55,18 +57,18 @@ class EEGLearner:
             for ii in range(len(self.patient_list)):
                 # Initialize generators for training, validation and testing data
                 train_patients, validation_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
-                train_generator = EEGDataGenerator(train_patients, batch_size=1e3, shuffle=True)
-                validation_generator = EEGDataGenerator(validation_patients, batch_size=1e3, shuffle=True)
-                test_generator = EEGDataGenerator(test_patients, batch_size=1e3, shuffle=True)
+                train_generator = EEGDataGenerator(train_patients, batch_size=30, shuffle=True)
+                validation_generator = EEGDataGenerator(validation_patients, batch_size=30, shuffle=True)
+                test_generator = EEGDataGenerator(test_patients, batch_size=30, shuffle=True)
                 # Load and train the model
                 model = EEGModel.convolutional_network(self.shape)
                 history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
-                                              epochs=epochs, use_multiprocessing=False, verbose=verbose)
+                                              class_weight=self.loss_weights, epochs=epochs, verbose=verbose)
                 history_list[ii] = history
                 # Save model and obtain predictions for test data
                 if save:
                     model.save('ICU-EEG-CNN-%d.h5' % ii, save_format='h5')
-                predict = model.predict_generator(test_generator, use_multiprocessing=False, verbose=verbose)
+                predict = model.predict_generator(test_generator, verbose=0)
                 predict = np.argmax(predict, axis=1)
                 # Post-process the model predictions and obtain labels
                 predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
@@ -81,21 +83,22 @@ class EEGLearner:
         else:
             # Initialize generators for training, validation and testing data
             train_patients, validation_patients, test_patients = self.split_data(self.patient_list, 0.8, 0.1)
-            train_generator = EEGDataGenerator(train_patients, batch_size=1e3, shuffle=True)
-            validation_generator = EEGDataGenerator(validation_patients, batch_size=1e3, shuffle=True)
-            test_generator = EEGDataGenerator(test_patients, batch_size=1e3, shuffle=True)
+            train_generator = EEGDataGenerator(train_patients, batch_size=25, shuffle=True)
+            validation_generator = EEGDataGenerator(validation_patients, batch_size=25, shuffle=True)
+            test_generator = EEGDataGenerator(test_patients, batch_size=25, shuffle=False)
             # Load and train the model
             model = EEGModel.convolutional_network(self.shape)
             history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
-                                          epochs=epochs, use_multiprocessing=False, verbose=verbose)
+                                          class_weight=self.loss_weights, epochs=epochs, verbose=verbose)
             # Save model and obtain predictions for test data
             if save:
                 model.save('ICU-EEG-CNN.h5', save_format='h5')
-            predict = model.predict_generator(test_generator, use_multiprocessing=False, verbose=verbose)
+            predict = model.predict_generator(test_generator, verbose=0)
             predict = np.argmax(predict, axis=1)
             # Post-process the model predictions and obtain labels
             predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
             labels = test_generator.get_labels()
+            print('Shape: ', np.shape(predict), np.shape(labels))
             # Compute evaluation metrics
             metrics = EEGEvaluator.evaluate_metrics(labels, predict)
             # Display results

@@ -31,12 +31,11 @@ class EEGMap:
     #                and F is the number of features
     #   channel_info: an array of binary values with shape N* x C with the same description.
     #                 Contains 0's if the channel is good and 1's if the channel is bad
-    #   normalize: whether to normalize the feature inputs for map generation
     # Outputs
     #   all_outputs: a multidimensional array of feature maps with shape (N* x F x W x H), where
     #                N* and F share the same definitions as above and W, H denote the image size
     @staticmethod
-    def generate_map(patient_id, input_feats, channel_info, normalize=False):
+    def generate_map(patient_id, input_feats, channel_info):
         # Check whether the set of input features is valid
         if input_feats is None:
             return None
@@ -47,9 +46,6 @@ class EEGMap:
         # Obtain coordinates for rectangular grid with pre-allocated size
         grid_x, grid_y = np.mgrid[-1:1:48j, -1:1:48j]
         x_zero, y_zero, zeros = EEGMap.zero_coordinates(grid_x, grid_y, rad=0.85)
-        # Normalize features globally if indicated so
-        if normalize:
-            input_feats = EEGFeatures.normalize_feats(input_feats, option='default')
         # Iterate over all samples
         for ii in range(input_feats.shape[0]):
             channels_to_zero = channel_info[ii]
