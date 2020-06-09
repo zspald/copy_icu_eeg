@@ -84,9 +84,6 @@ class IEEGDataProcessor(IEEGDataLoader):
                 start += num_batches * length
                 # Save the features, labels and channel info into the HDF file
                 if feats is not None:
-                    # Normalize features in each batch if indicated by the user
-                    if normalize is not None:
-                        feats = EEGFeatures.normalize_feats(feats, option=normalize)
                     num_feats = np.size(feats, axis=0)
                     patient_feats.resize((patient_feats.shape[0] + num_feats, len(channels_to_use), len(EEG_FEATS)))
                     patient_feats[-num_feats:, :, :] = feats
@@ -118,6 +115,17 @@ class IEEGDataProcessor(IEEGDataLoader):
                 patient_channels[-num_feats:, :] = channels_to_remove
             else:
                 print("No data is available from batch #%d" % (idx + 1))
+        # Normalize patient data if indicated to do so
+        if normalize:
+            try:  # Normalize all patient data if possible
+                patient_feats[:, :, :] = EEGFeatures.normalize_feats(patient_feats, option='zscore')
+            except MemoryError:  # Normalize in hour-long intervals
+                hour = 3600
+                # Iterate over all hour-long batches of EEG features
+                for idx in range(np.ceil(patient_feats.shape[0] / hour)):
+                    hour_batch = patient_feats[idx * hour:min((idx + 1) * hour, patient_feats.shape[0]), :, :]
+                    patient_feats[idx * hour:min((idx + 1) * hour, patient_feats.shape[0]), :, :] = \
+                        EEGFeatures.normalize_feats(hour_batch, option='zscore')
         # Close the file and return outputs
         print("Shape of the features: ", patient_feats.shape)
         return patient_feats, patient_labels, patient_channels
@@ -142,6 +150,7 @@ class IEEGDataProcessor(IEEGDataLoader):
                                                                     eeg_only, normalize)
         # Compute map renderings of the features across the patient's scalp
         map_outputs = EEGMap.generate_map(self.id, patient_feats, patient_channels)
+        print("Shape of the feature maps: ", map_outputs.shape)
         return map_outputs
 
     # Extracts features for a specified interval of EEG recordings from IEEG
@@ -293,9 +302,10 @@ class IEEGDataProcessor(IEEGDataLoader):
                 high = max(len(indices_to_remove) - 1, int((interval[1] + sep_length - timepoints[0]) / length))
                 indices_to_remove[low:high] = 1
         # Slide the window and check whether each group of EEG samples are sufficiently contiguous
+        time_limit = 10800
         while window_pos + window_size <= len(timepoints):
             checker = self.normal_count < int(self.seizure_count * ratio) if balance \
-                else self.normal_count < int(3000 / length)
+                else self.normal_count < int(time_limit / length)
             if np.sum(indices_to_remove[window_pos:window_pos + window_size]) == 0 and checker:
                 self.normal_count += window_size
                 window_pos += window_size

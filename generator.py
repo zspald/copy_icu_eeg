@@ -49,12 +49,7 @@ class EEGDataGenerator(Sequence):
     # Returns labels from the given list of patient IDs
     def get_labels(self):
         labels = list()
-        # Iterate over all patients to extract associated labels
-        # for patient_id in self.patient_list:
-        #     file = h5py.File('data/%s_data.h5' % patient_id, 'r')
-        #     label = file['labels'][:, 0]
-        #     labels.extend(list(label))
-        #     file.close()
+        # Iterate over all batches to extract associated labels
         for idx in range(self.length):
             _, label = self.__getitem__(idx)
             labels.extend(list(np.argmax(label, axis=1)))

@@ -63,7 +63,8 @@ class EEGLearner:
                 # Load and train the model
                 model = EEGModel.convolutional_network(self.shape)
                 history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
-                                              class_weight=self.loss_weights, epochs=epochs, verbose=verbose)
+                                              class_weight=self.loss_weights, epochs=epochs, shuffle=True,
+                                              verbose=verbose)
                 history_list[ii] = history
                 # Save model and obtain predictions for test data
                 if save:
@@ -86,26 +87,35 @@ class EEGLearner:
             train_generator = EEGDataGenerator(train_patients, batch_size=25, shuffle=True)
             validation_generator = EEGDataGenerator(validation_patients, batch_size=25, shuffle=True)
             test_generator = EEGDataGenerator(test_patients, batch_size=25, shuffle=False)
+            print('Training Data: ', train_patients)
+            print('Validation Data: ', validation_patients)
+            print('Test Data: ', test_patients)
             # Load and train the model
             model = EEGModel.convolutional_network(self.shape)
             history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
-                                          class_weight=self.loss_weights, epochs=epochs, verbose=verbose)
+                                          class_weight=self.loss_weights, epochs=epochs, shuffle=True, verbose=verbose)
             # Save model and obtain predictions for test data
             if save:
                 model.save('ICU-EEG-CNN.h5', save_format='h5')
+            self.model = model
             predict = model.predict_generator(test_generator, verbose=0)
             predict = np.argmax(predict, axis=1)
+            # Obtain labels from the test data generator
+            labels = test_generator.get_labels()
+            print('Predictions/Labels Shape: ', np.shape(predict), np.shape(labels))
+            # Compute evaluation metrics for raw outputs
+            metrics_raw = EEGEvaluator.evaluate_metrics(labels, predict)
             # Post-process the model predictions and obtain labels
             predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
-            labels = test_generator.get_labels()
-            print('Shape: ', np.shape(predict), np.shape(labels))
-            # Compute evaluation metrics
-            metrics = EEGEvaluator.evaluate_metrics(labels, predict)
+            # Compute evaluation metrics for smoothed outputs
+            metrics_postprocess = EEGEvaluator.evaluate_metrics(labels, predict)
             # Display results
             if visualize:
                 EEGEvaluator.training_curve(history)
-                EEGEvaluator.test_results(metrics)
-            self.model = model
+                print('========== Raw Output Metrics ==========')
+                EEGEvaluator.test_results(metrics_raw)
+                print('========== Smoothed Output Metrics ==========')
+                EEGEvaluator.test_results(metrics_postprocess)
         return
 
     # Divides training, validation and testing data
