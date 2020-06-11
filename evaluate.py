@@ -82,7 +82,7 @@ class EEGEvaluator:
         window_size = int(window_size / 6)
         window_pos = 0
         # Slide another window and remove outlying predictions
-        while window_pos + window_size <= np.size(predictions_outputs, axis=0):
+        while window_pos < np.size(predictions_outputs, axis=0):
             if window_pos < window_size and np.sum(predictions[:window_pos]) <= threshold:
                 predictions_outputs[:window_pos] = 0
             elif window_pos > np.size(predictions_outputs, axis=0) - window_size and \

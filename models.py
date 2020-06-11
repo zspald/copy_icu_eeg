@@ -7,7 +7,8 @@
 # Import libraries
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, ConvLSTM2D, CuDNNGRU, CuDNNLSTM, \
-    concatenate, Dense, Dropout, Flatten, Input, MaxPool2D
+    concatenate, Dense, Dropout, Flatten, Input, MaxPool2D, BatchNormalization, \
+    MaxPool3D, TimeDistributed
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import load_model
 import tensorflow as tf
@@ -60,6 +61,35 @@ class EEGModel:
         # Concatenate flattened representations
         concat = concatenate([flat1, flat2])
         fc1 = Dense(64, activation=tf.nn.relu)(concat)
+        drop1 = Dropout(0.2)(fc1)
+        fc2 = Dense(32, activation=tf.nn.relu)(drop1)
+        drop2 = Dropout(0.2)(fc2)
+        out = Dense(2, activation=tf.nn.softmax)(drop2)
+        # Initialize and compile the model
+        model = Model(inputs=input_layer, outputs=out)
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        return model
+
+    # A 2D Conv-LSTM model for seizure detection
+    # Inputs
+    #   input_shape: shape of the input data
+    # Outputs
+    #   model: the Conv-LSTM model for seizure detection
+    @staticmethod
+    def conv_lstm_network(input_shape):
+        input_layer = Input(input_shape)
+        # Two layers of ConvLSTMs with batch normalization, followed by max pooling
+        convlstm1 = ConvLSTM2D(32, kernel_size=(3, 3), return_sequences=True)(input_layer)
+        norm1 = BatchNormalization()(convlstm1)
+        convlstm2 = ConvLSTM2D(16, kernel_size=(3, 3), return_sequences=True)(norm1)
+        norm2 = BatchNormalization()(convlstm2)
+        pool1 = MaxPool3D(pool_size=(1, 2, 2))(norm2)
+        # One layer of ConvLSTM with only last hidden state as output, followed by max pooling
+        convlstm3 = ConvLSTM2D(8, kernel_size=(3, 3), return_sequences=False)(pool1)
+        pool2 = MaxPool2D(pool_size=(2, 2))(convlstm3)
+        flat = Flatten()(pool2)
+        # Fully-connected layers after flattening
+        fc1 = Dense(64, activation=tf.nn.relu)(flat)
         drop1 = Dropout(0.2)(fc1)
         fc2 = Dense(32, activation=tf.nn.relu)(drop1)
         drop2 = Dropout(0.2)(fc2)
