@@ -61,11 +61,11 @@ class EEGLearner:
             # Iterate over all patients for cross validation
             for ii in range(len(self.patient_list)):
                 # Initialize generators for training, validation and testing data
-                train_patients, validation_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
+                train_patients, valid_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
                 train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, sample_len=self.length,
                                                    seq_len=seq_len, use_seq=use_seq)
-                validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size,
-                                                        sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
+                validation_generator = EEGDataGenerator(valid_patients, batch_size=batch_size, sample_len=self.length,
+                                                        seq_len=seq_len, shuffle=False, use_seq=use_seq)
                 test_generator = EEGDataGenerator(test_patients, batch_size=batch_size, sample_len=self.length,
                                                   seq_len=seq_len, shuffle=False, use_seq=use_seq)
                 # Load and train the model
@@ -78,12 +78,13 @@ class EEGLearner:
                     model.save('ICU-EEG-%s-%d.h5' % (name, ii), save_format='h5')
                 predict = model.predict_generator(test_generator, verbose=0)
                 predict = np.argmax(predict, axis=1)
+                # Obtain annotations from the test generator
+                labels = test_generator.get_annots()
                 # Post-process the model predictions and obtain labels
                 predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
-                labels = test_generator.get_labels()
-                # Compute evaluation metrics
-                metrics = EEGEvaluator.evaluate_metrics(labels, predict)
-                metric_list[ii] = metrics
+                # Compute evaluation metrics for post-processed outputs
+                metrics_postprocess = EEGEvaluator.evaluate_metrics(labels[:, 0], predict)
+                metric_list[ii] = metrics_postprocess
             # Display results
             if visualize:
                 EEGEvaluator.training_curve_cv(history_list)
@@ -97,8 +98,8 @@ class EEGLearner:
             train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, sample_len=self.length,
                                                seq_len=seq_len, use_seq=use_seq)
             print('Number of training data: ', batch_size * train_generator.length)
-            labels = train_generator.get_labels()
-            print('Proportion of seizures: ', np.sum(labels, axis=0) / np.size(labels, axis=0))
+            labels = train_generator.get_annots()
+            print('Proportion of seizures: ', np.sum(labels[:, 0], axis=0) / np.size(labels, axis=0))
             validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size,
                                                     sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
             print('Number of validation data: ', batch_size * validation_generator.length)
@@ -111,18 +112,18 @@ class EEGLearner:
                                           verbose=verbose)
             # Save model and obtain predictions for test data
             if save:
-                model.save('ICU-EEG-%s.h5' % name, save_format='h5')
+                model.save('ICU-EEG-%s-%d.h5' % (name, epochs), save_format='h5')
             predict = model.predict_generator(test_generator, verbose=0)
             predict = np.argmax(predict, axis=1)
-            # Obtain labels from the test data generator
-            labels = test_generator.get_labels()
-            print('Predictions/Labels Shape: ', np.shape(predict), np.shape(labels))
+            # Obtain annotations from the test data generator
+            labels = test_generator.get_annots()
+            print('Predictions/Labels Shape: ', np.shape(predict), np.shape(labels[:, 0]))
             # Compute evaluation metrics for raw outputs
-            metrics_raw = EEGEvaluator.evaluate_metrics(labels, predict)
+            metrics_raw = EEGEvaluator.evaluate_metrics(labels[:, 0], predict)
             # Post-process the model predictions and obtain labels
             predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
             # Compute evaluation metrics for smoothed outputs
-            metrics_postprocess = EEGEvaluator.evaluate_metrics(labels, predict)
+            metrics_postprocess = EEGEvaluator.evaluate_metrics(labels[:, 0], predict)
             # Display results
             if visualize:
                 EEGEvaluator.training_curve(history)
@@ -146,6 +147,24 @@ class EEGLearner:
         model = EEGModel.convolutional_network(self.shape)
         model = self.train_model(epochs, model, 'conv', batch_size=batch_size, cross_val=cross_val, save=save,
                                  use_seq=False, verbose=verbose, visualize=visualize)
+        return model
+
+    # Trains a convolutional GRU model based on the EEG dataset
+    # Inputs
+    #   epochs: number of epochs during the training process
+    #   batch_size: number of samples in each batch
+    #   cross_val: whether to use cross validation on the EEG dataset
+    #   save: whether to save the trained model
+    #   seq_len: length of the input sequence, in seconds
+    #   verbose: level of verbosity of the training process
+    #   visualize: whether to visualize the train/validation/test results
+    # Outputs
+    #   model: the trained convolutional GRU model
+    def train_convolutional_gru(self, epochs, batch_size=10, cross_val=False, save=True, seq_len=20, verbose=1,
+                                visualize=True):
+        model = EEGModel.convolutional_gru_network((seq_len,) + self.shape)
+        model = self.train_model(epochs, model, 'cnn-gru', batch_size=batch_size, cross_val=cross_val, save=save,
+                                 seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
         return model
 
     # Trains a ConvLSTM model based on the EEG dataset

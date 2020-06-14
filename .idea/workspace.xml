@@ -44,7 +44,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../2019 Summer/Code/EEGdata" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../2019 Fall/_Research_/CHOP_CICU_TF" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -247,7 +247,8 @@
       <workItem from="1589222316851" duration="39464000" />
       <workItem from="1589552473093" duration="113356000" />
       <workItem from="1590377280080" duration="53088000" />
-      <workItem from="1591218876595" duration="65891000" />
+      <workItem from="1591218876595" duration="90026000" />
+      <workItem from="1592058416675" duration="13713000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -487,14 +488,20 @@
       <option name="project" value="LOCAL" />
       <updated>1591720893217</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="CONV-LSTM">
+      <created>1591834391880</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1591834391880</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="annotation preprocessing fixes, examples uploaded" />
     <MESSAGE value="data crawling for locating first non-NaN occurrence" />
     <MESSAGE value="Bug fixes" />
     <MESSAGE value="Feature outputs for each patient" />
@@ -519,42 +526,43 @@
     <MESSAGE value="generator fixes" />
     <MESSAGE value="data normalization" />
     <MESSAGE value="patient-specific normalization" />
-    <option name="LAST_COMMIT_MESSAGE" value="patient-specific normalization" />
+    <MESSAGE value="CONV-LSTM" />
+    <option name="LAST_COMMIT_MESSAGE" value="CONV-LSTM" />
   </component>
   <component name="WindowStateProjectService">
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser" timestamp="1589753626062">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589753626062" />
-    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1591720892674">
+    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1592096410847">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1591720892674" />
+    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1592096410847" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
-    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1591739290989">
+    <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1592095693928">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1591739290989" />
+    <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1592095693928" />
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1586806612780" />
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1591829888416">
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1592093696934">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1591829888416" />
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1592093696934" />
     <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1591829888415">
+    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1592093696933">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1591829888415" />
+    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1592093696933" />
     <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1591829888415">
+    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1592093696933">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1591829888415" />
+    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1592093696933" />
     <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1591829888415">
+    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1592093696933">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1591829888415" />
+    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1592093696933" />
     <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
     <state x="122" y="57" key="MergeDialog" timestamp="1585777814499">
       <screen x="0" y="0" width="1280" height="680" />
@@ -564,10 +572,10 @@
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="354" y="58" key="MultipleFileMergeDialog/0.0.1280.680@0.0.1280.680" timestamp="1585777816074" />
-    <state x="167" y="0" key="SettingsEditor" timestamp="1591295373215">
+    <state x="167" y="0" key="SettingsEditor" timestamp="1591920565858">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1591295373215" />
+    <state x="167" y="0" key="SettingsEditor/0.0.1280.639@0.0.1280.639" timestamp="1591920565858" />
     <state x="167" y="0" key="SettingsEditor/0.0.1280.680@0.0.1280.680" timestamp="1585777990553" />
     <state x="234" y="70" key="Vcs.Push.Dialog.v2" timestamp="1591720900751">
       <screen x="0" y="0" width="1280" height="639" />
@@ -589,7 +597,7 @@
     <state x="303" y="-1" key="search.everywhere.popup/0.0.1280.639@0.0.1280.639" timestamp="1589412297490" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1591829888406" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1592093696921" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$features_2d.coverage" NAME="features_2d Coverage Results" MODIFIED="1585717475279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$multi_processor.coverage" NAME="run_processor Coverage Results" MODIFIED="1589430043367" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

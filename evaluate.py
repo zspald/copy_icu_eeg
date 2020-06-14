@@ -58,6 +58,68 @@ class EEGEvaluator:
             precision_neg = np.nan
         return accuracy, recall_pos, precision_pos, recall_neg, precision_neg
 
+    # Computes seizure detection statistics from the given set of labels and predictions
+    # Inputs
+    #   labels: annotations from the dataset files, which contains the label (0/1),
+    #           starting point and endpoint (in seconds).
+    #   predictions: a list of seizure predictions given as a 1D numpy array
+    #   length: minimum time interval to consider pairs of events to be separate
+    # Outputs
+    #   true_positive: number of seizures correctly predicted
+    #   num_seizures: total number of seizures in the annotation
+    #   false_positive: number of false alerts given by the model
+    #   num_alerts: total number of alerts given by the model
+    @staticmethod
+    def evaluate_stats(labels, predictions, length=60):
+        # Initialize bookkeeping variables for seizure detection
+        prev_timepoint = -1 * (length + 1)
+        seizure_detected = False
+        true_positive, num_seizures = 0, 0
+        # Find number of seizures correctly predicted
+        for idx, label in enumerate(labels):
+            # Check whether the labeled seizure is a new occurrence
+            if label[0] == 1 and label[1] > prev_timepoint + length:
+                num_seizures += 1
+                if predictions[idx] == 1:
+                    seizure_detected = True
+                    true_positive += 1
+                else:
+                    seizure_detected = False
+            # Check whether the current seizure is newly detected
+            elif label[0] == 1 and predictions[idx] == 1 and not seizure_detected:
+                seizure_detected = True
+                true_positive += 1
+            # Update previous timepoint if current observation is a seizure
+            if label[0] == 1:
+                prev_timepoint = label[1]
+        print('Total number of seizures: ', num_seizures)
+        print('Number of seizures detected: ', true_positive)
+        # Initialize bookkeeping variables for seizure alerts
+        prev_timepoint = -1 * (length + 1)
+        seizure_alerted = False
+        true_negative, num_alerts = 0, 0
+        # Find number of seizures incorrectly predicted (false alerts)
+        for idx, pred in enumerate(predictions):
+            # Check whether the seizure alert is a new occurrence
+            if pred == 1 and labels[idx, 1] > prev_timepoint + length:
+                num_alerts += 1
+                if labels[idx, 0] == 1:
+                    seizure_alerted = True
+                    true_negative += 1
+                else:
+                    seizure_alerted = False
+            # Check whether the seizure alert overlaps with a labeled seizure
+            elif pred == 1 and labels[idx, 0] == 1 and not seizure_alerted:
+                seizure_alerted = True
+                true_negative += 1
+            # Update previous timepoint if current observation is an alert
+            if pred == 1:
+                prev_timepoint = labels[idx, 1]
+        false_positive = num_alerts - true_negative
+        print('Total number of alerts: ', num_alerts)
+        print('Number of false alerts: ', false_positive)
+        return true_positive, num_seizures, false_positive, num_alerts
+
     # Post-processes seizure predictions obtained from the model using a sliding window
     # Inputs
     #   predictions: a list of seizure predictions given as a 1D numpy array
@@ -75,7 +137,7 @@ class EEGEvaluator:
         window_pos = 0
         # Slide the window and fill in regions frequently predicted as seizure
         while window_pos + window_size <= np.size(predictions_outputs, axis=0):
-            if np.sum(predictions[window_pos:window_pos + window_size]) >= int(0.5 * window_size * threshold):
+            if np.sum(predictions[window_pos:window_pos + window_size]) >= 0.5 * window_size * threshold:
                 predictions_outputs[window_pos:window_pos + window_size] = 1
             window_pos += window_disp
         # Initialize a smaller window to be run over the predictions
@@ -83,12 +145,12 @@ class EEGEvaluator:
         window_pos = 0
         # Slide another window and remove outlying predictions
         while window_pos < np.size(predictions_outputs, axis=0):
-            if window_pos < window_size and np.sum(predictions[:window_pos]) <= threshold:
+            if window_pos < window_size and np.sum(predictions[:window_pos]) <= 0.5 * window_pos * threshold:
                 predictions_outputs[:window_pos] = 0
             elif window_pos > np.size(predictions_outputs, axis=0) - window_size and \
-                    np.sum(predictions[window_pos:]) <= threshold:
+                    np.sum(predictions[window_pos:]) <= 0.5 * len(predictions[window_pos:]) * threshold:
                 predictions_outputs[window_pos:] = 0
-            elif np.sum(predictions[window_pos - window_size:window_pos + window_size]) <= 2 * threshold:
+            elif np.sum(predictions[window_pos - window_size:window_pos + window_size]) <= window_size * threshold:
                 predictions_outputs[window_pos - window_size:window_pos + window_size] = 0
             window_pos += window_size
         return predictions_outputs

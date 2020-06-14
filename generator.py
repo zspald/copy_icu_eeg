@@ -29,6 +29,8 @@ class EEGDataGenerator(Sequence):
     #   seq_disp: displacement of the sequence, in seconds
     def __init__(self, patient_list, batch_size, sample_len, shuffle=True, use_seq=False, seq_len=20, seq_disp=5):
         # Initialize attributes with user inputs
+        self.dataset, self.labels, self.patient_file = None, None, None
+        self.patient_idx = -1
         self.patient_list = patient_list
         self.batch_size = batch_size
         self.sample_len = sample_len
@@ -46,6 +48,7 @@ class EEGDataGenerator(Sequence):
             # Initialize the cross-patient batch list and obtain the number of all batches
             self.batch_list = np.zeros(len(self.patient_list))
             self.length = self.initialize_batch()
+        self.annots = None
 
     # Returns the total number of batches required for training each epoch
     def __len__(self):
@@ -58,80 +61,98 @@ class EEGDataGenerator(Sequence):
         return
 
     # Returns labels from the given list of patient IDs
-    def get_labels(self):
-        labels = list()
-        # Iterate over all batches to extract associated labels
-        for idx in range(self.length):
-            _, label = self.__getitem__(idx)
-            labels.extend(list(np.argmax(label, axis=1)))
-        # Convert to numpy array
-        labels = np.asarray(labels)
-        return labels
+    def get_annots(self):
+        # Check whether annotations have already been computed
+        if self.annots is None:
+            annots = np.empty((0, 3))
+            # Iterate over all batches to extract associated labels
+            for idx in range(self.length):
+                _, label = self.__getitem__(idx, use_data=False)
+                annots = np.r_[annots, label]
+            self.annots = annots
+        return self.annots
 
     # Returns the next batch of data and labels
     # Inputs
     #   idx: current batch index
+    #   use_data: whether to use the full dataset
     # Outputs
     #   output_data: EEG maps returned by the generator
     #   output_labels: labels corresponding to the generated EEG maps
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, use_data=True):
         if self.use_seq:  # Extract data in form of (batch_size x seq_len x data)
             patient_num = 0
             batch_sum = len(self.batch_info[self.indices[patient_num]])
             while batch_sum <= idx:
-                patient_num += 1
+                if patient_num < len(self.indices) - 1:
+                    patient_num += 1
                 batch_sum += len(self.batch_info[self.indices[patient_num]])
             batch_idx = idx - batch_sum + len(self.batch_info[self.indices[patient_num]])
-            output_data, output_labels = self.__data_generation_seq(self.indices[patient_num], batch_idx)
+            output_data, output_labels = self.__data_generation_seq(self.indices[patient_num], batch_idx, use_data)
         else:  # Extract data in form of (batch_size x data)
             patient_num = 0
             batch_sum = self.batch_list[self.indices[patient_num]]
             while batch_sum <= idx:
-                patient_num += 1
+                if patient_num < len(self.indices) - 1:
+                    patient_num += 1
                 batch_sum += self.batch_list[self.indices[patient_num]]
             batch_idx = idx - batch_sum + self.batch_list[self.indices[patient_num]]
-            output_data, output_labels = self.__data_generation(self.indices[patient_num], batch_idx)
+            output_data, output_labels = self.__data_generation(self.indices[patient_num], batch_idx, use_data)
         return output_data, output_labels
 
     # Generates data and labels for the specified batch
     # Inputs
     #   patient_idx: index of current patient, ordered identically to patient list
     #   batch_idx: index of current batch, starting at 0
+    #   use_data: whether to use the full dataset
     # Outputs
     #   output_data: EEG maps returned by the generator
     #   output_labels: labels corresponding to the generated EEG maps
-    def __data_generation(self, patient_idx, batch_idx):
+    def __data_generation(self, patient_idx, batch_idx, use_data=True):
+        self.patient_idx = patient_idx
         file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
+        output_data = None
+        # Check whether batch is the final batch for the dataset
         if batch_idx == self.batch_list[patient_idx] - 1:
-            output_data = file['maps'][-1 * int(self.batch_size):, :, :, :]
-            output_labels = file['labels'][-1 * int(self.batch_size):, 0]
+            if use_data:
+                output_data = file['maps'][-1 * int(self.batch_size):, :, :, :]
+            output_labels = file['labels'][-1 * int(self.batch_size):, :]
         else:
-            output_data = file['maps'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), :, :, :]
-            output_labels = file['labels'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), 0]
+            if use_data:
+                output_data = file['maps'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), :, :, :]
+            output_labels = file['labels'][int(batch_idx * self.batch_size):int((batch_idx + 1) * self.batch_size), :]
         output_data = copy.deepcopy(output_data)
         output_labels = copy.deepcopy(output_labels)
         file.close()
-        output_labels = tf.keras.utils.to_categorical(output_labels, num_classes=2)
+        # Convert to one-hot encodings for training
+        if use_data:
+            output_labels = tf.keras.utils.to_categorical(output_labels[:, 0], num_classes=2)
         return output_data, output_labels
 
     # Generates data and labels for the specified batch in a sequential manner
     # Inputs
     #   patient_idx: index of current patient, ordered identically to patient list
     #   batch_idx: index of current batch, starting at 0
+    #   use_data: whether to use the full dataset
     # Outputs
     #   output_data: EEG maps returned by the generator
     #   output_labels: labels corresponding to the generated EEG maps
-    def __data_generation_seq(self, patient_idx, batch_idx):
-        file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
-        dataset = file['maps']
-        output_data = np.zeros((self.batch_size, self.seq_len) + dataset.shape[1:])
-        output_labels = np.zeros(self.batch_size)
-        seq_indices = self.batch_info[patient_idx][batch_idx]
-        for idx, seq_idx in enumerate(seq_indices):
-            output_data[idx, :, :, :, :] = copy.deepcopy(dataset[seq_idx:seq_idx + self.seq_len, :, :, :])
-            output_labels[idx] = max(file['labels'][seq_idx:seq_idx + self.seq_len, 0])
-        file.close()
-        output_labels = tf.keras.utils.to_categorical(output_labels, num_classes=2)
+    def __data_generation_seq(self, patient_idx, batch_idx, use_data=True):
+        if self.patient_idx != patient_idx:
+            if self.patient_idx >= 0:
+                self.patient_file.close()
+            self.patient_file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
+            self.patient_idx = patient_idx
+            self.dataset, self.labels = self.patient_file['maps'], self.patient_file['labels']
+        seq_idx = self.batch_info[patient_idx][batch_idx]
+        output_labels = map(lambda x, y: [max(x[y:y + self.seq_len, 0]), x[y, 1], x[y, 2]],
+                            [self.labels for _ in seq_idx], seq_idx)
+        output_labels = np.asarray(list(output_labels))
+        output_data = None
+        if use_data:
+            output_data = map(lambda x, y: x[y:y + self.seq_len, :, :, :], [self.dataset for _ in seq_idx], seq_idx)
+            output_data = np.asarray(list(output_data))
+            output_labels = tf.keras.utils.to_categorical(output_labels[:, 0], num_classes=2)
         return output_data, output_labels
 
     # Computes the number of batches in each patient for non-sequential data generation
@@ -166,7 +187,7 @@ class EEGDataGenerator(Sequence):
             file = h5py.File('data/%s_data.h5' % patient_id, 'r')
             data_labels = file['labels']
             data_len = data_labels.shape[0]
-            # Use a sliding-window approach for each patient
+            # Use a sliding-window method to find contiguous sequences
             while seq_pos + seq_len <= data_len:
                 # Check whether the data in the sequence are contingent
                 if self.contingent(data_labels[seq_pos:seq_pos + seq_len]):
