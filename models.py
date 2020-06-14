@@ -70,6 +70,33 @@ class EEGModel:
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         return model
 
+    # A Convolutional GRU model for seizure detection
+    # Inputs
+    #   input_shape: shape of the input data
+    # Outputs
+    #   model: the Convolutional GRU model for seizure detection
+    @staticmethod
+    def convolutional_gru_network(input_shape):
+        input_layer = Input(input_shape)
+        # Convolution/Pooling layers
+        conv1 = TimeDistributed(Conv2D(8, kernel_size=(3, 3), activation=tf.nn.relu))(input_layer)
+        conv2 = TimeDistributed(Conv2D(16, kernel_size=(3, 3), activation=tf.nn.relu))(conv1)
+        pool1 = TimeDistributed(MaxPool2D(pool_size=(2, 2)))(conv2)
+        conv3 = TimeDistributed(Conv2D(32, kernel_size=(2, 2), activation=tf.nn.relu))(pool1)
+        conv4 = TimeDistributed(Conv2D(32, kernel_size=(2, 2), activation=tf.nn.relu))(conv3)
+        pool2 = TimeDistributed(MaxPool2D(pool_size=(2, 2)))(conv4)
+        flat1 = TimeDistributed(Flatten())(pool2)
+        # Concatenate flattened representations
+        gru1 = CuDNNGRU(60, go_backwards=True, return_sequences=True)(flat1)
+        norm1 = BatchNormalization()(gru1)
+        gru2 = CuDNNGRU(30, go_backwards=True, return_sequences=False)(norm1)
+        fc = Dense(20, activation=tf.nn.relu)(gru2)
+        out = Dense(2, activation=tf.nn.softmax)(fc)
+        # Initialize and compile the model
+        model = Model(inputs=input_layer, outputs=out)
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        return model
+
     # A 2D Conv-LSTM model for seizure detection
     # Inputs
     #   input_shape: shape of the input data

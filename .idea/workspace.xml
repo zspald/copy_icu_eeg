@@ -2,14 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="non-seizure handling">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/execute_processor.sh" beforeDir="false" afterPath="$PROJECT_DIR$/execute_processor.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -248,7 +244,7 @@
       <workItem from="1589552473093" duration="113356000" />
       <workItem from="1590377280080" duration="53088000" />
       <workItem from="1591218876595" duration="90026000" />
-      <workItem from="1592058416675" duration="13713000" />
+      <workItem from="1592058416675" duration="13779000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -495,14 +491,20 @@
       <option name="project" value="LOCAL" />
       <updated>1591834391880</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="heuristic evaluations">
+      <created>1592096455964</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1592096455964</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="data crawling for locating first non-NaN occurrence" />
     <MESSAGE value="Bug fixes" />
     <MESSAGE value="Feature outputs for each patient" />
     <MESSAGE value="checkpoint" />
@@ -527,17 +529,18 @@
     <MESSAGE value="data normalization" />
     <MESSAGE value="patient-specific normalization" />
     <MESSAGE value="CONV-LSTM" />
-    <option name="LAST_COMMIT_MESSAGE" value="CONV-LSTM" />
+    <MESSAGE value="heuristic evaluations" />
+    <option name="LAST_COMMIT_MESSAGE" value="heuristic evaluations" />
   </component>
   <component name="WindowStateProjectService">
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser" timestamp="1589753626062">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1589753626062" />
-    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1592096410847">
+    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1592096455438">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1592096410847" />
+    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1592096455438" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
     <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1592095693928">
       <screen x="0" y="0" width="1280" height="639" />
