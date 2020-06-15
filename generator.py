@@ -22,18 +22,21 @@ class EEGDataGenerator(Sequence):
     #   indices: list of all patient indices hashed from IDs
     #   patient_list: list of all patient IDs
     #   sample_len: length of each EEG sample
+    #   control: the maximum amount of time allowed for control samples, in seconds
     #   shuffle: whether to shuffle order of training/validation batches
     #   use_seq: whether the data should be generated for sequential models
     # ### the parameters below are only used if seq==True ###
     #   seq_len: length of the input sequence, in seconds
     #   seq_disp: displacement of the sequence, in seconds
-    def __init__(self, patient_list, batch_size, sample_len, shuffle=True, use_seq=False, seq_len=20, seq_disp=5):
+    def __init__(self, patient_list, batch_size, sample_len, control=None, shuffle=True,
+                 use_seq=False, seq_len=20, seq_disp=5):
         # Initialize attributes with user inputs
         self.dataset, self.labels, self.patient_file = None, None, None
         self.patient_idx = -1
         self.patient_list = patient_list
         self.batch_size = batch_size
         self.sample_len = sample_len
+        self.control = control
         self.shuffle = shuffle
         self.indices = np.arange(len(self.patient_list))
         self.use_seq = use_seq
@@ -162,7 +165,12 @@ class EEGDataGenerator(Sequence):
         # Iterate over all patients to determine the total number of samples and batches
         for idx, patient_id in enumerate(self.patient_list):
             file = h5py.File('data/%s_data.h5' % patient_id, 'r')
-            self.batch_list[idx] = np.ceil(file['maps'].shape[0] / self.batch_size)
+            # Check whether there exists a limit for control samples
+            if self.control is not None and "CNT" in patient_id:
+                dataset_size = min(file['maps'].shape[0], int(self.control / self.sample_len))
+            else:
+                dataset_size = file['maps'].shape[0]
+            self.batch_list[idx] = np.ceil(dataset_size / self.batch_size)
             file.close()
         num_batches = int(sum(self.batch_list))
         return num_batches
@@ -186,9 +194,13 @@ class EEGDataGenerator(Sequence):
             # Open the file and read the labels
             file = h5py.File('data/%s_data.h5' % patient_id, 'r')
             data_labels = file['labels']
-            data_len = data_labels.shape[0]
+            # Check whether there exists a limit for control samples
+            if self.control is not None and 'CNT' in patient_id:
+                dataset_size = min(data_labels.shape[0], int(self.control / self.sample_len + seq_len))
+            else:
+                dataset_size = data_labels.shape[0]
             # Use a sliding-window method to find contiguous sequences
-            while seq_pos + seq_len <= data_len:
+            while seq_pos + seq_len <= dataset_size:
                 # Check whether the data in the sequence are contingent
                 if self.contingent(data_labels[seq_pos:seq_pos + seq_len]):
                     if sample_idx == 0:

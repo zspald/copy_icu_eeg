@@ -31,7 +31,7 @@ class EEGLearner:
         # Initialize fields
         self.name = ''
         self.patient_list = patient_list
-        self.loss_weights = {0: 1.0, 1: 1.5}
+        self.loss_weights = {0: 1.0, 1: 2.0}
         # Check the shape of the EEG data
         file = h5py.File('data/%s_data.h5' % patient_list[0], 'r')
         self.shape = file['maps'][0].shape
@@ -42,6 +42,7 @@ class EEGLearner:
     # Inputs
     #   epochs: number of epochs during the training process
     #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
     #   cross_val: whether to use cross validation on the EEG dataset
     #   save: whether to save the trained model
     #   seq_len: length of the input sequence, in seconds
@@ -50,8 +51,8 @@ class EEGLearner:
     #   visualize: whether to visualize the train/validation/test results
     # Outputs
     #   model: the trained model
-    def train_model(self, epochs, model, name, batch_size=25, cross_val=False, save=True, seq_len=20,
-                    use_seq=False, verbose=1, visualize=True):
+    def train_model(self, epochs, model, name, batch_size=25, control=None, cross_val=False, save=True,
+                    seq_len=20, use_seq=False, verbose=1, visualize=True):
         # Save the name of the training model
         self.name = name
         if cross_val:
@@ -62,10 +63,11 @@ class EEGLearner:
             for ii in range(len(self.patient_list)):
                 # Initialize generators for training, validation and testing data
                 train_patients, valid_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
-                train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, sample_len=self.length,
-                                                   seq_len=seq_len, use_seq=use_seq)
-                validation_generator = EEGDataGenerator(valid_patients, batch_size=batch_size, sample_len=self.length,
-                                                        seq_len=seq_len, shuffle=False, use_seq=use_seq)
+                train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, control=control,
+                                                   sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
+                validation_generator = EEGDataGenerator(valid_patients, batch_size=batch_size, control=control,
+                                                        sample_len=self.length, seq_len=seq_len, shuffle=False,
+                                                        use_seq=use_seq)
                 test_generator = EEGDataGenerator(test_patients, batch_size=batch_size, sample_len=self.length,
                                                   seq_len=seq_len, shuffle=False, use_seq=use_seq)
                 # Load and train the model
@@ -95,12 +97,12 @@ class EEGLearner:
             print('Training Data: ', train_patients)
             print('Validation Data: ', validation_patients)
             print('Test Data: ', test_patients)
-            train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, sample_len=self.length,
-                                               seq_len=seq_len, use_seq=use_seq)
+            train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, control=control,
+                                               sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
             print('Number of training data: ', batch_size * train_generator.length)
-            labels = train_generator.get_annots()
-            print('Proportion of seizures: ', np.sum(labels[:, 0], axis=0) / np.size(labels, axis=0))
-            validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size,
+            train_labels = train_generator.get_annots()
+            print('Proportion of seizures: ', np.sum(train_labels[:, 0], axis=0) / np.size(train_labels, axis=0))
+            validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size, control=control,
                                                     sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
             print('Number of validation data: ', batch_size * validation_generator.length)
             test_generator = EEGDataGenerator(test_patients, batch_size=batch_size, sample_len=self.length,
@@ -137,22 +139,24 @@ class EEGLearner:
     # Inputs
     #   epochs: number of epochs during the training process
     #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
     #   cross_val: whether to use cross validation on the EEG dataset
     #   save: whether to save the trained model
     #   verbose: level of verbosity of the training process
     #   visualize: whether to visualize the train/validation/test results
     # Outputs
     #   model: the trained CNN model
-    def train_cnn(self, epochs, batch_size=25, cross_val=False, save=True, verbose=1, visualize=True):
+    def train_cnn(self, epochs, batch_size=25, control=None, cross_val=False, save=True, verbose=1, visualize=True):
         model = EEGModel.convolutional_network(self.shape)
-        model = self.train_model(epochs, model, 'conv', batch_size=batch_size, cross_val=cross_val, save=save,
-                                 use_seq=False, verbose=verbose, visualize=visualize)
+        model = self.train_model(epochs, model, 'conv', batch_size=batch_size, control=control, cross_val=cross_val,
+                                 save=save, use_seq=False, verbose=verbose, visualize=visualize)
         return model
 
     # Trains a convolutional GRU model based on the EEG dataset
     # Inputs
     #   epochs: number of epochs during the training process
     #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
     #   cross_val: whether to use cross validation on the EEG dataset
     #   save: whether to save the trained model
     #   seq_len: length of the input sequence, in seconds
@@ -160,17 +164,18 @@ class EEGLearner:
     #   visualize: whether to visualize the train/validation/test results
     # Outputs
     #   model: the trained convolutional GRU model
-    def train_convolutional_gru(self, epochs, batch_size=10, cross_val=False, save=True, seq_len=20, verbose=1,
-                                visualize=True):
+    def train_convolutional_gru(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
+                                verbose=1, visualize=True):
         model = EEGModel.convolutional_gru_network((seq_len,) + self.shape)
-        model = self.train_model(epochs, model, 'cnn-gru', batch_size=batch_size, cross_val=cross_val, save=save,
-                                 seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
+        model = self.train_model(epochs, model, 'cnn-gru', batch_size=batch_size, control=control, cross_val=cross_val,
+                                 save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
         return model
 
     # Trains a ConvLSTM model based on the EEG dataset
     # Inputs
     #   epochs: number of epochs during the training process
     #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
     #   cross_val: whether to use cross validation on the EEG dataset
     #   save: whether to save the trained model
     #   seq_len: length of the input sequence, in seconds
@@ -178,10 +183,11 @@ class EEGLearner:
     #   visualize: whether to visualize the train/validation/test results
     # Outputs
     #   model: the trained Conv-LSTM model
-    def train_conv_lstm(self, epochs, batch_size=10, cross_val=False, save=True, seq_len=20, verbose=1, visualize=True):
+    def train_conv_lstm(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
+                        verbose=1, visualize=True):
         model = EEGModel.conv_lstm_network((seq_len,) + self.shape)
-        model = self.train_model(epochs, model, 'conv-lstm', batch_size=batch_size, cross_val=cross_val, save=save,
-                                 seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
+        model = self.train_model(epochs, model, 'conv-lstm', batch_size=batch_size, control=control, cross_val=cross_val
+                                 , save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
         return model
 
     # Divides training, validation and testing data
