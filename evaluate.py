@@ -120,6 +120,48 @@ class EEGEvaluator:
         print('Number of false alerts: ', false_positive)
         return true_positive, num_seizures, false_positive, num_alerts
 
+    # Visualizes the predictions of the model with regards to the labels
+    # Inputs
+    #   labels: a list of seizure annotations given as a 1D numpy array
+    #   predictions: an array of predictions returned by the model
+    #   length: length of each EEG segment
+    #   patient_id: ID of the patient dataset
+    #   num_points: maximum number of points to label on the time axis
+    #   postprocess: whether to visualize post-processed outputs of the model
+    #   threshold: the threshold probability for seizure detection
+    # Outputs
+    #   plots of seizure detections of the model and the clinicians
+    @staticmethod
+    def visualize_outputs(labels, predictions, length, patient_id, num_points=15, postprocess=True, threshold=0.8):
+        raw_outputs = np.array([pred[1] for pred in predictions])
+        samples_to_min = int(60 / length)
+        minutes = [x for x in range(len(labels)) if x % samples_to_min == 0]
+        minutes = [x for i, x in enumerate(minutes) if i % (max(1, int(len(minutes) / num_points))) == 0]
+        plt.plot(labels, 'r')
+        plt.plot(raw_outputs + 1e-2, 'b')
+        plt.plot(np.array([threshold for _ in range(len(labels))]), 'm:')
+        plt.ylim(0, 1.05)
+        plt.xticks(minutes, [str(int(x / samples_to_min)) for x in minutes])
+        plt.xlabel('Minutes elapsed')
+        plt.ylabel('Output probability')
+        plt.title('Raw Detection - %s' % patient_id)
+        plt.legend(['labels', 'outputs'], loc='upper left')
+        plt.show()
+        if postprocess:
+            # Postprocess the model's outputs
+            predicts = np.argmax(predictions, axis=1)
+            processed_outputs = EEGEvaluator.postprocess_outputs(predicts, length=length, threshold=threshold)
+            # Plot the processed outputs of the model
+            plt.plot(labels, 'r')
+            plt.plot(processed_outputs + 1e-2, 'b')
+            plt.ylim(0, 1.05)
+            plt.xticks(minutes, [str(int(x / samples_to_min)) for x in minutes])
+            plt.xlabel('Minutes elapsed')
+            plt.ylabel('Output probability')
+            plt.title('Processed Detection - %s' % patient_id)
+            plt.legend(['labels', 'outputs'], loc='upper left')
+        plt.show()
+
     # Post-processes seizure predictions obtained from the model using a sliding window
     # Inputs
     #   predictions: a list of seizure predictions given as a 1D numpy array
@@ -137,7 +179,7 @@ class EEGEvaluator:
         window_pos = 0
         # Slide the window and fill in regions frequently predicted as seizure
         while window_pos + window_size <= np.size(predictions_outputs, axis=0):
-            if np.sum(predictions[window_pos:window_pos + window_size]) >= 0.5 * window_size * threshold:
+            if np.sum(predictions[window_pos:window_pos + window_size]) >= window_size * threshold:
                 predictions_outputs[window_pos:window_pos + window_size] = 1
             window_pos += window_disp
         # Initialize a smaller window to be run over the predictions
@@ -145,12 +187,12 @@ class EEGEvaluator:
         window_pos = 0
         # Slide another window and remove outlying predictions
         while window_pos < np.size(predictions_outputs, axis=0):
-            if window_pos < window_size and np.sum(predictions[:window_pos]) <= 0.5 * window_pos * threshold:
+            if window_pos < window_size and np.sum(predictions[:window_pos]) <= window_pos * threshold:
                 predictions_outputs[:window_pos] = 0
             elif window_pos > np.size(predictions_outputs, axis=0) - window_size and \
-                    np.sum(predictions[window_pos:]) <= 0.5 * len(predictions[window_pos:]) * threshold:
+                    np.sum(predictions[window_pos:]) <= len(predictions[window_pos:]) * threshold:
                 predictions_outputs[window_pos:] = 0
-            elif np.sum(predictions[window_pos - window_size:window_pos + window_size]) <= window_size * threshold:
+            elif np.sum(predictions[window_pos - window_size:window_pos + window_size]) <= 2 * window_size * threshold:
                 predictions_outputs[window_pos - window_size:window_pos + window_size] = 0
             window_pos += window_size
         return predictions_outputs
