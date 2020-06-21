@@ -38,6 +38,61 @@ class EEGLearner:
         self.length = file['labels'][0, 2] - file['labels'][0, 1]
         file.close()
 
+    # Trains a CNN model based on the EEG dataset
+    # Inputs
+    #   epochs: number of epochs during the training process
+    #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
+    #   cross_val: whether to use cross validation on the EEG dataset
+    #   save: whether to save the trained model
+    #   verbose: level of verbosity of the training process
+    #   visualize: whether to visualize the train/validation/test results
+    # Outputs
+    #   model: the trained CNN model
+    def train_cnn(self, epochs, batch_size=25, control=None, cross_val=False, save=True, verbose=1, visualize=True):
+        model = EEGModel.convolutional_network(self.shape)
+        model = self.train_model(epochs, model, 'conv', batch_size=batch_size, control=control, cross_val=cross_val,
+                                 save=save, use_seq=False, verbose=verbose, visualize=visualize)
+        return model
+
+    # Trains a convolutional GRU model based on the EEG dataset
+    # Inputs
+    #   epochs: number of epochs during the training process
+    #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
+    #   cross_val: whether to use cross validation on the EEG dataset
+    #   save: whether to save the trained model
+    #   seq_len: length of the input sequence, in seconds
+    #   verbose: level of verbosity of the training process
+    #   visualize: whether to visualize the train/validation/test results
+    # Outputs
+    #   model: the trained convolutional GRU model
+    def train_convolutional_gru(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
+                                verbose=1, visualize=True):
+        model = EEGModel.convolutional_gru_network((seq_len,) + self.shape)
+        model = self.train_model(epochs, model, 'cnn-gru', batch_size=batch_size, control=control, cross_val=cross_val,
+                                 save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
+        return model
+
+    # Trains a ConvLSTM model based on the EEG dataset
+    # Inputs
+    #   epochs: number of epochs during the training process
+    #   batch_size: number of samples in each batch
+    #   control: the maximum amount of time allowed for control samples, in seconds
+    #   cross_val: whether to use cross validation on the EEG dataset
+    #   save: whether to save the trained model
+    #   seq_len: length of the input sequence, in seconds
+    #   verbose: level of verbosity of the training process
+    #   visualize: whether to visualize the train/validation/test results
+    # Outputs
+    #   model: the trained Conv-LSTM model
+    def train_conv_lstm(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
+                        verbose=1, visualize=True):
+        model = EEGModel.conv_lstm_network((seq_len,) + self.shape)
+        model = self.train_model(epochs, model, 'conv-lstm', batch_size=batch_size, control=control, cross_val=cross_val
+                                 , save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
+        return model
+
     # Trains a deep neural network model based on the EEG data
     # Inputs
     #   epochs: number of epochs during the training process
@@ -133,61 +188,6 @@ class EEGLearner:
                 EEGEvaluator.test_results(metrics_raw)
                 print('========== Smoothed Output Metrics ==========')
                 EEGEvaluator.test_results(metrics_postprocess)
-        return model
-
-    # Trains a CNN model based on the EEG dataset
-    # Inputs
-    #   epochs: number of epochs during the training process
-    #   batch_size: number of samples in each batch
-    #   control: the maximum amount of time allowed for control samples, in seconds
-    #   cross_val: whether to use cross validation on the EEG dataset
-    #   save: whether to save the trained model
-    #   verbose: level of verbosity of the training process
-    #   visualize: whether to visualize the train/validation/test results
-    # Outputs
-    #   model: the trained CNN model
-    def train_cnn(self, epochs, batch_size=25, control=None, cross_val=False, save=True, verbose=1, visualize=True):
-        model = EEGModel.convolutional_network(self.shape)
-        model = self.train_model(epochs, model, 'conv', batch_size=batch_size, control=control, cross_val=cross_val,
-                                 save=save, use_seq=False, verbose=verbose, visualize=visualize)
-        return model
-
-    # Trains a convolutional GRU model based on the EEG dataset
-    # Inputs
-    #   epochs: number of epochs during the training process
-    #   batch_size: number of samples in each batch
-    #   control: the maximum amount of time allowed for control samples, in seconds
-    #   cross_val: whether to use cross validation on the EEG dataset
-    #   save: whether to save the trained model
-    #   seq_len: length of the input sequence, in seconds
-    #   verbose: level of verbosity of the training process
-    #   visualize: whether to visualize the train/validation/test results
-    # Outputs
-    #   model: the trained convolutional GRU model
-    def train_convolutional_gru(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
-                                verbose=1, visualize=True):
-        model = EEGModel.convolutional_gru_network((seq_len,) + self.shape)
-        model = self.train_model(epochs, model, 'cnn-gru', batch_size=batch_size, control=control, cross_val=cross_val,
-                                 save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
-        return model
-
-    # Trains a ConvLSTM model based on the EEG dataset
-    # Inputs
-    #   epochs: number of epochs during the training process
-    #   batch_size: number of samples in each batch
-    #   control: the maximum amount of time allowed for control samples, in seconds
-    #   cross_val: whether to use cross validation on the EEG dataset
-    #   save: whether to save the trained model
-    #   seq_len: length of the input sequence, in seconds
-    #   verbose: level of verbosity of the training process
-    #   visualize: whether to visualize the train/validation/test results
-    # Outputs
-    #   model: the trained Conv-LSTM model
-    def train_conv_lstm(self, epochs, batch_size=10, control=None, cross_val=False, save=True, seq_len=20,
-                        verbose=1, visualize=True):
-        model = EEGModel.conv_lstm_network((seq_len,) + self.shape)
-        model = self.train_model(epochs, model, 'conv-lstm', batch_size=batch_size, control=control, cross_val=cross_val
-                                 , save=save, seq_len=seq_len, use_seq=True, verbose=verbose, visualize=visualize)
         return model
 
     # Divides training, validation and testing data

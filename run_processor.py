@@ -13,8 +13,8 @@ import argparse
 # Inputs
 #   None
 # Outputs
-#   parser - the argparser object containing relevant inputs for preprocessing the data
-def init():
+#   parser - the argparser object containing user inputs for preprocessing the data
+def __init__():
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=False, help='username')
     parser.add_argument('-p', '--password', required=False, help='password')
@@ -31,7 +31,7 @@ def init():
 
 # Main method of the file - runs map generation for user-designated EEG segments
 if __name__ == "__main__":
-    parser_main = init()
+    parser_main = __init__()
     args = parser_main.parse_args()
     # Check whether the user had pre-specified the parameters
     if args.username is None:

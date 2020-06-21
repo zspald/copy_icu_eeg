@@ -1,14 +1,18 @@
 #!/bin/bash
-declare -a PATIENTS=("RID0060" "RID0061" "RID0062" "RID0064" "RID0068" "RID0069" "RID0072" "RID0074" "RID235_1d807e48"
-"RID244_2aa72934" "RID249_9f3b5d22" "RID250_ac5b1126" "RID251_702ac93f" "RID252_68561f5b" "RID253_ae81bb9b"
-"RID254_a69203f2" "RID256_a80ca08c" "RID257_5e2a16b8" "RID258_d6280c8b")
+# A parallel bash scripts that allows the user to pre-process the EEG data from IEEG and save for training
+username="INPUT IEEG USERNAME HERE"
+password="INPUT IEEG PASSWORD HERE"
+num_iter="INPUT NUMBER OF ITERATIONS"
+batch_size="INPUT BATCH SIZE"
+start="INPUT START TIME"
+length="INPUT LENGTH OF EACH SEGMENT"
+filter="INPUT WHETHER TO APPLY FILTER AS 0/1"
+eeg="INPUT WHETHER TO ONLY USE EEG CHANNELS AS 0/1"
+norm="INPUT WHETHER TO NORMALIZE THE DATA AS 0/1"
+declare -a PATIENTS=("LIST ALL PATIENTS IN HERE")
 for patient in "${PATIENTS[@]}"
 do
-	python run_processor.py -u danieljkim0118 -p kjm39173917# -id $patient -n 20 -b 1000 -s 0 -l 1 -f 1 -eo 1 -no 0 &
+	python run_processor.py -u "$username" -p "$password" -id "$patient" -n "$num_iter" -b "$batch_size" -s "$start" -l "$length" -f "$filter" -eo "$eeg" -no "$norm" &
 done
 wait
-# RID0063, RID0065, RID0066, RID0067, RID0073 to be processed later
-# All Patients:
-# "RID0060" "RID0061" "RID0062" "RID0063" "RID0064" "RID0065" "RID0066" "RID0067" "RID0068" "RID0069" "RID0072"
-# "RID0073" "RID0074" "RID235_1d807e48" "RID244_2aa72934" "RID249_9f3b5d22" "RID250_ac5b1126" "RID251_702ac93f"
-# "RID252_68561f5b" "RID253_ae81bb9b" "RID254_a69203f2" "RID256_a80ca08c" "RID257_5e2a16b8" "RID258_d6280c8b"
+

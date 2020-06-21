@@ -10,7 +10,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
-from features import EEGFeatures, EEG_FEATS
+from features import EEG_FEATS
 
 # List of electrode coordinates to be used for image construction
 EEG_X = [-0.4, 0.4, 0.0, -0.32, 0.32, -0.64, 0.64, 0.0, -0.24, 0.24, -0.8, 0.8, -0.64, 0.64,

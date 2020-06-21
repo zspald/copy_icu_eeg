@@ -29,7 +29,7 @@ class IEEGDataLoader:
     #   dataset: the IEEG dataset object which contains all information about the given dataset
     #   channel_labels: a list of strings containing channel names
     #   channel_indices: a list of integers containing channel indices
-    #   details: a dictionary containing
+    #   details: a dictionary containing the time series details of the recording
     #   fs: sampling frequency of the recording
     #   montage: the current montage being used
     def __init__(self, dataset_id, user, pwd):

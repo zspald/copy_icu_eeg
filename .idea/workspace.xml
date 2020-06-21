@@ -3,10 +3,14 @@
   <component name="ChangeListManager">
     <list default="true" id="7b60dc4c-0efc-42f4-a60d-3a12fb91dc8c" name="Default Changelist" comment="non-seizure handling">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example.py" beforeDir="false" afterPath="$PROJECT_DIR$/example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/execute_processor.sh" beforeDir="false" afterPath="$PROJECT_DIR$/execute_processor.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features_2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/features_2d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/load_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/load_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preprocess_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_processor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,29 +50,7 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.test">
-    <configuration name="artifact_detector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="ICU_EEG" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ieeg" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ieeg/artifact_detector.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.run_detector">
     <configuration name="artifact_detector" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ICU_EEG" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -135,6 +117,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="run_detector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ICU_EEG" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deployment" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deployment/run_detector.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="run_processor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ICU_EEG" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -180,19 +184,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.artifact_detector" />
       <item itemvalue="Python.example" />
       <item itemvalue="Python.test" />
       <item itemvalue="Python.features_2d" />
       <item itemvalue="Python.run_processor" />
+      <item itemvalue="Python.run_detector" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.run_detector" />
         <item itemvalue="Python.test" />
         <item itemvalue="Python.example" />
         <item itemvalue="Python.run_processor" />
         <item itemvalue="Python.features_2d" />
-        <item itemvalue="Python.artifact_detector" />
       </list>
     </recent_temporary>
   </component>
@@ -246,7 +250,7 @@
       <workItem from="1589552473093" duration="113356000" />
       <workItem from="1590377280080" duration="53088000" />
       <workItem from="1591218876595" duration="90026000" />
-      <workItem from="1592058416675" duration="52203000" />
+      <workItem from="1592058416675" duration="85438000" />
     </task>
     <task id="LOCAL-00001" summary="New file for loading IEEG data">
       <created>1580401143858</created>
@@ -514,14 +518,20 @@
       <option name="project" value="LOCAL" />
       <updated>1592194828784</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="output visualization">
+      <created>1592593654117</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1592593654117</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="checkpoint" />
     <MESSAGE value="artifacts (ongoing changes)" />
     <MESSAGE value="artifacts (complete, vectorized operations)" />
     <MESSAGE value="features update (left and right hemisphere)" />
@@ -546,42 +556,43 @@
     <MESSAGE value="heuristic evaluations" />
     <MESSAGE value="Convolutional GRU" />
     <MESSAGE value="constrained sampling" />
-    <option name="LAST_COMMIT_MESSAGE" value="constrained sampling" />
+    <MESSAGE value="output visualization" />
+    <option name="LAST_COMMIT_MESSAGE" value="output visualization" />
   </component>
   <component name="WindowStateProjectService">
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser" timestamp="1592508598507">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="447" y="37" key="#com.intellij.ide.util.MemberChooser/0.0.1280.639@0.0.1280.639" timestamp="1592508598507" />
-    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1592194828349">
+    <state x="456" y="0" key="CommitChangelistDialog2" timestamp="1592768164523">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1592194828349" />
+    <state x="456" y="0" key="CommitChangelistDialog2/0.0.1280.639@0.0.1280.639" timestamp="1592768164523" />
     <state x="256" y="0" key="CommitChangelistDialog2/0.0.1280.680@0.0.1280.680" timestamp="1585889995976" />
     <state x="422" y="91" key="FileChooserDialogImpl" timestamp="1592508605181">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
     <state x="422" y="91" key="FileChooserDialogImpl/0.0.1280.639@0.0.1280.639" timestamp="1592508605181" />
     <state x="422" y="97" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1586806612780" />
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1592542932011">
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom" timestamp="1592759543613">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1592542932011" />
+    <state width="1237" height="149" key="GridCell.Tab.0.bottom/0.0.1280.639@0.0.1280.639" timestamp="1592759543613" />
     <state width="1237" height="163" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1592542932010">
+    <state width="1237" height="149" key="GridCell.Tab.0.center" timestamp="1592759543612">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1592542932010" />
+    <state width="1237" height="149" key="GridCell.Tab.0.center/0.0.1280.639@0.0.1280.639" timestamp="1592759543612" />
     <state width="1237" height="163" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1592542932010">
+    <state width="1237" height="149" key="GridCell.Tab.0.left" timestamp="1592759543612">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1592542932010" />
+    <state width="1237" height="149" key="GridCell.Tab.0.left/0.0.1280.639@0.0.1280.639" timestamp="1592759543612" />
     <state width="1237" height="163" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
-    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1592542932010">
+    <state width="1237" height="149" key="GridCell.Tab.0.right" timestamp="1592759543612">
       <screen x="0" y="0" width="1280" height="639" />
     </state>
-    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1592542932010" />
+    <state width="1237" height="149" key="GridCell.Tab.0.right/0.0.1280.639@0.0.1280.639" timestamp="1592759543612" />
     <state width="1237" height="163" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1585889903985" />
     <state x="122" y="57" key="MergeDialog" timestamp="1585777814499">
       <screen x="0" y="0" width="1280" height="680" />
@@ -618,6 +629,7 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ICU_EEG$test.coverage" NAME="test Coverage Results" MODIFIED="1592542932002" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$artifact_detector__1_.coverage" NAME="artifact_detector Coverage Results" MODIFIED="1582086039465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ICU_EEG$run_detector.coverage" NAME="run_detector Coverage Results" MODIFIED="1592664752168" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deployment" />
     <SUITE FILE_PATH="coverage/ICU_EEG$features_2d.coverage" NAME="features_2d Coverage Results" MODIFIED="1585717475279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$multi_processor.coverage" NAME="run_processor Coverage Results" MODIFIED="1589430043367" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ICU_EEG$load_dataset.coverage" NAME="load_dataset Coverage Results" MODIFIED="1580484169417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

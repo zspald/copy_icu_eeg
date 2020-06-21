@@ -158,6 +158,11 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   num: number of EEG batches to process
     #   start: starting point, in seconds
     #   length: duration of each segment, in seconds
+    #   norm: normalization method to be used for the extracted features
+    #         'off' does not perform any normalization
+    #         'default' normalizes features from 0 to 1
+    #         'zscore' normalizes features according to their z-scores
+    #         'minmax' normalizes features from -1 to 1
     #   use_filter: whether to apply a bandpass filter to the EEG
     #   eeg_only: whether to remove non-EEG channels (e.g. EKG)
     #   method: refer to header for *clean_data* below
@@ -222,11 +227,13 @@ class IEEGDataProcessor(IEEGDataLoader):
     #               valid channels and D is the total number of samples within the given patient's EEG
     #   input_labels: a list of seizure annotations of the given patient for every segment, with length N
     #   fs: sampling frequency of the patient's EEG recording
-    #   artifact_rejection: specific method for removing artifact-like segments.
-    #                       'stats' - removes all segments with z-scores above 5 under
-    #                       1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
-    #                       'threshold' - removes all segments that exceed/fall below certain thresholds under
-    #                       1) Variance 2) Range 3) Line Length 4) Bandpower 5) Signal difference
+    #   start: starting point, in seconds
+    #   length: duration of each segment, in seconds
+    #   artifact: specific method for removing artifact-like segments.
+    #             'stats' - removes all segments with z-scores above 5 under
+    #             1) Range 2) Line Length 3) Bandpower in beta frequency band (12 - 20 Hz)
+    #             'threshold' - removes all segments that exceed/fall below certain thresholds under
+    #             1) Variance 2) Range 3) Line Length 4) Bandpower 5) Signal difference
     #   method: the method for extracting samples
     #           'none' - does not perform any additional check, sampling all seizure/non-seizure segments
     #           'sz' - only extracts seizure samples, removing all non-seizure samples
