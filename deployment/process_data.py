@@ -96,7 +96,6 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   output_data: a set of processed EEG segments with shape N* x C x D, where N* is the number
     #                of clean EEG segments from the patient's dataset, C is the number of clean
     #                channels and D is the number of samples within each segment (S = fs * s_length)
-    #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     #   channels_to_remove: a N* x C array that indicates whether each channel in each segment should be removed
     def process_data(self, num, start, length):

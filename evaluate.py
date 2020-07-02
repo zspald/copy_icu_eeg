@@ -36,25 +36,21 @@ class EEGEvaluator:
         if np.sum(labels) > 0:
             recall_pos = seizure_correct / np.sum(labels)
         else:
-            print("Recall is not defined for positive outputs")
             recall_pos = np.nan
         # Compute the precision of the positive outputs
         if np.sum(predictions) > 0:
             precision_pos = seizure_correct / np.sum(predictions)
         else:
-            print("Precision is not defined for positive outputs")
             precision_pos = np.nan
         # Compute the sensitivity of the negative outputs
         if np.sum(1 - labels) > 0:
             recall_neg = normal_correct / np.sum(1 - labels)
         else:
-            print("Recall is not defined for negative outputs")
             recall_neg = np.nan
         # Compute the precision of the negative outputs
         if np.sum(1 - predictions) > 0:
             precision_neg = normal_correct / np.sum(1 - predictions)
         else:
-            print("Precision is not defined for negative outputs")
             precision_neg = np.nan
         return accuracy, recall_pos, precision_pos, recall_neg, precision_neg
 
@@ -64,13 +60,14 @@ class EEGEvaluator:
     #           starting point and endpoint (in seconds).
     #   predictions: a list of seizure predictions given as a 1D numpy array
     #   length: minimum time interval to consider pairs of events to be separate
+    #   display: whether to display statistics
     # Outputs
     #   true_positive: number of seizures correctly predicted
     #   num_seizures: total number of seizures in the annotation
     #   false_positive: number of false alerts given by the model
     #   num_alerts: total number of alerts given by the model
     @staticmethod
-    def evaluate_stats(labels, predictions, length=60):
+    def evaluate_stats(labels, predictions, length=60, display=True):
         # Initialize bookkeeping variables for seizure detection
         prev_timepoint = -1 * (length + 1)
         seizure_detected = False
@@ -92,8 +89,9 @@ class EEGEvaluator:
             # Update previous timepoint if current observation is a seizure
             if label[0] == 1:
                 prev_timepoint = label[1]
-        print('Total number of seizures: ', num_seizures)
-        print('Number of seizures detected: ', true_positive)
+        if display:
+            print('Total number of seizures: ', num_seizures)
+            print('Number of seizures detected: ', true_positive)
         # Initialize bookkeeping variables for seizure alerts
         prev_timepoint = -1 * (length + 1)
         seizure_alerted = False
@@ -116,8 +114,9 @@ class EEGEvaluator:
             if pred == 1:
                 prev_timepoint = labels[idx, 1]
         false_positive = num_alerts - true_negative
-        print('Total number of alerts: ', num_alerts)
-        print('Number of false alerts: ', false_positive)
+        if display:
+            print('Total number of alerts: ', num_alerts)
+            print('Number of false alerts: ', false_positive)
         return true_positive, num_seizures, false_positive, num_alerts
 
     # Visualizes the predictions of the model with regards to the labels

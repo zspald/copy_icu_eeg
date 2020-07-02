@@ -1,6 +1,7 @@
 ############################################################################
 # Extracts statistical features from EEG data in time/frequency domains
 # Written by Daniel Joongwon Kim
+# Deployment version of features.py
 # University of Pennsylvania, Department of Computer and Information Science
 ############################################################################
 

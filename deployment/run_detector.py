@@ -22,10 +22,12 @@ from tensorflow.keras.models import load_model
 sample_len = 1
 
 # User inputs and corresponding prompts
-inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0}
+inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
+          'threshold': 0.45}
 prompts = {'username': 'Enter the IEEG username: ', 'password': 'Enter the IEEG password: ', 'patient_id':
            'Enter the patient ID: ', 'model': 'Enter the model type (conv, conv-gru, convlstm): ',
-           'start': 'Enter the starting time in seconds: ', 'end': 'Enter the ending time in seconds: '}
+           'start': 'Enter the starting time in seconds: ', 'end': 'Enter the ending time in seconds: ',
+           'threshold': 'Enter the detection threshold (0.45 recommended): '}
 
 
 # Initializes variables with external user arguments
@@ -39,6 +41,7 @@ def __init__():
     parser.add_argument('-p', '--password', required=False, help='password')
     parser.add_argument('-id', '--patient_id', required=False, help='patient_id')
     parser.add_argument('-m', '--model', required=False, help='model')
+    parser.add_argument('-t', '--threshold', required=False, help='threshold')
     parser.add_argument('-s', '--start', required=False, help='start')
     parser.add_argument('-e', '--end', required=False, help='end')
     parser.add_argument('-l', '--length', required=False, help='length')
@@ -66,6 +69,7 @@ def __main__():
         else:
             inputs[key] = value
     inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
+    inputs['threshold'] = float(inputs['threshold'])
     # Check whether the processing is done in real-time or batch
     if args.length is None:
         length_input = None
@@ -100,9 +104,8 @@ def __main__():
         else:
             predict = model.predict(eeg_maps, verbose=0)
             # Post-process the model outputs
-            predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=0.75)
+            predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
             predict = processor.fill_predictions(predict, eeg_indices)
-            print(predict)
             sz_events.extend(processor.write_events(predict, timepoint, sample_len, include_artifact=True))
         timepoint += inputs['length']
     # Save the predictions into a JSON file
