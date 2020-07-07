@@ -148,7 +148,8 @@ class EEGLearner:
                 EEGEvaluator.test_results_cv(metric_list)
         else:
             # Initialize generators for training, validation and testing data
-            train_patients, validation_patients, test_patients = self.split_data(self.patient_list, 0.8, 0.1)
+            test = ["RID0062", "RID252_68561f5b", "CNT685", "CNT688"]
+            train_patients, validation_patients, test_patients = self.split_data_test(self.patient_list, 0.9, test)
             print('Training Data: ', train_patients)
             print('Validation Data: ', validation_patients)
             print('Test Data: ', test_patients)
@@ -169,7 +170,7 @@ class EEGLearner:
                                           verbose=verbose)
             # Save model and obtain predictions for test data
             if save:
-                model.save('ICU-EEG-%s-%d.h5' % (name, epochs), save_format='h5')
+                model.save('ICU-EEG-%s-%d(7).h5' % (name, epochs), save_format='h5')
             predict = model.predict_generator(test_generator, verbose=0)
             predict = np.argmax(predict, axis=1)
             # Obtain annotations from the test data generator
@@ -232,9 +233,32 @@ class EEGLearner:
         # Shuffle the list of patient IDs except for the designated test patient
         new_patient_list = [patient for patient in patient_list if patient != patient_list[idx]]
         new_patient_list = random.shuffle(new_patient_list)
-        num = len(patient_list)
+        num = len(new_patient_list)
         # Obtain the list of patients used for training, validating and testing
         train_patients = new_patient_list[:int(train_split * num)]
         validation_patients = new_patient_list[int(train_split * num):]
         test_patients = [patient_list[idx]]
+        return train_patients, validation_patients, test_patients
+
+    # Divides training and validation data with a list of specified test patients
+    # Inputs
+    #   patient_list: list of all patient IDs
+    #   train_split: proportion of training data
+    #   test_patients: list of patient IDs to be used for testing
+    # Outputs
+    #   train_patients: list of patient IDs to be used for training
+    #   validation_patients: list of patient IDs to be used for validation
+    #   test_patients: list of patient IDs to be used for testing
+    @staticmethod
+    def split_data_test(patient_list, train_split, test_patients):
+        # Reject any invalid input
+        if train_split > 1:
+            print("Please provide an appropriate split input.")
+            return
+        # Shuffle the list of patient IDs except for the designated test patient
+        new_patient_list = list(set(patient_list) - set(test_patients))
+        num = len(new_patient_list)
+        # Obtain the list of patients used for training, validating and testing
+        train_patients = new_patient_list[:int(train_split * num)]
+        validation_patients = new_patient_list[int(train_split * num):]
         return train_patients, validation_patients, test_patients

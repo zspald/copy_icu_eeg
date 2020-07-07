@@ -102,7 +102,7 @@ def __main__():
             print("The given segment has been classified as an artifact.")
             sz_events.append(['artifact', timepoint, timepoint + inputs['length']])
         else:
-            predict = model.predict(eeg_maps, verbose=0)
+            predict = model.predict(eeg_maps, batch_size=np.size(eeg_maps, axis=0), verbose=0)
             # Post-process the model outputs
             predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
             predict = processor.fill_predictions(predict, eeg_indices)
@@ -110,12 +110,13 @@ def __main__():
         timepoint += inputs['length']
     # Save the predictions into a JSON file
     sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
-    sz_events = sz_events.to_json()
-    file_path = '%s-%s-%d-%d-%d.json' % (inputs['patient_id'], inputs['model'], inputs['start'],
+    sz_events_json = sz_events.to_json()
+    file_path = '%s-%s-%d-%d-%d' % (inputs['patient_id'], inputs['model'], inputs['start'],
                                          inputs['end'], inputs['length'])
-    print('Saving outputs to ' + file_path)
-    with open(file_path, 'w') as file:
-        json.dump(sz_events, file)
+    print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
+    with open(file_path + '.json', 'w') as file:
+        json.dump(sz_events_json, file)
+    sz_events.to_pickle(file_path + '.pkl')
     print('====================================================================')
     print("Real-time processing complete for %s." % inputs['patient_id'])
     print('====================================================================')

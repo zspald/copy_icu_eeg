@@ -11,6 +11,7 @@ from features import EEGFeatures, EEG_FEATS
 from features_2d import EEGMap
 from load_data import IEEGDataLoader
 from scipy.signal import butter, filtfilt
+import math
 import numpy as np
 
 # Artifact rejection method
@@ -45,6 +46,9 @@ class IEEGDataProcessor(IEEGDataLoader):
     def generate_map(self, num_batches, start, length, initial_pass=False):
         # Process and return features for user-designated EEG intervals
         patient_feats, patient_indices, patient_channels = self.get_features(num_batches, start, length)
+        # Check whether features are entirely artifacts
+        if patient_feats is None:
+            return None, None
         # Save patient-specific EEG statistics and apply normalization
         if initial_pass:
             self.mean, self.std = EEGFeatures.compute_stats(patient_feats)
@@ -83,7 +87,7 @@ class IEEGDataProcessor(IEEGDataLoader):
         output_data, indices_to_remove, channels_to_remove = self.process_data(num, start, length)
         fs = self.sampling_frequency()
         if output_data is None:
-            return None, None
+            return None, None, None
         output_feats = EEGFeatures.extract_features(output_data, fs, pool_region=False)
         return output_feats, indices_to_remove, channels_to_remove
 
@@ -220,17 +224,26 @@ class IEEGDataProcessor(IEEGDataLoader):
         event_list = list()
         event_start, event_end = 0, 0
         prev_output = 0
+        predictions = np.append(predictions, np.array([0]))
         # Iterate over the predictions of the model and
         for idx, pred in enumerate(predictions):
             if pred == 1 and prev_output != 1:
+                if include_artifact and math.isnan(prev_output):
+                    event_end = timepoint + idx * length
+                    event_list.append(['artifact', event_start, event_end])
                 event_start = timepoint + idx * length
-            elif pred == 0 and prev_output != 0:
+                prev_output = pred
+            elif pred != 1 and prev_output == 1:
                 event_end = timepoint + idx * length
                 event_list.append(['seizure', event_start, event_end])
-            elif include_artifact and pred == np.nan and prev_output != np.nan:
+                prev_output = pred
+                if include_artifact and math.isnan(pred):
+                    event_start = timepoint + idx * length
+            elif include_artifact and math.isnan(pred) and not math.isnan(prev_output):
                 event_start = timepoint + idx * length
-            elif include_artifact and pred != np.nan and prev_output == np.nan:
+                prev_output = pred
+            elif include_artifact and not math.isnan(pred) and math.isnan(prev_output):
                 event_end = timepoint + idx * length
                 event_list.append(['artifact', event_start, event_end])
-            prev_output = pred
+                prev_output = pred
         return event_list
