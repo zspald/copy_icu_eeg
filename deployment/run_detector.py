@@ -112,7 +112,7 @@ def __main__():
     sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
     sz_events_json = sz_events.to_json()
     file_path = '%s-%s-%d-%d-%d' % (inputs['patient_id'], inputs['model'], inputs['start'],
-                                         inputs['end'], inputs['length'])
+                                    inputs['end'], inputs['length'])
     print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
     with open(file_path + '.json', 'w') as file:
         json.dump(sz_events_json, file)
