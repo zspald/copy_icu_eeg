@@ -5,8 +5,8 @@ from sklearn.cluster import KMeans
 import numpy as np
 
 # Define IEEG username and password here
-username = 'danieljkim0118'
-password = 'kjm39173917#'
+username = 'zspald'
+password = 'FimbleWinter5994@'
 
 # Load processed EEG recordings with batch size 100 and segment length of 5 seconds. Save artifact info.
 dataset = IEEGDataProcessor('RID0060', username, password)

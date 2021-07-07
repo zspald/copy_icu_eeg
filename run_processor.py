@@ -26,6 +26,7 @@ def __init__():
     parser.add_argument('-f', '--filter', required=False, help='filter')
     parser.add_argument('-eo', '--eeg_only', required=False, help='eeg_only')
     parser.add_argument('-no', '--normalize', required=False, help='normalize')
+    parser.add_argument('-bi', '--bipolar', required=False, help='bipolar')
     return parser
 
 
@@ -45,6 +46,7 @@ if __name__ == "__main__":
         use_filter = input('Enter 1 to apply a bandpass filter (0.5-20 Hz) and 0 otherwise: ') > '0'
         eeg_only = input('Enter 1 to only use EEG channels and 0 otherwise: ') > '0'
         normalize = input('Enter 1 to apply normalization and 0 otherwise: ') > '0'
+        bipolar = input('Enter 1 to use bipolar montage and 0 otherwise: ') > '0'
     else:
         username = args.username
         password = args.password
@@ -56,6 +58,7 @@ if __name__ == "__main__":
         use_filter = args.filter > '0'
         eeg_only = args.eeg_only > '0'
         normalize = args.normalize > '0'
+        bipolar = args.bipolar > '0'
     # Create the IEEGDataProcessor object and generate the map
     dataset = IEEGDataProcessor(patient_id, username, password)
-    dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only, normalize)
+    dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only, normalize, bipolar=bipolar)

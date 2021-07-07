@@ -12,10 +12,36 @@ import scipy.stats
 from scipy.signal import hilbert
 
 # EEG electrodes
-ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
-       'T3', 'T4', 'T5', 'T6']
+# ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
+#        'T3', 'T4', 'T5', 'T6']
+ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fz' 'Fp1', 'Fp2', 'T3', 'T4', 'T5', 'T6', 'Pz',
+       'P3', 'P4', 'O1', 'O2']  
 LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
 RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
+
+# Bipolar Montage
+# BIPOLAR_CHANNELS = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 'Fp1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
+#                     'F4-C4', 'C4-P4', 'P4-O2', 'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2']
+BIPOLAR_CHANNELS = ['Fp1-F7', 'Fp1-F3', 'F7-T3', 'F3-C3', 'T3-T5', 'C3-P3', 'T5-O1', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
+                    'Fp2-F8', 'F4-C4', 'F8-T4', 'C4-P4', 'T4-T6', 'P4-O2', 'T6-O2']
+# map indicating channel subtractions based on indices in the channel list at the top of file 
+# (assuming channel order in data is same as order in list)
+# BIPOLAR_MAP = {7: [5, 3], 5: [15],  3: [0], 15: [17], 0: [12], 17: [10], 12: [10], 9: [2], 2: [14], 8: [4, 6], 4: [1],
+#                6: [16], 1: [13], 16: [18], 13: [11], 18: [11]}
+
+# map linking referential montage channels to affected bipolar montage channels to propagate removal
+# see features.py for ordering/indices of channels in referential and bipolar montages
+# In referential: 0 = C3, 1 = C4, 2 = Cz, 3 = F3, 4 = F4, 5 = F7, 6 = F8, 7 = Fz, 8 = Fp1, 9 = Fp2,
+# 10 = T3, 11 = T4, 12 = T5, 13 = T6, 14 = Pz, 15 = P3, 16 = P4, 17 = O1, 18 = O2,
+# In bipolar: 0 = Fp1-F7, 1 = Fp1-F3, 2 = F7-T3, 3 = F3-C3, 4 = T3-T5, 5 = C3-P3, 6 = T5-O1,   
+# 7 = P3-O1, 8 = Fz-Cz, 9 = Cz-Pz, 10 = Fp2-F4, 11 = Fp2-F8, 12 = F4-C4, 13 = F8-T4, 14 = C4-P4, 
+# 15 = T4-T6, 16 = P4-O2, 17 = T6-O2 
+BIPOLAR_MAP = {8: [5, 3], 5: [10],  3: [0], 10: [12], 0: [15], 12: [17], 15: [17], 7: [2], 2: [14], 9: [4, 6], 4: [1],
+               6: [11], 1: [16], 11: [13], 16: [18], 13: [18]}
+
+BIPOLAR_LEFT = ['Fp1-F7', 'Fp1-F3', 'F7-T3', 'F3-C3', 'T3-T5', 'C3-P3' 'T5-O1', 'P3-O1']
+BIPOLAR_RIGHT = ['Fp2-F4', 'Fp2-F8', 'F4-C4', 'F8-T4', 'C4-P4', 'T4-T6', 'P4-O2','T6-O2']
+BIPOLAR_CENTER = ['Fz-Cz', 'Cz-Pz']
 
 # List of statistical EEG features
 EEG_FEATS = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
@@ -42,7 +68,11 @@ class EEGFeatures:
     #                 G is the number of feature groups and F is the number of features
     #                 (Note that G = C when pool_region is set to be false.)
     @staticmethod
-    def extract_features(input_data, fs, normalize='off', pool_region=False):
+    def extract_features(input_data, fs, normalize='off', pool_region=False, bipolar=False):
+        #convert to bipolar montage if desired
+        if bipolar:
+            input_data = EEGFeatures.to_bipolar(input_data)
+
         output_feats = None
         # Line length
         llength = EEGFeatures.line_length(input_data)
@@ -65,17 +95,22 @@ class EEGFeatures:
                                    bdpower_beta, skew, kurt, envp])
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
-            categories = [ALL, LEFT, RIGHT]
+            if bipolar:
+                categoires = [BIPOLAR_CHANNELS, BIPOLAR_LEFT, BIPOLAR_RIGHT, BIPOLAR_CENTER]
+                source = BIPOLAR_CHANNELS
+            else:
+                categories = [ALL, LEFT, RIGHT]
+                source = ALL
             # Iterate through different types of electrode
             for category in categories:
                 # Determine indices of intersection and filter the input data
-                indices_to_use = np.nonzero(np.in1d(ALL, category))[0]
+                indices_to_use = np.nonzero(np.in1d(source, category))[0]
                 category_feats = all_feats[:, :, indices_to_use]
                 category_feats = np.expand_dims(np.nanmean(category_feats, axis=-1), axis=-1)
                 if output_feats is None:
                     output_feats = category_feats
                 else:
-                    output_feats = np.c_[output_feats, category_feats]
+                    output_feats = np.c_[output_feats, category_feats]        
         # Otherwise pass all features into the set of output features
         else:
             output_feats = all_feats
@@ -260,3 +295,18 @@ class EEGFeatures:
                     img_outputs[ii][jj] = (img_outputs[ii][jj] - np.amin(img_outputs[ii][jj])) / \
                                           (np.amax(img_outputs[ii][jj]) - np.amin(img_outputs[ii][jj]))
         return img_outputs
+
+    @staticmethod
+    def to_bipolar(input_data):
+        # create bipolar data array (18 channels instead of 19 in original input data)
+        bipolar_shape = (input_data.shape[0], len(BIPOLAR_CHANNELS), input_data.shape[2])
+        bipolar_data = np.zeros(bipolar_shape)
+
+        # fill bipolar data array with proper subtractions based off of channel indices
+        ind = 0
+        for electrode in BIPOLAR_MAP:
+            for linked in BIPOLAR_MAP[electrode]:
+                bipolar_data[:,ind,:] = input_data[:,electrode,:] - input_data[:, linked, :]
+                ind+=1
+
+        return bipolar_data

@@ -27,5 +27,5 @@ patient_list = ["RID0061", "RID0062", "RID0063", "RID0064", "RID0065", "RID0066"
 print("========== Training example ==========")
 train_module = EEGLearner(patient_list)
 train_module.train_cnn(epochs=50, control=1800, cross_val=False, save=True, verbose=1)
-train_module.train_convolutional_gru(epochs=20, batch_size=100, control=1800, save=True, seq_len=20, verbose=1)
-train_module.train_conv_lstm(epochs=20, cross_val=False, save=True, seq_len=20, verbose=1)
+# train_module.train_convolutional_gru(epochs=20, batch_size=100, control=1800, save=True, seq_len=20, verbose=1)
+# train_module.train_conv_lstm(epochs=20, cross_val=False, save=True, seq_len=20, verbose=1)
