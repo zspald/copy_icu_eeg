@@ -1,0 +1,6 @@
+# Ignore data files
+*.h5
+*.npy
+*.pkl
+*.json
+
