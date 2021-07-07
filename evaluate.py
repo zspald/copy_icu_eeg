@@ -7,6 +7,9 @@
 # Import libraries
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
+from matplotlib.patches import Rectangle
+import pandas as pd
 
 # List of all test metrics
 test_metrics = ['accuracy', 'recall (sz)', 'precision (sz)', 'recall (n)', 'precision (n)']
@@ -89,35 +92,121 @@ class EEGEvaluator:
             # Update previous timepoint if current observation is a seizure
             if label[0] == 1:
                 prev_timepoint = label[1]
+        sz_spec = true_positive / num_seizures
         if display:
             print('Total number of seizures: ', num_seizures)
             print('Number of seizures detected: ', true_positive)
-        # Initialize bookkeeping variables for seizure alerts
-        prev_timepoint = -1 * (length + 1)
-        seizure_alerted = False
-        true_negative, num_alerts = 0, 0
-        # Find number of seizures incorrectly predicted (false alerts)
-        for idx, pred in enumerate(predictions):
-            # Check whether the seizure alert is a new occurrence
-            if pred == 1 and labels[idx, 1] > prev_timepoint + length:
-                num_alerts += 1
-                if labels[idx, 0] == 1:
-                    seizure_alerted = True
-                    true_negative += 1
-                else:
-                    seizure_alerted = False
-            # Check whether the seizure alert overlaps with a labeled seizure
-            elif pred == 1 and labels[idx, 0] == 1 and not seizure_alerted:
-                seizure_alerted = True
-                true_negative += 1
-            # Update previous timepoint if current observation is an alert
-            if pred == 1:
-                prev_timepoint = labels[idx, 1]
-        false_positive = num_alerts - true_negative
+            print('Seizure Specificity: ', sz_spec)
+        # # Initialize bookkeeping variables for seizure alerts
+        # prev_timepoint = -1 * (length + 1)
+        # seizure_alerted = False
+        # true_negative, num_alerts = 0, 0
+        # # Find number of seizures incorrectly predicted (false alerts)
+        # for idx, pred in enumerate(predictions):
+        #     # Check whether the seizure alert is a new occurrence
+        #     if pred == 1 and labels[idx, 1] > prev_timepoint + length:
+        #         num_alerts += 1
+        #         if labels[idx, 0] == 1:
+        #             seizure_alerted = True
+        #             true_negative += 1
+        #         else:
+        #             seizure_alerted = False
+        #     # Check whether the seizure alert overlaps with a labeled seizure
+        #     elif pred == 1 and labels[idx, 0] == 1 and not seizure_alerted:
+        #         seizure_alerted = True
+        #         true_negative += 1
+        #     # Update previous timepoint if current observation is an alert
+        #     if pred == 1:
+        #         prev_timepoint = labels[idx, 1]
+        # false_positive = num_alerts - true_negative
+        # if display:
+        #     print('Total number of alerts: ', num_alerts)
+        #     print('Number of false alerts: ', false_positive)
+        # return true_positive, num_seizures, false_positive, num_alerts
+        return true_positive, num_seizures, sz_spec
+
+    # Method header: TODO
+    @staticmethod
+    def sz_sens(id, predictions, pred_length=60, display=True):
+        # access seizure labels
+        with open('dataset/' + id + '.pkl', 'rb') as file:
+                label_df = pickle.load(file)
+        label_df = label_df.sort_values(by=['start'], ignore_index=True)
+        start_time = label_df.start[0]
+        label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
+        num_sz = label_df.shape[0]
+
+        # function to convert prediction array to seizure interval dataframe
+        def pred_to_df(predictions, start_time, pred_length=60):
+            pred_df = pd.DataFrame(columns=['start', 'stop'])
+            start = -1
+            stop = -1
+
+            # determine if predictions start with seizure
+            if predictions[0] == 1:
+                start = start_time
+
+            # loop through inner predictions and determine seizure intervals
+            for i in range(1, predictions.shape[0] - 1):
+                # check for seizure onset
+                if predictions[i] == 1 and predictions[i - 1] == 0:
+                    # record starting time
+                    start = i * pred_length + start_time
+                # check for end of seizure
+                if predictions[i + 1] == 0 and predictions[i] == 1:
+                    stop = (i + 1) * pred_length + start_time
+                    pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
+
+            # determine if final predictions continues a seizure
+            if predictions[-1] == 1 and predictions[-2] == 1:
+                stop = (predictions.shape[0]) * pred_length + start_time
+                pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
+            return pred_df
+        
+        # create seizure interval dataframe for current predictions
+        pred_start_stop = pred_to_df(predictions, start_time, 
+                                    pred_length=pred_length)
+
+        # function to check for overlap between an individual seizure interval and
+        # a dataframe of seizure intervals
+        def overlap_interval(start, stop, sz_df):
+            # create set for range of individual interval
+            check_set = set(range(int(start), int(stop+1)))
+
+            # iterate through interval dataframe
+            for _, interval in enumerate(sz_df.values):
+                # create set for current interval in df
+                curr_start = int(interval[0])
+                curr_stop = int(interval[1]) + 1
+                curr_set = set(range(curr_start, curr_stop))
+
+                # get the intersection of the individual set and current set
+                overlap = check_set & curr_set
+
+                # if elements are in the intersection, then there is an interval overlap
+                if len(overlap) > 0:
+                    return True
+
+            # return false if no overlap is found
+            return False
+
+        true_positive = 0
+        for _, label in enumerate(label_df.values):
+            start = label[1]
+            stop = label[2]
+            if overlap_interval(start, stop, pred_start_stop):
+                true_positive += 1
+
+        sz_spec = true_positive / num_sz
         if display:
-            print('Total number of alerts: ', num_alerts)
-            print('Number of false alerts: ', false_positive)
-        return true_positive, num_seizures, false_positive, num_alerts
+            print('Total number of seizures: ', num_sz)
+            print('Number of seizures detected: ', true_positive)
+            print('Seizure Specificity: ', sz_spec)
+
+    def data_reduc(id, predictions, pred_length=60, display=True):
+
+        return None
+
 
     # Visualizes the predictions of the model with regards to the labels
     # Inputs
@@ -315,3 +404,120 @@ class EEGEvaluator:
             plt.title('Comparison of model %s via cross-validation' % title)
             plt.show()
         return
+
+    # Method header: TODO
+    @staticmethod
+    def annots_pkl_to_1D(pkl_filename, pred_length, start, end, method='any_sz', sz_thresh=0.45):
+        #load in labels from pickle file
+        f_pick = open(pkl_filename, 'rb')
+        data = pickle.load(f_pick)
+        f_pick.close()
+        # order events by start time
+        data = data.sort_values(by=['start'], ignore_index=True)
+        # create array to store labels
+        num_pred = int((end - start) / pred_length)
+        labels_1d = np.zeros(num_pred)
+        start_time = start
+        # predict seizure if any event in the prediction window is a seizure
+        if method == 'any_sz':
+            ind_pkl = 0
+            ind_1d = 0
+            while ind_pkl < data.shape[0] and ind_1d < labels_1d.shape[0]:
+                # mark end time of prediction window
+                end_time = start_time + pred_length
+                # get event data from pkl file
+                event = (data.event)[ind_pkl]
+                event_start = (data.start)[ind_pkl]
+                event_end = (data.stop)[ind_pkl]
+                # if prediciton window includes the end of the event
+                if end_time > event_end:
+                    # if event switches from ii -> sz or sz -> ii
+                    if end_time < (data.stop)[ind_pkl + 1]:
+                        # mark as seizure
+                        labels_1d[ind_1d] = 1
+                    # switch occurrs from ii -> unannotated or sz -> unannotated
+                    else:
+                        # get label as the current event
+                        if event == 'seizure':
+                            labels_1d[ind_1d] = 1
+                        else:
+                            labels_1d[ind_1d] = 0
+                    # move to next event
+                    ind_pkl += 1
+                    # slide prediction window
+                    ind_1d += 1
+                    start_time = end_time
+                # if prediction window is past current event
+                elif start_time > event_end:
+                    # move to next event
+                    ind_pkl += 1
+                # if end of prediction window is before the start of the event
+                elif end_time < event_start:
+                    # mark label as nan (event switches are handled above, 
+                    # this accounts for when the prediction window starts before
+                    # any annotations)
+                    labels_1d[ind_1d] = np.nan
+                    # progress prediction window
+                    ind_1d += 1
+                    start_time = end_time
+                # prediction window is completely inside the event
+                else:
+                    # get label as the current event
+                    if event == 'seizure':
+                        labels_1d[ind_1d] = 1
+                    else:
+                        labels_1d[ind_1d] = 0
+                    ind_1d += 1
+                    start_time = end_time
+        elif method == 'threshold':
+            raise RuntimeError("Threshold method not implemented yet.")
+        else:
+            raise ValueError("Method must be 'any_sz' or 'threshold'.")
+        return labels_1d
+
+    # Method header: TODO
+    @staticmethod
+    def compare_outputs_plot(id, pred_list, length=120, pred_length=5):
+        #create figure with parameters for rectangles
+        fig, ax = plt.subplots()
+        label_y = 2.25
+        pred_y = 0
+        width = pred_length / 60
+        height = 2*width
+
+        #access seizure labels
+        with open('dataset/' + id + '.pkl', 'rb') as file:
+                label_df = pickle.load(file)
+        label_df = label_df.sort_values(by=['start'], ignore_index=True)
+        start_time = label_df.start[0]
+        bound = start_time + length*60
+        label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
+
+        if not label_df.empty:
+            label_df = label_df[label_df.start < bound]
+            sz_start = np.asarray(label_df)[:, 1]
+            sz_stop = np.asarray(label_df)[:, 2]
+
+            #create label visuals from annotations
+            for i in range(sz_start.shape[0]):
+                start = sz_start[i] / 60
+                stop = sz_stop[i] / 60
+                if stop > bound:
+                    stop = length
+                label_width = stop - start
+                ax.add_patch(Rectangle((start - (start_time/60), label_y), label_width, 
+                height, edgecolor = 'r', facecolor='r', fill=True))
+            
+        #create prediction visuals from model output
+        for idx, val in enumerate(pred_list):
+            if val == 1:
+                ax.add_patch(Rectangle((idx, pred_y), width, height,
+                edgecolor = 'g', facecolor='g', fill=True))
+
+        #format plot
+        plt.yticks([pred_y + height / 2, label_y + height / 2], ['Outputs', 'Labels'])
+        ax.set_xlabel('Time in Recording (min)')
+        ax.set_ylim(bottom=-1, top=label_y + height + 1)
+        ax.set_xlim(left = 0, right=length)
+        plt.show()
+        return 
