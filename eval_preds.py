@@ -7,7 +7,6 @@ import pickle
 from evaluate import EEGEvaluator
 import pandas as pd
 
-
 # patient_id = "ICUDataRedux_0062"
 patient_id = "ICUDataRedux_0085"
 length = 60
@@ -40,6 +39,7 @@ annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
 # print(annots)
 f_pick.close()
 
+
 labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, length, start, end)
 print("Labels:")
 print(labels)
@@ -53,6 +53,5 @@ metrics = EEGEvaluator.evaluate_metrics(labels, preds)
 EEGEvaluator.test_results(metrics)
 stats = EEGEvaluator.sz_sens(patient_id, preds, pred_length=60)
 EEGEvaluator.compare_outputs_plot(patient_id, preds, pred_length=60)
-
 
 # %%

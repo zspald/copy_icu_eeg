@@ -6,7 +6,10 @@
 
 # Import libraries
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Conv2D, ConvLSTM2D, CuDNNGRU, CuDNNLSTM, \
+# from tensorflow.keras.layers import Conv2D, ConvLSTM2D, CuDNNGRU, CuDNNLSTM, \
+#     concatenate, Dense, Dropout, Flatten, Input, MaxPool2D, BatchNormalization, \
+#     MaxPool3D, TimeDistributed
+from tensorflow.keras.layers import Conv2D, ConvLSTM2D, \
     concatenate, Dense, Dropout, Flatten, Input, MaxPool2D, BatchNormalization, \
     MaxPool3D, TimeDistributed
 from tensorflow.keras.losses import CategoricalCrossentropy

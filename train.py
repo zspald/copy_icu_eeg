@@ -116,6 +116,7 @@ class EEGLearner:
             metric_list = [None for _ in range(len(self.patient_list))]
             # Iterate over all patients for cross validation
             for ii in range(len(self.patient_list)):
+                print('Iteration: {ii}')
                 # Initialize generators for training, validation and testing data
                 train_patients, valid_patients, test_patients = self.split_data_fix(self.patient_list, 0.9, ii)
                 train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, control=control,
@@ -148,7 +149,8 @@ class EEGLearner:
                 EEGEvaluator.test_results_cv(metric_list)
         else:
             # Initialize generators for training, validation and testing data
-            test = ["RID0062", "RID252_68561f5b", "CNT685", "CNT688"]
+            # test = ["RID0062", "RID252_68561f5b", "CNT685", "CNT688"]
+            test = ["ICUDataRedux_0062", "ICUDataRedux_0085", "CNT685", "CNT688"]
             train_patients, validation_patients, test_patients = self.split_data_test(self.patient_list, 0.9, test)
             print('Training Data: ', train_patients)
             print('Validation Data: ', validation_patients)
@@ -232,7 +234,7 @@ class EEGLearner:
             return
         # Shuffle the list of patient IDs except for the designated test patient
         new_patient_list = [patient for patient in patient_list if patient != patient_list[idx]]
-        new_patient_list = random.shuffle(new_patient_list)
+        random.shuffle(new_patient_list)
         num = len(new_patient_list)
         # Obtain the list of patients used for training, validating and testing
         train_patients = new_patient_list[:int(train_split * num)]

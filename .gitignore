@@ -1,0 +1,12 @@
+# Ignore data files
+*.h5
+*.npy
+*.json
+*.pkl
+
+# Ignore artifact logs and clips
+/artifact_rejection_clips
+/artifact_rejection_logs
+/deployment/*.pkl
+
+
