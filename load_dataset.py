@@ -188,7 +188,7 @@ class IEEGDataLoader:
                 if start > threshold:
                     return
             else:
-                return 0
+                return start
 
     # Performs a binary search for the first timepoint that does not contain NaNs
     # Inputs

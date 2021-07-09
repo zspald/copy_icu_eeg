@@ -135,66 +135,16 @@ class EEGEvaluator:
         start_time = label_df.start[0]
         label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
         num_sz = label_df.shape[0]
-
-        # function to convert prediction array to seizure interval dataframe
-        def pred_to_df(predictions, start_time, pred_length=60):
-            pred_df = pd.DataFrame(columns=['start', 'stop'])
-            start = -1
-            stop = -1
-
-            # determine if predictions start with seizure
-            if predictions[0] == 1:
-                start = start_time
-
-            # loop through inner predictions and determine seizure intervals
-            for i in range(1, predictions.shape[0] - 1):
-                # check for seizure onset
-                if predictions[i] == 1 and predictions[i - 1] == 0:
-                    # record starting time
-                    start = i * pred_length + start_time
-                # check for end of seizure
-                if predictions[i + 1] == 0 and predictions[i] == 1:
-                    stop = (i + 1) * pred_length + start_time
-                    pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
-
-            # determine if final predictions continues a seizure
-            if predictions[-1] == 1 and predictions[-2] == 1:
-                stop = (predictions.shape[0]) * pred_length + start_time
-                pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
-            return pred_df
         
         # create seizure interval dataframe for current predictions
-        pred_start_stop = pred_to_df(predictions, start_time, 
+        pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 
                                     pred_length=pred_length)
-
-        # function to check for overlap between an individual seizure interval and
-        # a dataframe of seizure intervals
-        def overlap_interval(start, stop, sz_df):
-            # create set for range of individual interval
-            check_set = set(range(int(start), int(stop+1)))
-
-            # iterate through interval dataframe
-            for _, interval in enumerate(sz_df.values):
-                # create set for current interval in df
-                curr_start = int(interval[0])
-                curr_stop = int(interval[1]) + 1
-                curr_set = set(range(curr_start, curr_stop))
-
-                # get the intersection of the individual set and current set
-                overlap = check_set & curr_set
-
-                # if elements are in the intersection, then there is an interval overlap
-                if len(overlap) > 0:
-                    return True
-
-            # return false if no overlap is found
-            return False
 
         true_positive = 0
         for _, label in enumerate(label_df.values):
             start = label[1]
             stop = label[2]
-            if overlap_interval(start, stop, pred_start_stop):
+            if EEGEvaluator.overlap_interval(start, stop, pred_start_stop):
                 true_positive += 1
 
         sz_spec = true_positive / num_sz
@@ -203,9 +153,92 @@ class EEGEvaluator:
             print('Number of seizures detected: ', true_positive)
             print('Seizure Specificity: ', sz_spec)
 
-    def data_reduc(id, predictions, pred_length=60, display=True):
+        return true_positive, num_sz, sz_spec
 
-        return None
+    # Method header: TODO
+    @staticmethod
+    def data_reduc(id, predictions, pred_length=60, display=True):
+        with open('dataset/' + id + '.pkl', 'rb') as file:
+                label_df = pickle.load(file)
+        label_df = label_df.sort_values(by=['start'], ignore_index=True)
+        start_time = label_df.start[0]
+        label_df = label_df[label_df.event == 'interictal'].reset_index(drop=True)
+        num_non_sz = label_df.shape[0]
+
+        # create seizure interval dataframe for current predictions
+        pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 
+                                    pred_length=pred_length, mode='no_sz')
+
+        true_negative = 0
+        for _, label in enumerate(label_df.values):
+            start = label[1]
+            stop = label[2]
+            if EEGEvaluator.overlap_interval(start, stop, pred_start_stop):
+                true_negative += 1
+
+        data_reduc = true_negative / num_non_sz
+        if display:
+            print('Total number of inter-ictal: ', num_non_sz)
+            print('Number of inter-ictal detected: ', true_negative)
+            print('Data Reduction: ', data_reduc)
+
+        return true_negative, num_non_sz, data_reduc
+
+    # function to convert prediction array to seizure interval dataframe
+    @staticmethod
+    def pred_to_df(predictions, start_time, pred_length=60, mode='sz'):
+        # switch predictions for creation of inter-ictal df
+        if mode == 'no_sz':
+            predictions = 1 - predictions
+
+        pred_df = pd.DataFrame(columns=['start', 'stop'])
+        start = -1
+        stop = -1
+
+        # determine if predictions start with seizure
+        if predictions[0] == 1:
+            start = start_time
+
+        # loop through inner predictions and determine seizure intervals
+        for i in range(1, predictions.shape[0] - 1):
+            # check for seizure onset
+            if predictions[i] == 1 and predictions[i - 1] == 0:
+                # record starting time
+                start = i * pred_length + start_time
+            # check for end of seizure
+            if predictions[i + 1] == 0 and predictions[i] == 1:
+                stop = (i + 1) * pred_length + start_time
+                pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
+
+        # determine if final predictions continues a seizure
+        if predictions[-1] == 1 and predictions[-2] == 1:
+            stop = (predictions.shape[0]) * pred_length + start_time
+            pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
+        return pred_df
+
+    # function to check for overlap between an individual seizure interval and
+    # a dataframe of seizure intervals
+    @staticmethod
+    def overlap_interval(start, stop, sz_df):
+        # create set for range of individual interval
+        check_set = set(range(int(start), int(stop+1)))
+
+        # iterate through interval dataframe
+        for _, interval in enumerate(sz_df.values):
+            # create set for current interval in df
+            curr_start = int(interval[0])
+            curr_stop = int(interval[1]) + 1
+            curr_set = set(range(curr_start, curr_stop))
+
+            # get the intersection of the individual set and current set
+            overlap = check_set & curr_set
+
+            # if elements are in the intersection, then there is an interval overlap
+            if len(overlap) > 0:
+                return True
+
+        # return false if no overlap is found
+        return False
 
 
     # Visualizes the predictions of the model with regards to the labels

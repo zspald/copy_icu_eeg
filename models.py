@@ -15,6 +15,7 @@ from tensorflow.keras.layers import Conv2D, ConvLSTM2D, \
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import load_model
 import tensorflow as tf
+from sklearn.ensemble import RandomForestClassifier
 
 
 # A class that contains EEG models for detecting seizure

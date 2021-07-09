@@ -5,6 +5,7 @@
 ############################################################################
 
 # Import libraries
+from random import random
 from preprocess_dataset import IEEGDataProcessor
 import argparse
 
@@ -27,6 +28,7 @@ def __init__():
     parser.add_argument('-eo', '--eeg_only', required=False, help='eeg_only')
     parser.add_argument('-no', '--normalize', required=False, help='normalize')
     parser.add_argument('-bi', '--bipolar', required=False, help='bipolar')
+    parser.add_argument('-rf', '--random_forest', required=False, help='random_forest')
     return parser
 
 
@@ -47,6 +49,7 @@ if __name__ == "__main__":
         eeg_only = input('Enter 1 to only use EEG channels and 0 otherwise: ') > '0'
         normalize = input('Enter 1 to apply normalization and 0 otherwise: ') > '0'
         bipolar = input('Enter 1 to use bipolar montage and 0 otherwise: ') > '0'
+        random_forest = input('Enter 1 to save data for random forest format and 0 otherwise: ') > '0'
     else:
         username = args.username
         password = args.password
@@ -59,6 +62,12 @@ if __name__ == "__main__":
         eeg_only = args.eeg_only > '0'
         normalize = args.normalize > '0'
         bipolar = args.bipolar > '0'
+        random_forest = args.random_forest > '0'
     # Create the IEEGDataProcessor object and generate the map
     dataset = IEEGDataProcessor(patient_id, username, password)
-    dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only, normalize, bipolar=bipolar)
+    if random_forest:
+        dataset.process_all_feats(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
+        normalize, bipolar=bipolar, random_forest=True)
+    else:
+        dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
+                             normalize, bipolar=bipolar)

@@ -96,7 +96,7 @@ class EEGFeatures:
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
             if bipolar:
-                categoires = [BIPOLAR_CHANNELS, BIPOLAR_LEFT, BIPOLAR_RIGHT, BIPOLAR_CENTER]
+                categories = [BIPOLAR_CHANNELS, BIPOLAR_LEFT, BIPOLAR_RIGHT, BIPOLAR_CENTER]
                 source = BIPOLAR_CHANNELS
             else:
                 categories = [ALL, LEFT, RIGHT]
