@@ -19,15 +19,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.keras.models import load_model
 
 # Pre-define EEG sample length as trained by the model
-sample_len = 1
+sample_len = 5 # 1
 
 # User inputs and corresponding prompts
 inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
-          'segment duration': 5, 'threshold': 0.45}
+          'threshold': 0.45}
 prompts = {'username': 'Enter the IEEG username: ', 'password': 'Enter the IEEG password: ', 'patient_id':
            'Enter the patient ID: ', 'model': 'Enter the model type (conv, conv-gru, convlstm): ',
            'start': 'Enter the starting time in seconds: ', 'end': 'Enter the ending time in seconds: ',
-           'segment duration': 'Enter segment duration (5 recommended)',
            'threshold': 'Enter the detection threshold (0.45 recommended): '}
 
 
@@ -45,7 +44,7 @@ def __init__():
     parser.add_argument('-t', '--threshold', required=False, help='threshold')
     parser.add_argument('-s', '--start', required=False, help='start')
     parser.add_argument('-e', '--end', required=False, help='end')
-    parser.add_argument('-d', '--duration', required=False, help='segment duration')
+    # parser.add_argument('-d', '--duration', required=False, help='segment_duration')
     parser.add_argument('-l', '--length', required=False, help='length')
     return parser
 
@@ -72,7 +71,6 @@ def __main__():
             inputs[key] = value
     inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
     inputs['threshold'] = float(inputs['threshold'])
-    inputs['segment duration'] = int(inputs['segment duration'])
     # Check whether the processing is done in real-time or batch
     if args.length is None:
         length_input = None
@@ -101,7 +99,7 @@ def __main__():
     pred_list = []
     while timepoint + inputs['length'] <= inputs['end']:
         print('--- Predictions starting from %d seconds ---' % timepoint)
-        eeg_maps, eeg_indices = processor.generate_map(inputs['length'], timepoint, inputs['segment duration'])
+        eeg_maps, eeg_indices = processor.generate_map(inputs['length'], timepoint, sample_len)
         # Check whether the given EEG segment is artifact
         if eeg_maps is None:
             print("The given segment has been classified as an artifact.")
@@ -121,13 +119,13 @@ def __main__():
     # Save the predictions into a JSON file
     sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
     sz_events_json = sz_events.to_json()
-    file_path = '%s-%s-%d-%d-%d' % (inputs['patient_id'], inputs['model'], inputs['start'],
-                                    inputs['end'], inputs['length'])
+    file_path = '%s-%s-%d-%d-%ds-%d' % (inputs['patient_id'], inputs['model'], inputs['start'],
+                                    inputs['end'], sample_len, inputs['length'])
     print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
     with open(file_path + '.json', 'w') as file:
         json.dump(sz_events_json, file)
     sz_events.to_pickle(file_path + '.pkl')
-    np.save("%s_predictions_%s.npy" % (inputs['patient_id'], model_name), pred_list)
+    np.save("%s_predictions_%s_%ds.npy" % (inputs['patient_id'], model_name, sample_len), pred_list)
     print('====================================================================')
     print("Real-time processing complete for %s." % inputs['patient_id'])
     print('====================================================================')
