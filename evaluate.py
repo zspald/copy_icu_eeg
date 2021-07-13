@@ -198,17 +198,19 @@ class EEGEvaluator:
         # determine if predictions start with seizure
         if predictions[0] == 1:
             start = start_time
-
+        prev = predictions[0]
         # loop through inner predictions and determine seizure intervals
         for i in range(1, predictions.shape[0] - 1):
             # check for seizure onset
-            if predictions[i] == 1 and predictions[i - 1] == 0:
+            if predictions[i] == 1 and prev == 0:
                 # record starting time
                 start = i * pred_length + start_time
+                prev = 1
             # check for end of seizure
-            if predictions[i + 1] == 0 and predictions[i] == 1:
-                stop = (i + 1) * pred_length + start_time
+            if predictions[i] == 0 and prev == 1:
+                stop = i * pred_length + start_time
                 pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
+                prev = 0
 
         # determine if final predictions continues a seizure
         if predictions[-1] == 1 and predictions[-2] == 1:
@@ -440,7 +442,7 @@ class EEGEvaluator:
 
     # Method header: TODO
     @staticmethod
-    def annots_pkl_to_1D(pkl_filename, pred_length, start, end, method='any_sz', sz_thresh=0.45):
+    def annots_pkl_to_1D(pkl_filename, start, end, pred_length = 1, method='any_sz', sz_thresh=0.45):
         #load in labels from pickle file
         f_pick = open(pkl_filename, 'rb')
         data = pickle.load(f_pick)
@@ -516,7 +518,7 @@ class EEGEvaluator:
         label_y = 2.25
         pred_y = 0
         width = pred_length / 60
-        height = 2*width
+        height = 2
 
         #access seizure labels
         with open('dataset/' + id + '.pkl', 'rb') as file:
@@ -544,7 +546,7 @@ class EEGEvaluator:
         #create prediction visuals from model output
         for idx, val in enumerate(pred_list):
             if val == 1:
-                ax.add_patch(Rectangle((idx, pred_y), width, height,
+                ax.add_patch(Rectangle((idx / (60 / pred_length), pred_y), width, height,
                 edgecolor = 'g', facecolor='g', fill=True))
 
         #format plot

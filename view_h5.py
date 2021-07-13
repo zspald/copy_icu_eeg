@@ -6,7 +6,7 @@ import pandas as pd
 import glob 
 
 # %%
-filename = 'data/ICUDataRedux_0085_data_bipolar_rf.h5'
+filename = 'data/ICUDataRedux_0085_data.h5'
 
 f = h5py.File(filename, 'r')
 print(filename)
