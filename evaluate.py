@@ -135,6 +135,10 @@ class EEGEvaluator:
         start_time = label_df.start[0]
         label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
         num_sz = label_df.shape[0]
+
+        if num_sz == 0:
+            print("No seizures in patient " + id)
+            return None, None, None
         
         # create seizure interval dataframe for current predictions
         pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 

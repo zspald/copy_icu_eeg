@@ -23,19 +23,17 @@ patient_list = ["CNT684", "CNT687", "CNT689", "CNT690", "CNT691",
                 "ICUDataRedux_0089", "ICUDataRedux_0090", "ICUDataRedux_0091"]
 
 # True if using bipolar montage, false for referential montage
-bipolar = False
+bipolar = True
 
-# %% Model Training
+# penalty for sz misclassification
+penalty = 500 # (fron John B's matlab RF)
+class_weight = {0: penalty, 1: 1}
 
-# create rf model pipeline with feature selection step using recursive feature elimnation
-# rfc = Pipeline([
-#     ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False))),
-#     ('rf_classifier', RandomForestClassifier(n_estimators=500, verbose=1))
-# ])
+# %% Initial Model Training
 
 rfc = Pipeline([
     ('pca_feature_selection', PCA(n_components=10)),
-    ('rf_classifier', RandomForestClassifier(n_estimators=500, verbose=1))
+    ('rf_classifier', RandomForestClassifier(n_estimators=500, class_weight=class_weight, verbose=2))
 ])
 # print(rfc.get_params())
 
@@ -77,9 +75,73 @@ for patient in patient_list:
 # print(np.cumsum(pca.explained_variance_ratio_))
 rfc.fit(tot_feats, tot_labels)
 
+# %% Model Cross Validation 
+
+# hyper parameter tuning with randomized search CV over the parameter space below
+random_grid = {'rf_classifier__bootstrap': [True, False],
+               'rf_classifier__max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, None],
+               'rf_classifier__min_samples_leaf': [1, 2, 4],
+               'rf_classifier__min_samples_split': [2, 5, 10],
+               'rf_classifier__n_estimators': [130, 180, 230]}
+
+param_search = RandomizedSearchCV(rfc, random_grid)
+param_search.fit(tot_feats, tot_labels)
+print(param_search.best_params_)
+
+######### Best Params ##############
+#n_estimators = 130
+# min_samples_split = 2 
+# min_samples_leaf = 4 
+# max_depth = 90 
+# bootstrap = True
+
+# %% Tuned Model Training
+
+tuned_model = RandomForestClassifier(n_estimators=130, min_samples_split=2,
+                                    min_samples_leaf=4, max_depth=90,
+                                    bootstrap=True, class_weight=class_weight,
+                                    verbose=1)
+tuned_rfc = Pipeline([
+    ('pca_feature_selection', PCA(n_components=10)),
+    ('rf_classifier', tuned_model)
+])
+# print(rfc.get_params())
+
+# iterate over desired patients
+tot_feats = None
+tot_labels = None
+for patient in patient_list:
+    # load data from proper montage
+    if bipolar:
+        filename = "data/" + patient + "_data_bipolar_rf.h5"
+    else:
+        filename = "data/" + patient + "_data_rf.h5"
+
+    # access h5 file with data
+    with h5py.File(filename) as patient_data:
+        # load in features and labels for current patient
+        feats = (patient_data['feats'])[:]
+        feats = feats.reshape(feats.shape[0], -1)
+        feats = np.nan_to_num(feats)
+        if tot_feats is not None:
+            tot_feats = np.r_[tot_feats, feats]
+        else:
+            tot_feats = feats
+        # print(tot_feats.shape)
+
+        labels = (patient_data['labels'])[:,0]
+        if tot_labels is not None:
+            tot_labels = np.r_[tot_labels, labels]
+        else:
+            tot_labels = labels
+
+tuned_rfc.fit(tot_feats, tot_labels)
 
 # %% Test Predictions
+
 test_list = ["CNT685", "CNT688", "ICUDataRedux_0062", "ICUDataRedux_0085"]
+m = rfc
+# m = tuned_rfc
 
 # iterate over desired patients
 for patient in test_list:
@@ -98,7 +160,7 @@ for patient in test_list:
         labels = (patient_data['labels'])[:,0]
         
         # make predictions on current patient
-        preds = rfc.predict(feats)
+        preds = m.predict(feats)
         print(preds)
         num_correct = 0
         for i in range(len(preds)):
@@ -107,22 +169,20 @@ for patient in test_list:
         # print(preds)
         print(f"{patient} Accuracy: {num_correct / len(preds)}")
 
-# %% Model Cross Validation 
-
-# hyper parameter tuning with randomized search CV over the parameter space below
-random_grid = {'rf_classifier__bootstrap': [True, False],
-               'rf_classifier__max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, None],
-               'rf_classifier__min_samples_leaf': [1, 2, 4],
-               'rf_classifier__min_samples_split': [2, 5, 10],
-               'rf_classifier__n_estimators': [130, 180, 230]}
-
-param_search = RandomizedSearchCV(rfc, random_grid)
-param_search.fit(tot_feats, tot_labels)
-
 # %% Model Evalutations
 
 patient_id = "ICUDataRedux_0085"
 length=1
+
+with h5py.File("data/%s_data%s_rf.h5" % (patient_id, "_bipolar" if bipolar else "")) as patient_data:
+    # load in features and labels for current patient
+    feats = (patient_data['feats'])[:]
+    feats = feats.reshape(feats.shape[0], -1)
+    feats = np.nan_to_num(feats)
+    labels = (patient_data['labels'])[:,0]
+    
+    # make predictions on current patient
+    preds = m.predict(feats)
 
 #placeholder
 start = 0
