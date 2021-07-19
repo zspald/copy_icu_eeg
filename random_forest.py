@@ -8,10 +8,11 @@ from sklearn.svm import LinearSVC
 from sklearn.decomposition import PCA
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import KFold
-from tqdm import tqdm, trange
+from tqdm import tqdm
 import h5py
 import pickle
 import sys
+import h5py
 from evaluate import EEGEvaluator
 
 # Patients to train random forest classifer on
@@ -58,15 +59,21 @@ nsz_split = list(kf_nsz.split(pt_list_nsz))
 
 # iterate through folds
 models = np.zeros(n_folds, dtype=object)
+pts_by_fold = {}
 for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
     # get train split indices for ith fold
-    train_idx_sz, _ = sz_split[i]
-    train_idx_nsz, _ = nsz_split[i]
+    train_idx_sz, test_idx_sz = sz_split[i]
+    train_idx_nsz, test_idx_nsz = nsz_split[i]
 
     # construct training set from splits of sz and nsz list
     train_sz = pt_list_sz[train_idx_sz]
     train_nsz = pt_list_nsz[train_idx_nsz]
     pt_train_list = np.r_[train_sz, train_nsz]
+
+    # construct testing set from sz and nsz splits to save with model
+    test_sz = pt_list_sz[test_idx_sz]
+    test_nsz = pt_list_nsz[test_idx_nsz]
+    pt_test_list = np.r_[test_sz, test_nsz]
 
     # Initialize variable to collect feats and labels
     tot_feats = None
@@ -102,22 +109,52 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
             else:
                 tot_labels = labels
     
-    rfc.fit(tot_feats, tot_labels)
-    models[i] = rfc
+    # Testing number of components for pca
+    pca = PCA()
+    pca.fit_transform(tot_feats)
+    expl_var = np.array(pca.explained_variance_ratio_).cumsum()
+    print(f"PCA Fold {i}: {expl_var}")
+    print(f"Number of PCs for > 99% Var Explained {(np.where(expl_var > 0.99)[0])[0] + 1}")
 
+#     # train and save model to np array
+#     rfc.fit(tot_feats, tot_labels)
+#     models[i] = rfc
+
+#     # save test patients for current model to dictionary
+#     pts_by_fold[i] = pt_test_list
+
+# # save models as h5 file
+# models_h5 = h5py.File('rf_models.h5', 'w')
+# models_h5.create_dataset('models', data=models)
+# models_h5.close()
+
+# # save dictionary containing the test patients for the corresponding model
+# with open('model_test_pts.pkl', 'wb') as pkl_file:
+#     pickle.dump(pts_by_fold, pkl_file)
 
 # %% Test Predictions
 
+# load model array
+with h5py.File('rf_models.h5', 'r') as h5_models:
+    model_folds = (h5_models['models'])[:]
+
+# load test patient lists by fold
+test_pts = pickle.load(open("model_test_pts.pkl", 'rb'))
+
 output_dict = {}
 for i in range(n_folds):
-    # get test split indices for ith fold
-    _, test_idx_sz = sz_split[i]
-    _, test_idx_nsz = nsz_split[i]
+    # # get test split indices for ith fold
+    # _, test_idx_sz = sz_split[i]
+    # _, test_idx_nsz = nsz_split[i]
 
-    # construct testing set from splits of sz and nsz list
-    test_sz = pt_list_sz[test_idx_sz]
-    test_nsz = pt_list_nsz[test_idx_nsz]
-    pt_test_list = np.r_[test_sz, train_nsz]
+    # # construct testing set from splits of sz and nsz list
+    # test_sz = pt_list_sz[test_idx_sz]
+    # test_nsz = pt_list_nsz[test_idx_nsz]
+    # pt_test_list = np.r_[test_sz, train_nsz]
+
+    # get model and test patients for current fold
+    model = model_folds[i]
+    pt_test_list = test_pts[i]
 
     for pt in pt_test_list:
         # load data from proper montage and format
@@ -139,24 +176,31 @@ for i in range(n_folds):
             # get labels for current pt
             labels = (pt_data['labels'])[:,0]
 
+            # sort labels and feats in order of timepoints rather than sz and non-sz sections
+            sort_inds = np.argsort(labels[:,1])
+            sorted_labels = labels[sort_inds, :]
+            sorted_feats = feats[sort_inds, :]
+
             # get predictions for current pt
-            preds = models[i].predict(feats)
+            preds = model.predict(sorted_feats)
             # post_processed_preds = EEGEvaluator.postprocess_outputs(preds, length=1, threshold=sz_thresh)
 
             # save pt output data to dict as an 2xN array where row 0 is model predictions and row 1 is 
             # the actual labels. The patient name is the key for this data in the output dict
-            pt_output = np.array([preds, labels])
+            pt_output = np.array([preds, sorted_labels])
             output_dict[pt] = pt_output
 
-# %% Accuracy
+# %% Metrics for model evaluation by fold
 
 for pt, outputs in output_dict.items():
-    total = outputs.shape[1]
-    diff = sum(abs(outputs[0] - outputs[1]))
-    print(f"{pt}: {1 - (diff / total)}")
-
+    preds = outputs[0]
+    labels = outputs[1]
+    print(f'Metrics for {pt}:')
+    EEGEvaluator.evaluate_metrics(labels, preds)
 
 # %% Model Evalutations
+# TODO -> move the sz sensitivity and data reduc evaluations to the
+# deployment_rf folder to work on the model predictions from that output
 
 pt_id = "ICUDataRedux_0064"
 length=1
@@ -184,19 +228,6 @@ print("Results for predictions from %s" % pt_id)
 stats_sz = EEGEvaluator.sz_sens(pt_id, preds, pred_length=length)
 stats_non_sz = EEGEvaluator.data_reduc(pt_id, preds, pred_length=length)
 EEGEvaluator.compare_outputs_plot(pt_id, preds, length=(stop-start)/60, pred_length=length)
-
-
-# %% Load annots test
-
-# pt_id = "CNT684"
-# pt_data = h5py.File("data/%s_data_rf.h5" % pt_id)
-# lab2 = (pt_data['labels'])[:]
-
-times = pickle.load(open("dataset/patient_start_stop.pkl", 'rb'))
-
-
-
-
 
 # %% Model Cross Validation 
 
@@ -261,5 +292,3 @@ times = pickle.load(open("dataset/patient_start_stop.pkl", 'rb'))
 # tuned_rfc.fit(tot_feats, tot_labels)
 
 
-
-# %%
