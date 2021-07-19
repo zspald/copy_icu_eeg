@@ -9,8 +9,9 @@ length=1
 filter=1
 eeg=1
 norm=1
-bipolar=1
+bipolar=0
 random_forest=1
+pool=0
 # declare -a PATIENTS=(CNT685 ICUDataRedux_0085)
 declare -a PATIENTS=(
 				# CNT684 CNT685 CNT687 CNT688 
@@ -26,7 +27,7 @@ declare -a PATIENTS=(
 # declare -a PATIENTS=(CNT684 CNT684 CNT687 CNT688)
 for patient in ${PATIENTS[@]} 
 do
-	python run_processor.py -u $username -p $password -id $patient -n $num_iter -b $batch_size -s $start -l $length -f $filter -eo $eeg -no $norm -bi $bipolar -rf $random_forest &
+	python run_processor.py -u $username -p $password -id $patient -n $num_iter -b $batch_size -s $start -l $length -f $filter -eo $eeg -no $norm -bi $bipolar -rf $random_forest -po $pool &
 done
 wait
 

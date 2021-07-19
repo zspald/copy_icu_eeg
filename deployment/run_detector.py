@@ -19,7 +19,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.keras.models import load_model
 
 # Pre-define EEG sample length as trained by the model
-sample_len = 5 # 1
+sample_len = 1 # 1
 
 # User inputs and corresponding prompts
 inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,

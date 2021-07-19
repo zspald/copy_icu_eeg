@@ -57,32 +57,52 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, 
-    normalize=None, log_artifacts=False, bipolar=False, random_forest=False, use_label_times=True):
+    normalize=None, log_artifacts=False, bipolar=False, random_forest=False, use_label_times=True, pool=False):
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
+        chan_length = len(channels_to_use)
+        
         # Create a gzipped HDF file to store the processed features for specific montage type
-        if bipolar:        
+        filename = "data/%s_data.h5" % self.id
+        if bipolar:
             print("Using bipolar montage (double banana)")
-            if random_forest:
-                pool = True
-                print("Saving data in random forest format")
-                file = h5py.File('data/%s_data_bipolar_rf.h5' % self.id, 'w')
-                chan_length = 4
-            else:
-                print("Saving data in CNN format")
-                file = h5py.File('data/%s_data_bipolar.h5' % self.id, 'w')
-                chan_length = 18
+            filename = filename[:-3] + "_bipolar.h5"
+            chan_length = 18
         else:
             print("Using referential montage")
-            if random_forest:
-                pool = True
-                print("Saving data in random forest format")
-                file = h5py.File('data/%s_data_rf.h5' % self.id, 'w')
-                chan_length = 3
+        if pool:
+            print("Pooling data by region")
+            filename = filename[:-3] + "_pool.h5"
+            if bipolar:
+                chan_length = 4 
             else:
-                print("Saving data in CNN format")
-                file = h5py.File('data/%s_data.h5' % self.id, 'w')
-                chan_length = len(channels_to_use)
+                chan_length = 3
+        if random_forest:
+            print("Saving data in random forest format")
+            filename = filename[:-3] + "_rf.h5"
+
+        file = h5py.File(filename, 'w')
+        
+        # if bipolar:        
+        #     print("Using bipolar montage (double banana)")
+        #     if random_forest:
+        #         print("Saving data in random forest format")
+        #         file = h5py.File('data/%s_data_bipolar_rf.h5' % self.id, 'w')
+        #         chan_length = 4
+        #     else:
+        #         print("Saving data in CNN format")
+        #         file = h5py.File('data/%s_data_bipolar.h5' % self.id, 'w')
+        #         chan_length = 18
+        # else:
+        #     print("Using referential montage")
+        #     if random_forest:
+        #         print("Saving data in random forest format")
+        #         file = h5py.File('data/%s_data_rf.h5' % self.id, 'w')
+        #         chan_length = 3
+        #     else:
+        #         print("Saving data in CNN format")
+        #         file = h5py.File('data/%s_data.h5' % self.id, 'w')
+        #         chan_length = len(channels_to_use)
         patient_feats = file.create_dataset('feats', (0, chan_length, len(EEG_FEATS)),
                                             maxshape=(None, chan_length, len(EEG_FEATS)),
                                             compression='gzip', chunks=True)
