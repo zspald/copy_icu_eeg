@@ -9,7 +9,7 @@
 import numpy as np
 import pandas as pd
 import scipy.stats
-from features import EEGFeatures
+from features_rf import EEGFeatures
 
 
 # A class that provides methods for artifact rejection

@@ -41,6 +41,10 @@ n_folds = 5
 # threshold for window smoothing (see postprocess_outputs in evaluate.py)
 sz_thresh = 0.45
 
+# filename for saving model
+model_filename = "rf_models_new"
+test_pts_filename = "model_test_pts_new"
+
 # %% 5-Fold CV for Model
 
 rfc = Pipeline([
@@ -124,10 +128,10 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
     pts_by_fold[i] = pt_test_list
 
 # save models as h5 file
-np.save("rf_models.npy", models)
+np.save(model_filename + ".npy", models)
 
 # save dictionary containing the test patients for the corresponding model
-with open('model_test_pts.pkl', 'wb') as pkl_file:
+with open(test_pts_filename + ".pkl", 'wb') as pkl_file:
     pickle.dump(pts_by_fold, pkl_file)
 
 # %% Test Predictions
@@ -161,6 +165,7 @@ for i in range(model_folds.shape[0]):
         if pool:
             filename += "_pool"
         filename += "_rf.h5"
+        print(f"On patient: {pt}")
 
         # access h5 file with data to extract features
         with h5py.File(filename) as pt_data:
@@ -171,11 +176,11 @@ for i in range(model_folds.shape[0]):
             feats = np.nan_to_num(feats)
 
             # get labels for current pt
-            labels = (pt_data['labels'])[:,0]
+            labels = (pt_data['labels'])[:]
 
             # sort labels and feats in order of timepoints rather than sz and non-sz sections
             sort_inds = np.argsort(labels[:,1])
-            sorted_labels = labels[sort_inds, :]
+            sorted_labels = labels[sort_inds, 0]
             sorted_feats = feats[sort_inds, :]
 
             # get predictions for current pt
@@ -186,14 +191,31 @@ for i in range(model_folds.shape[0]):
             # the actual labels. The patient name is the key for this data in the output dict
             pt_output = np.array([preds, sorted_labels])
             output_dict[pt] = pt_output
+    
+with open("output_dict_ref_no_pool.pkl", 'wb') as pkl_file:
+    pickle.dump(output_dict, pkl_file)
 
 # %% Metrics for model evaluation by fold
 
+tot_metrics = np.zeros((len(pt_list_sz) + len(pt_list_nsz), 5))
+idx = 0
 for pt, outputs in output_dict.items():
     preds = outputs[0]
     labels = outputs[1]
     print(f'Metrics for {pt}:')
-    EEGEvaluator.evaluate_metrics(labels, preds)
+    metrics = EEGEvaluator.evaluate_metrics(labels, preds)
+    tot_metrics[idx, :] = metrics
+    idx+=1
+    EEGEvaluator.test_results(metrics, plot=False)
+    print("")
+
+mean_metrics = np.nanmean(tot_metrics, axis=0)
+print('######## Average Metrics ########')
+print("Test Accuracy: ", mean_metrics[0])
+print("Recall (seizure): ", mean_metrics[1])
+print("Precision (seizure): ", mean_metrics[2])
+print("Recall (normal): ", mean_metrics[3])
+print("Precision (normal): ", mean_metrics[4])
 
 # %% Model Evalutations
 # TODO -> move the sz sensitivity and data reduc evaluations to the

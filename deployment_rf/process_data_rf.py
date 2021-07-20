@@ -6,10 +6,9 @@
 ############################################################################
 
 # Import libraries
-from artifacts import Artifacts
-from features import EEGFeatures, EEG_FEATS
-from features_2d import EEGMap
-from load_data import IEEGDataLoader
+from artifacts_rf import Artifacts
+from features_rf import EEGFeatures, EEG_FEATS
+from load_data_rf import IEEGDataLoader
 from scipy.signal import butter, filtfilt
 import math
 import numpy as np
@@ -43,20 +42,33 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   map_outputs: a multidimensional array of feature maps with shape (N* x F x W x H), where
     #                N* and F share the same definitions as above and W, H denote the image size
     #   map_indices: a list indicating whether each EEG segment has been used, with length N
-    def generate_map(self, num_batches, start, length, initial_pass=False):
-        # Process and return features for user-designated EEG intervals
-        patient_feats, patient_indices, patient_channels = self.get_features(num_batches, start, length)
-        # Check whether features are entirely artifacts
+    # def generate_map(self, num_batches, start, length, initial_pass=False):
+    #     # Process and return features for user-designated EEG intervals
+    #     patient_feats, patient_indices, patient_channels = self.get_features(num_batches, start, length)
+    #     # Check whether features are entirely artifacts
+    #     if patient_feats is None:
+    #         return None, None
+    #     # Save patient-specific EEG statistics and apply normalization
+    #     if initial_pass:
+    #         self.mean, self.std = EEGFeatures.compute_stats(patient_feats)
+    #     patient_feats = (patient_feats - self.mean) / self.std
+    #     # Compute map renderings of the features across the patient's scalp
+    #     map_outputs = EEGMap.generate_map(patient_feats, patient_channels)
+    #     map_indices = 1 - patient_indices
+    #     return map_outputs, map_indices
+
+    # replacement of generate_map for random_forest model (method header TODO)
+    def process_feats(self, num, start, length):
+        patient_feats, patient_indices, _ = self.get_features(num, start, length)
+        
         if patient_feats is None:
             return None, None
-        # Save patient-specific EEG statistics and apply normalization
-        if initial_pass:
-            self.mean, self.std = EEGFeatures.compute_stats(patient_feats)
+        
         patient_feats = (patient_feats - self.mean) / self.std
-        # Compute map renderings of the features across the patient's scalp
-        map_outputs = EEGMap.generate_map(patient_feats, patient_channels)
-        map_indices = 1 - patient_indices
-        return map_outputs, map_indices
+
+        feat_indices = 1 - patient_indices
+        
+        return patient_feats, feat_indices
 
     # Pre-computes the patient-specific EEG statistics with the given set of EEG features
     # Inputs

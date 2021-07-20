@@ -8,26 +8,26 @@ import numpy as np
 from evaluate import EEGEvaluator
 
 # %%
-pt_id = "ICUDataRedux_0085"
-filename = "data/%s_data_rf.h5" % pt_id
+# pt_id = "ICUDataRedux_0085"
+# filename = "data/%s_data_rf.h5" % pt_id
 
-f = h5py.File(filename, 'r')
-print(filename)
-data = f['feats'][:]
-labels = f['labels'][:]
-# print(f['maps'].shape[0])
-f.close()
+# f = h5py.File(filename, 'r')
+# print(filename)
+# data = f['feats'][:]
+# labels = f['labels'][:]
+# # print(f['maps'].shape[0])
+# f.close()
 
 
-# for filename in os.listdir("data"):
-#     h5_filename = "data/" + filename
-#     f = h5py.File(h5_filename, 'r')
-#     try:
-#         print(f"{filename}: {f['maps'].shape[0]}")
-#         f.close()
-#     except KeyError:
-#         print(f"{filename}: Maps empty")
-#         f.close()
+for filename in glob.glob("data/*_data_rf.h5"):
+    f = h5py.File(filename, 'r')
+    print(f"{filename}: {f['feats'][:].shape}")
+    # try:
+    #     print(f"{filename}: {f['maps'].shape[0]}")
+    #     f.close()
+    # except KeyError:
+    #     print(f"{filename}: Maps empty")
+    #     f.close()
 
 
 # %%

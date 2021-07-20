@@ -83,26 +83,6 @@ class IEEGDataProcessor(IEEGDataLoader):
 
         file = h5py.File(filename, 'w')
         
-        # if bipolar:        
-        #     print("Using bipolar montage (double banana)")
-        #     if random_forest:
-        #         print("Saving data in random forest format")
-        #         file = h5py.File('data/%s_data_bipolar_rf.h5' % self.id, 'w')
-        #         chan_length = 4
-        #     else:
-        #         print("Saving data in CNN format")
-        #         file = h5py.File('data/%s_data_bipolar.h5' % self.id, 'w')
-        #         chan_length = 18
-        # else:
-        #     print("Using referential montage")
-        #     if random_forest:
-        #         print("Saving data in random forest format")
-        #         file = h5py.File('data/%s_data_rf.h5' % self.id, 'w')
-        #         chan_length = 3
-        #     else:
-        #         print("Saving data in CNN format")
-        #         file = h5py.File('data/%s_data.h5' % self.id, 'w')
-        #         chan_length = len(channels_to_use)
         patient_feats = file.create_dataset('feats', (0, chan_length, len(EEG_FEATS)),
                                             maxshape=(None, chan_length, len(EEG_FEATS)),
                                             compression='gzip', chunks=True)

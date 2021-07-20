@@ -7,9 +7,9 @@ import pickle
 from evaluate import EEGEvaluator
 import pandas as pd
 
-patient_id = "ICUDataRedux_0062"
-# patient_id = "ICUDataRedux_0085"
-patient_id = "CNT685"
+# patient_id = "ICUDataRedux_0062"
+patient_id = "ICUDataRedux_0085"
+# patient_id = "CNT685"
 length = 1
 start = 79 #500
 end = 15164 #24000
@@ -24,7 +24,7 @@ elif "CNT" in patient_id:
     start = 100
     end = 10100
 
-pred_filename = "deployment/%s_predictions_ICU-EEG-conv-50.npy" % patient_id
+pred_filename = "deployment_rf/%s_predictions_rf_1s.npy" % patient_id
 pred_file = open(pred_filename, 'rb')
 preds = np.load(pred_file)
 if length == 60:
