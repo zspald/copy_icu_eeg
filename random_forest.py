@@ -110,39 +110,36 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
                 tot_labels = labels
     
     # Testing number of components for pca
-    pca = PCA()
-    pca.fit_transform(tot_feats)
-    expl_var = np.array(pca.explained_variance_ratio_).cumsum()
-    print(f"PCA Fold {i}: {expl_var}")
-    print(f"Number of PCs for > 99% Var Explained {(np.where(expl_var > 0.99)[0])[0] + 1}")
+    # pca = PCA()
+    # pca.fit_transform(tot_feats)
+    # expl_var = np.array(pca.explained_variance_ratio_).cumsum()
+    # print(f"PCA Fold {i}: {expl_var}")
+    # print(f"Number of PCs for > 99% Var Explained {(np.where(expl_var > 0.99)[0])[0] + 1}")
 
-#     # train and save model to np array
-#     rfc.fit(tot_feats, tot_labels)
-#     models[i] = rfc
+    # train and save model to np array
+    rfc.fit(tot_feats, tot_labels)
+    models[i] = rfc
 
-#     # save test patients for current model to dictionary
-#     pts_by_fold[i] = pt_test_list
+    # save test patients for current model to dictionary
+    pts_by_fold[i] = pt_test_list
 
-# # save models as h5 file
-# models_h5 = h5py.File('rf_models.h5', 'w')
-# models_h5.create_dataset('models', data=models)
-# models_h5.close()
+# save models as h5 file
+np.save("rf_models.npy", models)
 
-# # save dictionary containing the test patients for the corresponding model
-# with open('model_test_pts.pkl', 'wb') as pkl_file:
-#     pickle.dump(pts_by_fold, pkl_file)
+# save dictionary containing the test patients for the corresponding model
+with open('model_test_pts.pkl', 'wb') as pkl_file:
+    pickle.dump(pts_by_fold, pkl_file)
 
 # %% Test Predictions
 
 # load model array
-with h5py.File('rf_models.h5', 'r') as h5_models:
-    model_folds = (h5_models['models'])[:]
+model_folds = np.load("rf_models.npy", allow_pickle=True)
 
 # load test patient lists by fold
 test_pts = pickle.load(open("model_test_pts.pkl", 'rb'))
 
 output_dict = {}
-for i in range(n_folds):
+for i in range(model_folds.shape[0]):
     # # get test split indices for ith fold
     # _, test_idx_sz = sz_split[i]
     # _, test_idx_nsz = nsz_split[i]
