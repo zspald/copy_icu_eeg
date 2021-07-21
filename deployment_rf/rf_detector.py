@@ -24,9 +24,10 @@ sample_len = 1 # 1
 #            'Enter the patient ID: ', 'model': 'Enter the model type (conv, conv-gru, convlstm): ',
 #            'start': 'Enter the starting time in seconds: ', 'end': 'Enter the ending time in seconds: ',
 #            'threshold': 'Enter the detection threshold (0.45 recommended): '}
-inputs = {'username': '', 'password': '', 'patient_id': '', 'length': 0, 'threshold': 0.45}
+inputs = {'username': '', 'password': '', 'patient_id': '', 'bipolar': 0, 'pool': 0, 'length': 0, 'threshold': 0.45}
 prompts = {'username': 'Enter the IEEG username: ', 'password': 'Enter the IEEG password: ', 'patient_id':
-           'Enter the patient ID: ', 'threshold': 'Enter the detection threshold (0.45 recommended): '}
+           'Enter the patient ID: ', 'bipolar': 'Use bipolar montage? (y=1, n=0)', 'pool': 'Pool features by region? (y=1, n=0)',
+           'threshold': 'Enter the detection threshold (0.45 recommended): '}
 
 
 # Initializes variables with external user arguments
@@ -40,6 +41,8 @@ def __init__():
     parser.add_argument('-p', '--password', required=False, help='password')
     parser.add_argument('-id', '--patient_id', required=False, help='patient_id')
     # parser.add_argument('-m', '--model', required=False, help='model')
+    parser.add_argument('-b', '--bipolar', required=False, help='bipolar montage')
+    parser.add_argument('-po', '--pool', required=False, help='regional pooling')
     parser.add_argument('-t', '--threshold', required=False, help='threshold')
     # parser.add_argument('-s', '--start', required=False, help='start')
     # parser.add_argument('-e', '--end', required=False, help='end')
@@ -69,6 +72,18 @@ def __main__():
         else:
             inputs[key] = value
     # inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
+
+    # determine montage type
+    if inputs['bipolar'] == 1:
+        bipolar = True
+    else:
+        bipolar = False
+
+    # set pooling settings
+    if inputs['pool'] == 1:
+        pool = True
+    else:
+        pool = False
 
     # get start and stop times for the current patient
     start_stop_df = pickle.load(open("patient_start_stop.pkl", 'rb'))
@@ -106,8 +121,15 @@ def __main__():
         model_num = 0
 
     # Load in the proper rf model for the patient (to avoid predictions on a pt the model was trained on)
-    model_arr = np.load("rf_models.npy", allow_pickle=True)
+    model_filename='rf_models'
+    if bipolar:
+        model_filename += '_bipolar'
+    if pool:
+        model_filename += '_pool'
+    model_filename += '.npy'
+    model_arr = np.load(model_filename, allow_pickle=True)
     model = model_arr[model_num]
+    model.set_params(rf_classifier__verbose = 0)
 
     # Initialize output
     sz_events = list()
@@ -117,7 +139,7 @@ def __main__():
     while timepoint + inputs['length'] <= stop:
         print('--- Predictions starting from %d seconds ---' % timepoint)
         # eeg_maps, eeg_indices = processor.generate_map(inputs['length'], timepoint, sample_len)
-        eeg_feats, eeg_indices = processor.process_feats(inputs['length'], timepoint, sample_len)
+        eeg_feats, eeg_indices = processor.process_feats(inputs['length'], timepoint, sample_len, bipolar=bipolar)
         # Check whether the given EEG segment is artifact
         if eeg_feats is None:
             print("The given segment has been classified as an artifact.")
@@ -126,25 +148,34 @@ def __main__():
             eeg_feats = eeg_feats.reshape(eeg_feats.shape[0], -1)
             eeg_feats = np.nan_to_num(eeg_feats)
             predict = model.predict(eeg_feats)
-            print(predict)
+            # print(predict)
             # Post-process the model outputs
             predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
-            print(predict)
+            # print(predict)
             predict = processor.fill_predictions(predict, eeg_indices)
-            print(predict)
+            # print(predict)
             pred_list.append(predict)
             sz_events.extend(processor.write_events(predict, timepoint, sample_len, include_artifact=True))
         timepoint += inputs['length']
     # Save the predictions into a JSON file
     sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
     sz_events_json = sz_events.to_json()
-    file_path = '%s-rf-%d-%d-%ds-%d' % (inputs['patient_id'], start,
+    file_path = 'pred_data/%s-rf-%d-%d-%ds-%d' % (inputs['patient_id'], start,
                                     stop, sample_len, inputs['length'])
+    if bipolar:
+        file_path += '-bipolar'
+    if pool:
+        file_path += '-pool'
     print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
     with open(file_path + '.json', 'w') as file:
         json.dump(sz_events_json, file)
     sz_events.to_pickle(file_path + '.pkl')
-    np.save("%s_predictions_rf_%ds.npy" % (inputs['patient_id'], sample_len), pred_list)
+    pred_filename = "pred_data/%s_predictions_rf_%ds" % (inputs['patient_id'], sample_len)
+    if bipolar:
+        pred_filename += '-bipolar'
+    if pool:
+        pred_filename += '-pool'
+    np.save(pred_filename + '.npy', pred_list)
     print('====================================================================')
     print("Real-time processing complete for %s." % inputs['patient_id'])
     print('====================================================================')

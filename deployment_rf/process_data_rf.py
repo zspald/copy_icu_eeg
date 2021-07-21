@@ -58,8 +58,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     #     return map_outputs, map_indices
 
     # replacement of generate_map for random_forest model (method header TODO)
-    def process_feats(self, num, start, length):
-        patient_feats, patient_indices, _ = self.get_features(num, start, length)
+    def process_feats(self, num, start, length, bipolar=False):
+        patient_feats, patient_indices, _ = self.get_features(num, start, length, bipolar=bipolar)
         
         if patient_feats is None:
             return None, None
@@ -95,12 +95,12 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     #   channels_to_remove: a N* x C array that indicates whether each channel in each segment should be removed
     #   returns None if no preprocessed data is available
-    def get_features(self, num, start, length):
+    def get_features(self, num, start, length, bipolar=False):
         output_data, indices_to_remove, channels_to_remove = self.process_data(num, start, length)
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None, None
-        output_feats = EEGFeatures.extract_features(output_data, fs, pool_region=False)
+        output_feats = EEGFeatures.extract_features(output_data, fs, pool_region=False, bipolar=bipolar)
         return output_feats, indices_to_remove, channels_to_remove
 
     # Processes data from IEEG.org in multiple batches
