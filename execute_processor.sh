@@ -11,7 +11,7 @@ eeg=1
 norm=1
 bipolar=1
 random_forest=1
-pool=0
+pool=1
 # declare -a PATIENTS=(ICUDataRedux_0054 ICUDataRedux_0065 ICUDataRedux_0067 ICUDataRedux_0068 
 # 					ICUDataRedux_0072 ICUDataRedux_0082 ICUDataRedux_0083)
 declare -a PATIENTS=(
