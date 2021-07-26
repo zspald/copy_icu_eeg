@@ -28,7 +28,7 @@ pt_list_sz = np.array(["ICUDataRedux_0054", "ICUDataRedux_0061", "ICUDataRedux_0
                        "ICUDataRedux_0089", "ICUDataRedux_0090", "ICUDataRedux_0091"])
 
 # True if using bipolar montage, false for referential montage
-bipolar = False
+bipolar = True
 
 # True if using data pooled by region, false for data in channel format
 pool = False
@@ -42,10 +42,19 @@ n_folds = 5
 sz_thresh = 0.45
 
 # filename for saving model
-model_filename = "rf_models_new"
-test_pts_filename = "model_test_pts_new"
+model_filename = "rf_models"
+test_pts_filename = "model_test_pts"
 
 # %% 5-Fold CV for Model
+
+if bipolar:
+    print("Using bipolar montage")
+else:
+    print("Using referential montage")
+if pool:
+    print("Using region-pooled features")
+else:
+    print("Using channel-based features")
 
 rfc = Pipeline([
     # ('pca_feature_selection', PCA(n_components=10)),
@@ -128,10 +137,20 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
     pts_by_fold[i] = pt_test_list
 
 # save models as h5 file
-np.save(model_filename + ".npy", models)
+if bipolar:
+    model_filename += "_bipolar"
+if pool:
+    model_filename += "_pool"
+model_filename += ".npy"
+np.save(model_filename, models)
 
 # save dictionary containing the test patients for the corresponding model
-with open(test_pts_filename + ".pkl", 'wb') as pkl_file:
+if bipolar:
+    test_pts_filename += "_bipolar"
+if pool:
+    test_pts_filename += "_pool"
+test_pts_filename += ".pkl"
+with open(test_pts_filename, 'wb') as pkl_file:
     pickle.dump(pts_by_fold, pkl_file)
 
 # %% Test Predictions

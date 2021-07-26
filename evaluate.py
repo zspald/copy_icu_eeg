@@ -148,7 +148,7 @@ class EEGEvaluator:
         true_positive = 0
         for _, label in enumerate(label_df.values):
             start = label[1]
-            stop = label[2]``
+            stop = label[2]
             if EEGEvaluator.overlap_interval(start, stop, pred_start_stop):
                 true_positive += 1
 
