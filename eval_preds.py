@@ -10,21 +10,27 @@ import pandas as pd
 length = 1
 save=True
 
+bipolar=False
+pool=False
+random_forest = False
+
+fig_filename = 'output_figs/%s_outputs_labels'
+if bipolar:
+    fig_filename += '_bipolar'
+if pool:
+    fig_filename += '_pool'
+if random_forest:
+    fig_filename += '_rf'
+fig_filename += '.pdf'
+
 # %%  Single patient testing
 
-patient_id = "CNT684"
-start = 79 #500
-end = 15164 #24000
+patient_id = "ICUDataRedux_0054"
 
-if patient_id == "ICUDataRedux_0062":
-    start = 500
-    end = 24000
-elif patient_id == "ICUDataRedux_0085":
-    start = 79
-    end = 15164
-elif "CNT" in patient_id:
-    start = 100
-    end = 10100
+start_stop_df = pickle.load(open("dataset/patient_start_stop.pkl", 'rb'))
+patient_times = start_stop_df[start_stop_df['patient_id'] == patient_id].values
+start = patient_times[0,1]
+stop = patient_times[-1,2]
 
 pred_filename = "deployment_rf/pred_data/%s_predictions_rf_1s.npy" % patient_id
 pred_file = open(pred_filename, 'rb')
@@ -33,6 +39,7 @@ if length == 60:
     preds = np.nanmax(preds, 1)
 elif length == 1:
     preds = preds.flatten()
+# preds = EEGEvaluator.postprocess_outputs(preds, length)
 print("Predictions:")
 print(preds)
 print(f"Shape of predictions: {preds.shape}")
@@ -48,7 +55,7 @@ annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
 f_pick.close()
 
 
-labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, end, pred_length=length)
+labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, stop, pred_length=length)
 labels = labels[:preds.shape[0]]
 print("Labels:")
 print(labels)
@@ -60,17 +67,18 @@ print(f"Shape of labels: {labels.shape}")
 print("Results for predictions from %s" % patient_id)
 # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
 # EEGEvaluator.test_results(metrics)
-stats_sz = EEGEvaluator.sz_sens(patient_id, preds, pred_length=length)
-stats_non_sz = EEGEvaluator.data_reduc(patient_id, preds, pred_length=length)
-EEGEvaluator.compare_outputs_plot(patient_id, preds, length=(end-start)/60, pred_length=length)
+stats_sz_sens = EEGEvaluator.sz_sens(patient_id, preds, pred_length=length)
+stats_data_reduc = EEGEvaluator.data_reduc(patient_id, preds, pred_length=length)
+stats_false_alerts = EEGEvaluator.false_alert_rate(patient_id, preds, pred_length=length)
+EEGEvaluator.compare_outputs_plot(patient_id, preds, length=(stop-start)/60, pred_length=length)
 
 # %% Looped Evalauations
 
 pt_list = [
-        #    'CNT684', 'CNT685', 'CNT687', 'CNT688',
-        #    'CNT689', 'CNT690', 'CNT691', 'CNT692',
-        #    'CNT694', 'CNT695', 'CNT698', 'CNT700',
-        #    'CNT701', 'CNT702', 'CNT705', 'CNT706']
+           'CNT684', 'CNT685', 'CNT687', 'CNT688',
+           'CNT689', 'CNT690', 'CNT691', 'CNT692',
+           'CNT694', 'CNT695', 'CNT698', 'CNT700',
+           'CNT701', 'CNT702', 'CNT705', 'CNT706',
            'ICUDataRedux_0054', 'ICUDataRedux_0061', 'ICUDataRedux_0062',
            'ICUDataRedux_0063', 'ICUDataRedux_0064', 'ICUDataRedux_0065',
            'ICUDataRedux_0068', 'ICUDataRedux_0069', 'ICUDataRedux_0072',
@@ -100,6 +108,7 @@ for pt in pt_list:
         preds = np.nanmax(preds, 1)
     elif length == 1:
         preds = preds.flatten()
+    # preds = EEGEvaluator.postprocess_outputs(preds, length)
     # print("Predictions:")
     # print(preds)
     # print(f"Shape of predictions: {preds.shape}")
@@ -119,7 +128,8 @@ for pt in pt_list:
     print("Results for predictions from %s" % pt)
     # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
     # EEGEvaluator.test_results(metrics)
-    stats_sz = EEGEvaluator.sz_sens(pt, preds, pred_length=length)
-    stats_non_sz = EEGEvaluator.data_reduc(pt, preds, pred_length=length)
-    EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save)
+    stats_sz_sens = EEGEvaluator.sz_sens(pt, preds, pred_length=length)
+    stats_data_reduc = EEGEvaluator.data_reduc(pt, preds, pred_length=length)
+    stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
+    EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename)
 # %%

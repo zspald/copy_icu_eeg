@@ -130,9 +130,9 @@ class EEGEvaluator:
     def sz_sens(id, predictions, pred_length=60, display=True):
         # access seizure labels
         with open('dataset/' + id + '.pkl', 'rb') as file:
-                label_df = pickle.load(file)
+            label_df = pickle.load(file)
         label_df = label_df.sort_values(by=['start'], ignore_index=True)
-        start_time = label_df.start[0]
+        start_time = label_df.start.iloc[0]
         label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
         num_sz = label_df.shape[0]
 
@@ -190,35 +190,39 @@ class EEGEvaluator:
 
         return true_negative, tot_negative, data_reduc
 
-        # with open('dataset/' + id + '.pkl', 'rb') as file:
-        #         label_df = pickle.load(file)
-        # label_df = label_df.sort_values(by=['start'], ignore_index=True)
-        # start_time = label_df.start[0]
-        # label_df = label_df[label_df.event == 'interictal'].reset_index(drop=True)
-        # num_non_sz = label_df.shape[0]
+    def false_alert_rate(id, predictions, pred_length=1, display=True):
+        # access seizure labels
+        with open('dataset/' + id + '.pkl', 'rb') as file:
+            label_df = pickle.load(file)
+        label_df = label_df.sort_values(by=['start'], ignore_index=True)
+        start_time = label_df.start.iloc[0]
+        end_time = label_df.stop.iloc[-1]
+        label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
+        
+        # create seizure interval dataframe for current predictions
+        pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 
+                                    pred_length=pred_length)
 
-        # # create seizure interval dataframe for current predictions
-        # pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 
-        #                             pred_length=pred_length, mode='no_sz')
-
-        # true_negative = 0
-        # for _, label in enumerate(label_df.values):
-        #     start = label[1]
-        #     stop = label[2]
-        #     if EEGEvaluator.overlap_interval(start, stop, pred_start_stop):
-        #         true_negative += 1
-
-        # data_reduc = true_negative / num_non_sz
+        false_alerts = 0
         # if display:
-        #     print('Total number of inter-ictal: ', num_non_sz)
-        #     print('Number of inter-ictal detected: ', true_negative)
-        #     print('Data Reduction: ', data_reduc)
+        #     print(pred_start_stop.values)
+        #     print(label_df.values)
+        for _, label in enumerate(pred_start_stop.values):
+            start = label[0]
+            stop = label[1]
+            if not EEGEvaluator.overlap_interval(start, stop, label_df):
+                false_alerts += 1
 
-        # return true_negative, num_non_sz, data_reduc
+        false_alert_rate = false_alerts / ((end_time - start_time) / 3600)
+        if display:
+            print('Total number of false alerts: ', false_alerts)
+            print('False alert rate (1/hr): ', false_alert_rate)
+
+        return false_alerts, false_alert_rate
 
     # function to convert prediction array to seizure interval dataframe
     @staticmethod
-    def pred_to_df(predictions, start_time, pred_length=60, mode='sz'):
+    def pred_to_df(predictions, start_time, pred_length=1, mode='sz'):
         # switch predictions for creation of inter-ictal df
         if mode == 'no_sz':
             predictions = 1 - predictions
@@ -234,15 +238,18 @@ class EEGEvaluator:
         # loop through inner predictions and determine seizure intervals
         for i in range(1, predictions.shape[0] - 1):
             # check for seizure onset
-            if predictions[i] == 1 and prev == 0:
+            if predictions[i] == 1 and prev != 1:
                 # record starting time
                 start = i * pred_length + start_time
-                prev = 1
+                # prev = 1
+        
             # check for end of seizure
-            if predictions[i] == 0 and prev == 1:
+            if predictions[i] != 1 and prev == 1:
                 stop = i * pred_length + start_time
                 pred_df = pred_df.append({'start': start, 'stop': stop}, ignore_index=True)
-                prev = 0
+                # prev = 0
+
+            prev = predictions[i]
 
         # determine if final predictions continues a seizure
         if predictions[-1] == 1 and predictions[-2] == 1:
@@ -259,6 +266,9 @@ class EEGEvaluator:
 
         # iterate through interval dataframe
         for _, interval in enumerate(sz_df.values):
+            # get start and stop times in interval (last 2 values)
+            interval = interval[-2:]
+
             # create set for current interval in df
             curr_start = int(interval[0])
             curr_stop = int(interval[1]) + 1
@@ -273,32 +283,6 @@ class EEGEvaluator:
 
         # return false if no overlap is found
         return False
-
-    def false_alert_rate(id, predictions, pred_length=1, display=True):
-        start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
-        patient_times = start_stop_df[start_stop_df['patient_id'] == id].values
-        start = patient_times[0,1]
-        end = patient_times[-1,2]
-
-        filename_pick = 'dataset/%s.pkl' % id
-        labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, end, 
-                                               pred_length=pred_length)
-        labels = labels[:predictions.shape[0]]
-
-        false_alerts = 0
-
-        new_occurence = 0
-        for i in range(labels.shape[0]):
-            # TODO get number of false occurrences
-
-        
-        if display:
-            print('Number of false alerts: ', true_negative)
-            print('Length of Recording: ', TODO)
-            print('False Alert Rate: ', TODO)
-
-        return 
-
 
     # Visualizes the predictions of the model with regards to the labels
     # Inputs
@@ -570,7 +554,7 @@ class EEGEvaluator:
 
     # Method header: TODO
     @staticmethod
-    def compare_outputs_plot(id, pred_list, length=120, pred_length=5, save=False):
+    def compare_outputs_plot(id, pred_list, length=120, pred_length=5, save=False, filename=None):
         # get seziure sensitivity and data reduction
         _, _, sz_sens = EEGEvaluator.sz_sens(id, pred_list, pred_length=pred_length, display=False)
         if sz_sens is None:
@@ -580,11 +564,14 @@ class EEGEvaluator:
         _, _, data_reduc = EEGEvaluator.data_reduc(id, pred_list, pred_length=pred_length, display=False)
         data_reduc = round(data_reduc, 3)
 
+        _, false_alert_rate = EEGEvaluator.false_alert_rate(id, pred_list, pred_length=pred_length, display=False)
+        false_alert_rate = round(false_alert_rate, 3)
+
         #create figure with parameters for rectangles
         fig, ax = plt.subplots()
         label_y = 2.25
         pred_y = 0
-        width = pred_length / 60
+        width = pred_length / length
         height = 2
 
         #access seizure labels
@@ -625,9 +612,11 @@ class EEGEvaluator:
 
         # save figure with seizure sensitivty and data reduction labeled
         if save:
-            plt.annotate(f'Seizure Sensitivity: {sz_sens}, Data Reduction: {data_reduc}', 
-                         xy=(0.25, 0.82), xycoords='figure fraction',)
-            plt.savefig('output_figs/%s_outputs_labels.pdf' % id, bbox_inches='tight')
+            plt.annotate(f'Seizure Sensitivity: {sz_sens}, Data Reduction: {data_reduc}\nFalse Alert Rate: {false_alert_rate}', 
+                         xy=(0.25, 0.8), xycoords='figure fraction')
+            if filename is None:
+                filename = 'output_figs/%s_outputs_labels_rf.pdf'
+            plt.savefig(filename % id, bbox_inches='tight')
         
         plt.show()
         return 
