@@ -45,7 +45,7 @@ BIPOLAR_CENTER = ['Fz-Cz', 'Cz-Pz']
 
 # List of statistical EEG features
 EEG_FEATS = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
-             'Skewness', 'Kurtosis', 'Envelope']
+             'Skewness', 'Kurtosis', 'Envelope', 'Wavelet Entropy']
 
 
 # A class that contains methods for extracting statistical EEG features
@@ -90,9 +90,11 @@ class EEGFeatures:
         kurt = scipy.stats.kurtosis(input_data, axis=-1)
         # Envelope
         envp = EEGFeatures.envelope(input_data)
+        # Wavelet Entropy
+        wt_ent = EEGFeatures.wavelet_entropy(input_data)
         # Aggregate all features and compute mean over specified channels
         all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
-                                   bdpower_beta, skew, kurt, envp])
+                                   bdpower_beta, skew, kurt, envp, wt_ent])
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
             if bipolar:
@@ -301,16 +303,16 @@ class EEGFeatures:
     # output: Wavelet entropy by segment and channel (N x C)
     @staticmethod
     def wavelet_entropy(input_data, wlt_fam='sym9', decomp_level=None):
+        # number of EEG segments
         N = input_data.shape[0]
+
+        # number of EEG channels
         C = input_data.shape[1]        
 
         # get wavelet coefficients using wavedec
         coeffs = pywt.wavedec(input_data, wavelet=wlt_fam, level=decomp_level)
-        # print(f'Coeffs shape: {coeffs.shape}')
-        cA = coeffs[0]
-        cD = coeffs[1:]
-        # print(f'cA shape: {cA.shape}')
-        # print(f'cD shape: {cD.shape}')
+        cA = coeffs[0] # approximate coefficients
+        cD = coeffs[1:] # detail coefficients
 
         # get decomposition level
         decomp_level = len(cD)
@@ -345,7 +347,7 @@ class EEGFeatures:
         p_array = np.zeros((N, C, decomp_level + 1))
         for i in range(decomp_level + 1):
             p_array[:,:,i] = mean_nrg_levels[:,:,i] / tot_nrg 
-
+            
         # calculate wavelet entropy from relative wavelet energies
         wt_entropy = scipy.stats.entropy(p_array, axis=-1)
 
