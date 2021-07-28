@@ -23,6 +23,16 @@ if random_forest:
     fig_filename += '_rf'
 fig_filename += '.pdf'
 
+if random_forest:
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_1s'
+else:
+    pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
+if bipolar:
+    pred_filename += '_bipolar'
+if pool:
+    pred_filename += '_pool'
+pred_filename += '.npy'
+
 # %%  Single patient testing
 
 patient_id = "ICUDataRedux_0054"
@@ -32,8 +42,7 @@ patient_times = start_stop_df[start_stop_df['patient_id'] == patient_id].values
 start = patient_times[0,1]
 stop = patient_times[-1,2]
 
-pred_filename = "deployment_rf/pred_data/%s_predictions_rf_1s.npy" % patient_id
-pred_file = open(pred_filename, 'rb')
+pred_file = open(pred_filename % patient_id, 'rb')
 preds = np.load(pred_file)
 if length == 60:
     preds = np.nanmax(preds, 1)
@@ -96,12 +105,6 @@ for pt in pt_list:
     end = patient_times[-1,2]
 
     # load in predictions
-    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_1s'
-    if bipolar:
-        pred_filename += '-bipolar'
-    if pool:
-        pred_filename += '-pool'
-    pred_filename += '.npy'
     try:
         pred_file = open(pred_filename % pt, 'rb')
     except FileNotFoundError:

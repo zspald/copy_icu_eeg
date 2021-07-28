@@ -296,6 +296,61 @@ class EEGFeatures:
                                           (np.amax(img_outputs[ii][jj]) - np.amin(img_outputs[ii][jj]))
         return img_outputs
 
+    # calculation of wavelet entropy from detail and approximate coefficients (https://ieeexplore.ieee.org/document/6663415)
+    # input: EEG data in form N x C x S (num segments, num channels, num samples per segment)
+    # output: Wavelet entropy by segment and channel (N x C)
+    @staticmethod
+    def wavelet_entropy(input_data, wlt_fam='sym9', decomp_level=None):
+        N = input_data.shape[0]
+        C = input_data.shape[1]        
+
+        # get wavelet coefficients using wavedec
+        coeffs = pywt.wavedec(input_data, wavelet=wlt_fam, level=decomp_level)
+        # print(f'Coeffs shape: {coeffs.shape}')
+        cA = coeffs[0]
+        cD = coeffs[1:]
+        # print(f'cA shape: {cA.shape}')
+        # print(f'cD shape: {cD.shape}')
+
+        # get decomposition level
+        decomp_level = len(cD)
+
+        # calculate mean energy of detail coefficients
+        for level in range(decomp_level):
+            coeff_arr = np.array(cD[level])
+            num_coeffs = coeff_arr.shape[-1]
+
+            mean_nrg_levels = np.zeros((N, C, decomp_level + 1))
+            level_sum = np.zeros((N, C))
+            for k in range(num_coeffs):
+                level_sum += abs(coeff_arr[:,:,k])**2
+            mean_nrg = level_sum / num_coeffs
+
+            mean_nrg_levels[:,:,level] = mean_nrg
+
+        # calculate mean energy of approximate coefficients
+        cA = np.array(cA)
+        num_coeffs_A = cA.shape[-1]
+        A_sum = np.zeros((N, C))
+        for k in range(num_coeffs_A):
+            A_sum += abs(cA[:,:,k])**2
+        mean_nrg_A = A_sum / num_coeffs_A
+
+        mean_nrg_levels[:,:,-1] = mean_nrg_A
+
+        # get total energy of signal 
+        tot_nrg = np.sum(mean_nrg_levels, axis=-1)
+
+        # get array of relative wavelet energy at each level
+        p_array = np.zeros((N, C, decomp_level + 1))
+        for i in range(decomp_level + 1):
+            p_array[:,:,i] = mean_nrg_levels[:,:,i] / tot_nrg 
+
+        # calculate wavelet entropy from relative wavelet energies
+        wt_entropy = scipy.stats.entropy(p_array, axis=-1)
+
+        return wt_entropy
+
     @staticmethod
     def to_bipolar(input_data):
         # create bipolar data array (18 channels instead of 19 in original input data)
