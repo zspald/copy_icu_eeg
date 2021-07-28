@@ -78,8 +78,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     # Outputs
     #   self.mean: the mean of all channels and features, with shape C x F as described above
     #   self.std: the standard deviation of all channels and features, with shape C x F as described above
-    def initialize_stats(self, num_batches, start, length):
-        patient_feats, _, _ = self.get_features(num_batches, start, length)
+    def initialize_stats(self, num_batches, start, length, bipolar=False):
+        patient_feats, _, _ = self.get_features(num_batches, start, length, bipolar=bipolar)
         self.mean, self.std = EEGFeatures.compute_stats(patient_feats)
         return self.mean, self.std
 

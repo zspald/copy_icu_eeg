@@ -8,11 +8,11 @@ from evaluate import EEGEvaluator
 import pandas as pd
 
 length = 1
-save=True
+save = True
 
-bipolar=False
-pool=False
-random_forest = False
+bipolar = True
+pool = False
+random_forest = True
 
 fig_filename = 'output_figs/%s_outputs_labels'
 if bipolar:
@@ -89,7 +89,6 @@ pt_list = [
 
 start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
 
-
 for pt in pt_list:
     # get start and stop times
     patient_times = start_stop_df[start_stop_df['patient_id'] == pt].values
@@ -97,9 +96,14 @@ for pt in pt_list:
     end = patient_times[-1,2]
 
     # load in predictions
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_1s'
+    if bipolar:
+        pred_filename += '-bipolar'
+    if pool:
+        pred_filename += '-pool'
+    pred_filename += '.npy'
     try:
-        pred_filename = "deployment_rf/pred_data/%s_predictions_rf_1s.npy" % pt
-        pred_file = open(pred_filename, 'rb')
+        pred_file = open(pred_filename % pt, 'rb')
     except FileNotFoundError:
         print(f'{pt} predictions not found. Skipping patient.')
         continue

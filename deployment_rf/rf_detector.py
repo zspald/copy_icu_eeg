@@ -73,14 +73,15 @@ def __main__():
             inputs[key] = value
     # inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
 
+    # print(f"Bipolar option: {inputs['bipolar']}")
     # determine montage type
-    if inputs['bipolar'] == 1:
+    if inputs['bipolar'] == '1':
         bipolar = True
     else:
         bipolar = False
 
     # set pooling settings
-    if inputs['pool'] == 1:
+    if inputs['pool'] == '1':
         pool = True
     else:
         pool = False
@@ -108,9 +109,17 @@ def __main__():
     recording_start = processor.crawl_data(0, interval_length=600, threshold=1e4, channels_to_use=channels_to_use)
     timepoint = max(recording_start, start)
 
+    # Load in test patients dictionary
+    test_pts_filename='model_test_pts'
+    if bipolar:
+        test_pts_filename += '_bipolar'
+    if pool:
+        test_pts_filename += '_pool'
+    test_pts_filename += '.pkl'
+
     # Determine which model to use based on the list of test patients for each model and the current patient
     model_num = -1
-    test_pts = pickle.load(open('model_test_pts.pkl', 'rb'))
+    test_pts = pickle.load(open(test_pts_filename, 'rb'))
     for fold, pts in test_pts.items():
         if inputs['patient_id'] in pts:
             model_num = fold
@@ -134,7 +143,7 @@ def __main__():
     # Initialize output
     sz_events = list()
     # Use the first 30 minutes to extract patient-specific EEG statistics
-    processor.initialize_stats(1800, timepoint, sample_len)
+    processor.initialize_stats(1800, timepoint, sample_len, bipolar=bipolar)
     pred_list = []
     while timepoint + inputs['length'] <= stop:
         print('--- Predictions starting from %d seconds ---' % timepoint)

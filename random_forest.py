@@ -183,7 +183,7 @@ for i in range(model_folds.shape[0]):
             filename += "_bipolar"
         if pool:
             filename += "_pool"
-        filename += "_rf.h5"
+        filename += ".h5"
         print(f"On patient: {pt}")
 
         # access h5 file with data to extract features
