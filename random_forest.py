@@ -28,7 +28,7 @@ pt_list_sz = np.array(["ICUDataRedux_0054", "ICUDataRedux_0061", "ICUDataRedux_0
                        "ICUDataRedux_0089", "ICUDataRedux_0090", "ICUDataRedux_0091"])
 
 # True if using bipolar montage, false for referential montage
-bipolar = True
+bipolar = False
 
 # True if using data pooled by region, false for data in channel format
 pool = False
@@ -42,8 +42,8 @@ n_folds = 5
 sz_thresh = 0.45
 
 # filename for saving model
-model_filename = "rf_models"
-test_pts_filename = "model_test_pts"
+model_filename = "rf_models_wt"
+test_pts_filename = "model_test_pts_wt"
 
 # %% 5-Fold CV for Model
 
@@ -94,7 +94,7 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
 
     for pt in pt_train_list:
         # load data from proper montage and format
-        filename = "data/%s_data" % pt
+        filename = "data/%s_data_wt" % pt
         if bipolar:
             filename += "_bipolar"
         if pool:
@@ -156,10 +156,10 @@ with open(test_pts_filename, 'wb') as pkl_file:
 # %% Test Predictions
 
 # load model array
-model_folds = np.load("rf_models.npy", allow_pickle=True)
+model_folds = np.load("rf_models_wt.npy", allow_pickle=True)
 
 # load test patient lists by fold
-test_pts = pickle.load(open("model_test_pts.pkl", 'rb'))
+test_pts = pickle.load(open("model_test_pts_wt.pkl", 'rb'))
 
 output_dict = {}
 for i in range(model_folds.shape[0]):
@@ -178,12 +178,12 @@ for i in range(model_folds.shape[0]):
 
     for pt in pt_test_list:
         # load data from proper montage and format
-        filename = "data/%s_data" % pt
+        filename = "data/%s_data_wt" % pt
         if bipolar:
             filename += "_bipolar"
         if pool:
             filename += "_pool"
-        filename += ".h5"
+        filename += "_rf.h5"
         print(f"On patient: {pt}")
 
         # access h5 file with data to extract features

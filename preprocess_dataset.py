@@ -63,23 +63,24 @@ class IEEGDataProcessor(IEEGDataLoader):
         chan_length = len(channels_to_use)
         
         # Create a gzipped HDF file to store the processed features for specific montage type
-        filename = "data/%s_data.h5" % self.id
+        filename = "data/%s_data_wt" % self.id
         if bipolar:
             print("Using bipolar montage (double banana)")
-            filename = filename[:-3] + "_bipolar.h5"
+            filename += "_bipolar"
             chan_length = 18
         else:
             print("Using referential montage")
         if pool:
             print("Pooling data by region")
-            filename = filename[:-3] + "_pool.h5"
+            filename += "_pool"
             if bipolar:
                 chan_length = 4 
             else:
                 chan_length = 3
         if random_forest:
             print("Saving data in random forest format")
-            filename = filename[:-3] + "_rf.h5"
+            filename += "_rf"
+        filename += ".h5"
 
         file = h5py.File(filename, 'w')
         
