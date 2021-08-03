@@ -10,11 +10,11 @@ import pandas as pd
 length = 1
 save = True
 
-bipolar = True
+bipolar = False
 pool = False
 random_forest = True
 
-fig_filename = 'output_figs/%s_outputs_labels'
+fig_filename = 'output_figs/%s_outputs_labels_wt'
 if bipolar:
     fig_filename += '_bipolar'
 if pool:
@@ -94,7 +94,8 @@ pt_list = [
            'ICUDataRedux_0073', 'ICUDataRedux_0074', 'ICUDataRedux_0078',
            'ICUDataRedux_0082', 'ICUDataRedux_0083', 'ICUDataRedux_0084',
            'ICUDataRedux_0085', 'ICUDataRedux_0086', 'ICUDataRedux_0087',
-           'ICUDataRedux_0089', 'ICUDataRedux_0090', 'ICUDataRedux_0091']
+           'ICUDataRedux_0089', 'ICUDataRedux_0090', 'ICUDataRedux_0091'
+           ]
 
 start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
 
