@@ -47,6 +47,10 @@ BIPOLAR_CENTER = ['Fz-Cz', 'Cz-Pz']
 EEG_FEATS = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
              'Skewness', 'Kurtosis', 'Envelope', 'Wavelet Entropy']
 
+EEG_FEATS_DERIV = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
+                'Skewness', 'Kurtosis', 'Envelope', 'Wavelet Entropy', 'Line Length Slope', 
+                'Delta Power Slope', 'Theta Power Slope', 'Alpha Power Slope', 'Beta Power Slope', 
+                'Skewness Slope', 'Kurtosis Slope', 'Envelope Slope', 'Wavelet Entropy Slope']
 
 # A class that contains methods for extracting statistical EEG features
 class EEGFeatures:
@@ -68,10 +72,23 @@ class EEGFeatures:
     #                 G is the number of feature groups and F is the number of features
     #                 (Note that G = C when pool_region is set to be false.)
     @staticmethod
-    def extract_features(input_data, fs, normalize='off', pool_region=False, bipolar=False):
+    def extract_features(input_data, fs, normalize='off', pool_region=False, bipolar=False, deriv=False, prev_data=None):
         #convert to bipolar montage if desired
         if bipolar:
             input_data = EEGFeatures.to_bipolar(input_data)
+            if deriv:
+                prev_data = EEGFeatures.to_bipolar(prev_data)
+
+        # TODO
+        # separate prev data into n equal bins
+
+        # calculate features at each bin
+
+        # get inter-bin rate of change of features (including final bin -> current data)
+
+        # get average feature rate of change across all bin differences by feature
+
+        # save these derived feature rate of changes as new features (size of ouptut feats doubles)
 
         output_feats = None
         # Line length

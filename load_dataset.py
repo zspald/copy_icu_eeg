@@ -15,9 +15,8 @@ import pickle
 import re
 
 # List of all scalp EEG channels
-EEG_CHANNELS = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
+EEG_CHANNELS_REF = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
                 'T3', 'T4', 'T5', 'T6']
-
 
 # A class that loads IEEG data for the specified patient
 class IEEGDataLoader:
@@ -56,7 +55,7 @@ class IEEGDataLoader:
     # Outputs
     #   channel_indices: a list of indices for channels that will be included
     def filter_channels(self, eeg_only):
-        channels = EEG_CHANNELS if eeg_only else self.channel_labels
+        channels = EEG_CHANNELS_REF if eeg_only else self.channel_labels
         channel_indices = self.dataset.get_channel_indices(channels)
         return channel_indices
 

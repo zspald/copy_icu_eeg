@@ -57,14 +57,19 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, 
-    normalize=None, log_artifacts=False, bipolar=False, random_forest=False, use_label_times=True, pool=False):
+    normalize=None, log_artifacts=False, bipolar=False, random_forest=False, use_label_times=True, 
+    pool=False, ref_and_bip=False):
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
         chan_length = len(channels_to_use)
         
         # Create a gzipped HDF file to store the processed features for specific montage type
         filename = "data/%s_data_wt" % self.id
-        if bipolar:
+        if ref_and_bip:
+            print("Combining referential and bipolar montage")
+            filename += "_refbip"
+            chan_length = 37       
+        elif bipolar:
             print("Using bipolar montage (double banana)")
             filename += "_bipolar"
             chan_length = 18
@@ -119,9 +124,19 @@ class IEEGDataProcessor(IEEGDataLoader):
             # Iterate over all batches and extract seizure data
             for idx in range(num_iter):
                 print("=====Iteration %d=====" % (idx + 1))
+
                 # Extract seizure features using the IEEGDataProcessor object
-                feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, use_filter=use_filter,
-                                                                      method='sz', bipolar=bipolar, pool_region=pool)
+                if ref_and_bip:
+                    ref_feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, 
+                                                                                        use_filter=use_filter, method='sz', bipolar=False, pool_region=False)
+
+                    bip_feats, _, _, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, 
+                                                                                        use_filter=use_filter, method='sz', bipolar=True, pool_region=False)
+
+                    feats = np.r_[ref_feats, bip_feats]
+                else:
+                    feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, use_filter=use_filter,
+                                                                        method='sz', bipolar=bipolar, pool_region=pool)
                 start += num_batches * length
                 # Save the features, labels and channel info into the HDF file
                 if feats is not None:

@@ -35,12 +35,13 @@ pred_filename += '.npy'
 
 # %%  Single patient testing
 
-patient_id = "ICUDataRedux_0054"
+patient_id = "ICUDataRedux_0089"
 
 start_stop_df = pickle.load(open("dataset/patient_start_stop.pkl", 'rb'))
 patient_times = start_stop_df[start_stop_df['patient_id'] == patient_id].values
 start = patient_times[0,1]
 stop = patient_times[-1,2]
+print(start)
 
 pred_file = open(pred_filename % patient_id, 'rb')
 preds = np.load(pred_file)
