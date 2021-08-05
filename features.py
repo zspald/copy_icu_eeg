@@ -79,17 +79,6 @@ class EEGFeatures:
             if deriv:
                 prev_data = EEGFeatures.to_bipolar(prev_data)
 
-        # TODO
-        # separate prev data into n equal bins
-
-        # calculate features at each bin
-
-        # get inter-bin rate of change of features (including final bin -> current data)
-
-        # get average feature rate of change across all bin differences by feature
-
-        # save these derived feature rate of changes as new features (size of ouptut feats doubles)
-
         output_feats = None
         # Line length
         llength = EEGFeatures.line_length(input_data)
@@ -109,9 +98,68 @@ class EEGFeatures:
         envp = EEGFeatures.envelope(input_data)
         # Wavelet Entropy
         wt_ent = EEGFeatures.wavelet_entropy(input_data)
-        # Aggregate all features and compute mean over specified channels
-        all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
+
+        # combine features for current segment into array
+        curr_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
                                    bdpower_beta, skew, kurt, envp, wt_ent])
+
+        # derive feature rates of change over course of input previous data (usually 60 seconds prior)
+        if deriv:
+            # define bin size and number of bins (M)
+            prev_length = prev_data.shape[0] / fs
+            bin_length = 5
+            num_bins = int(prev_length / bin_length)
+
+            # separate prev data into n equal bins
+            prev_bins = np.array_split(prev_data, num_bins)
+            
+            # calculate features at each bin and add to an (M + 1) x F matrix (+1 is for current data as well as bins in prev_data)
+            prev_feats = np.zeros((num_bins + 1, len(EEG_FEATS)))
+            for i in range(num_bins):
+                # get data for the current bin
+                bin_data = prev_bins[i]
+
+                # Feature Calculation
+                # Line length
+                bin_llength = EEGFeatures.line_length(bin_data)
+                # Delta bandpower
+                bin_bdpower_delta = EEGFeatures.bandpower(bin_data, fs, 0.5, 4)
+                # Theta bandpower
+                bin_bdpower_theta = EEGFeatures.bandpower(bin_data, fs, 4, 8)
+                # Alpha bandpower
+                bin_bdpower_alpha = EEGFeatures.bandpower(bin_data, fs, 8, 12)
+                # Beta bandpower
+                bin_bdpower_beta = EEGFeatures.bandpower(bin_data, fs, 12, 20)
+                # Skewness
+                bin_skew = scipy.stats.skew(bin_data, axis=-1)
+                # Kurtosis
+                bin_kurt = scipy.stats.kurtosis(bin_data, axis=-1)
+                # Envelope
+                bin_envp = EEGFeatures.envelope(bin_data)
+                # Wavelet Entropy
+                bin_wt_ent = EEGFeatures.wavelet_entropy(bin_data)
+
+                # add features to the ith row of the matrix
+                prev_feats[i,:] = [np.array([bin_llength, bin_bdpower_delta, bin_bdpower_theta, bin_bdpower_alpha,
+                                    bin_bdpower_beta, bin_skew, bin_kurt, bin_envp, bin_wt_ent])]
+
+            # assign features from the current data segment to the final row of the matrix
+            prev_feats[-1, :] = curr_feats
+
+            # get inter-bin rate of change of features (including final bin -> current data)
+            bin_diffs = np.diff(prev_feats, axis=0)
+
+            # get average feature rate of change across all bin differences by feature
+            avg_feat_rates = np.mean(bin_diffs, axis=0)
+
+            # save these derived feature rate of changes as new features with the features from the current data (size of ouptut feats doubles)
+            all_feats = np.r_[curr_feats, avg_feat_rates]
+
+        else:
+            # Aggregate all features and compute mean over specified channels
+            all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
+                                    bdpower_beta, skew, kurt, envp, wt_ent])
+
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
             if bipolar:
