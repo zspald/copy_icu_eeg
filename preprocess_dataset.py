@@ -57,8 +57,14 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   patient_labels: a modified list of seizure annotations of the given patient with length N*
     #   returns None if no preprocessed data is available
     def process_all_feats(self, num_iter, num_batches, start, length, use_filter=True, eeg_only=True, 
-    normalize=None, log_artifacts=False, bipolar=False, random_forest=False, use_label_times=True, 
-    pool=False, ref_and_bip=False):
+                          normalize=None, log_artifacts=False, bipolar=False, random_forest=False, 
+                          use_label_times=True, pool=False, ref_and_bip=False, deriv=False):
+
+        # handle case where both montages and pooling is set to True
+        if ref_and_bip and pool:
+            print("Pooling not available for combined referential and bipolar montage data - continuing without pooling")
+            pool = False
+
         # Determine channels to be used
         channels_to_use = self.filter_channels(eeg_only)
         chan_length = len(channels_to_use)
@@ -88,9 +94,14 @@ class IEEGDataProcessor(IEEGDataLoader):
         filename += ".h5"
 
         file = h5py.File(filename, 'w')
+
+        if deriv:
+            num_feats = 2*len(EEG_FEATS)
+        else:
+            num_feats = len(EEG_FEATS)
         
-        patient_feats = file.create_dataset('feats', (0, chan_length, len(EEG_FEATS)),
-                                            maxshape=(None, chan_length, len(EEG_FEATS)),
+        patient_feats = file.create_dataset('feats', (0, chan_length, num_feats),
+                                            maxshape=(None, chan_length, num_feats),
                                             compression='gzip', chunks=True)
         patient_labels = file.create_dataset('labels', (0, 3), maxshape=(None, 3), chunks=True)
         patient_channels = file.create_dataset('channels', (0, len(channels_to_use)),
@@ -108,7 +119,7 @@ class IEEGDataProcessor(IEEGDataLoader):
             patient_times = start_stop_df[start_stop_df['patient_id'] == self.id].values
             start = patient_times[0,1]
             stop = patient_times[-1,2]
-            num_iter = int(np.floor((stop - start) / num_batches))
+            num_iter = int(np.floor((stop - start) / (num_batches * length)))
         start_origin = self.crawl_data(start, interval_length=600, threshold=1e4, channels_to_use=channels_to_use)
         if start_origin is None:
             print("Patient contains NaN recordings for over three hours!")
@@ -127,26 +138,29 @@ class IEEGDataProcessor(IEEGDataLoader):
 
                 # Extract seizure features using the IEEGDataProcessor object
                 if ref_and_bip:
-                    ref_feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, 
-                                                                                        use_filter=use_filter, method='sz', bipolar=False, pool_region=False)
+                    ref_feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df,
+                                                                                                use_filter=use_filter, eeg_only=eeg_only, method='sz', 
+                                                                                                bipolar=False, pool_region=False, deriv=deriv)
 
-                    bip_feats, _, _, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, 
-                                                                                        use_filter=use_filter, method='sz', bipolar=True, pool_region=False)
+                    bip_feats, _, _, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df,
+                                                                          use_filter=use_filter, eeg_only=eeg_only, method='sz', bipolar=True,
+                                                                          pool_region=False, deriv=deriv)
 
                     feats = np.r_[ref_feats, bip_feats]
                 else:
-                    feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, use_filter=use_filter,
-                                                                        method='sz', bipolar=bipolar, pool_region=pool)
+                    feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df,
+                                                                                            use_filter=use_filter, eeg_only=eeg_only, method='sz', 
+                                                                                            bipolar=bipolar, pool_region=pool, deriv=deriv)
                 start += num_batches * length
                 # Save the features, labels and channel info into the HDF file
                 if feats is not None:
-                    num_feats = np.size(feats, axis=0)
-                    patient_feats.resize((patient_feats.shape[0] + num_feats, chan_length, len(EEG_FEATS)))
-                    patient_feats[-num_feats:, :, :] = feats
-                    patient_labels.resize((patient_labels.shape[0] + num_feats, 3))
-                    patient_labels[-num_feats:, :] = labels
-                    patient_channels.resize((np.size(patient_channels, axis=0) + num_feats, len(channels_to_use)))
-                    patient_channels[-num_feats:, :] = channels_to_remove
+                    num_feat_segs = np.size(feats, axis=0)
+                    patient_feats.resize((patient_feats.shape[0] + num_feat_segs, chan_length, num_feats))
+                    patient_feats[-num_feat_segs:, :, :] = feats
+                    patient_labels.resize((patient_labels.shape[0] + num_feat_segs, 3))
+                    patient_labels[-num_feat_segs:, :] = labels
+                    patient_channels.resize((np.size(patient_channels, axis=0) + num_feat_segs, len(channels_to_use)))
+                    patient_channels[-num_feat_segs:, :] = channels_to_remove
                 else:
                     print("No seizure data is available from batch #%d" % (idx + 1))
             print(f"Finished at {start}")
@@ -160,18 +174,30 @@ class IEEGDataProcessor(IEEGDataLoader):
         for idx in range(num_iter):
             print("=====Iteration %d=====" % (idx + 1))
             # Extract non-seizure features using the IEEGDataProcessor object
-            feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + num_iter + 1, rejection_log_df, use_filter=use_filter,
-                                                                  eeg_only=eeg_only, method=method, bipolar=bipolar, pool_region=pool)
+            if ref_and_bip:
+                    ref_feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df,
+                                                                                                use_filter=use_filter, eeg_only=eeg_only, method=method, 
+                                                                                                bipolar=False, pool_region=False, deriv=deriv)
+
+                    bip_feats, _, _, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, use_filter=use_filter, 
+                                                                          eeg_only=eeg_only, method=method, bipolar=True, pool_region=False, deriv=deriv)
+
+                    feats = np.r_[ref_feats, bip_feats]
+            else:
+                feats, labels, channels_to_remove, rejection_log_df = self.get_features(num_batches, start, length, idx + 1, rejection_log_df, 
+                                                                                        use_filter=use_filter, method=method, bipolar=bipolar, 
+                                                                                        pool_region=pool, deriv=deriv)
+
             start += num_batches * length
             # Add batch features and labels to patient-specific outputs
             if feats is not None:
-                num_feats = np.size(feats, axis=0)
-                patient_feats.resize((patient_feats.shape[0] + num_feats, chan_length, len(EEG_FEATS)))
-                patient_feats[-num_feats:, :, :] = feats
-                patient_labels.resize((patient_labels.shape[0] + num_feats, 3))
-                patient_labels[-num_feats:, :] = labels
-                patient_channels.resize((np.size(patient_channels, axis=0) + num_feats, len(channels_to_use)))
-                patient_channels[-num_feats:, :] = channels_to_remove
+                num_feat_segs = np.size(feats, axis=0)
+                patient_feats.resize((patient_feats.shape[0] + num_feat_segs, chan_length, num_feats))
+                patient_feats[-num_feat_segs:, :, :] = feats
+                patient_labels.resize((patient_labels.shape[0] + num_feat_segs, 3))
+                patient_labels[-num_feat_segs:, :] = labels
+                patient_channels.resize((np.size(patient_channels, axis=0) + num_feat_segs, len(channels_to_use)))
+                patient_channels[-num_feat_segs:, :] = channels_to_remove
             else:
                 print("No data is available from batch #%d" % (idx + 1))
 
@@ -238,13 +264,17 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   output_labels: a modified list of seizure annotations of the given patient with length N*
     #   channels_to_remove: a N x C array that indicates whether each channel in each segment should be removed
     #   returns None if no preprocessed data is available
-    def get_features(self, num, start, length, curr_iter, rejection_log_df, norm='off', use_filter=True, eeg_only=True, method=None, bipolar=False, pool_region=False):
+    def get_features(self, num, start, length, curr_iter, rejection_log_df, norm='off', use_filter=True, eeg_only=True, method=None, bipolar=False, 
+                     pool_region=False, deriv=False):
         output_data, output_labels, _, channels_to_remove, rejection_log_df = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only,
-                                                                              save_artifacts=False, method=method)
+                                                                              save_artifacts=False, method=method, deriv=False)
+        if deriv:
+            prev_data, _, _, _, _ = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only, save_artifacts=False, method=method, deriv=True)
+        
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None, None, rejection_log_df
-        output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=pool_region, bipolar=bipolar)
+        output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=pool_region, bipolar=bipolar, deriv=deriv)
         return output_feats, output_labels, channels_to_remove, rejection_log_df
 
     # Processes data from IEEG.org in multiple batches
