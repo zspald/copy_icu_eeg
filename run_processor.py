@@ -29,7 +29,9 @@ def __init__():
     parser.add_argument('-no', '--normalize', required=False, help='normalize')
     parser.add_argument('-bi', '--bipolar', required=False, help='bipolar')
     parser.add_argument('-rf', '--random_forest', required=False, help='random_forest')
-    parser.add_argument('-po', '--pool', required=False, help='random_forest')
+    parser.add_argument('-po', '--pool', required=False, help='pool')
+    parser.add_argument('-rb', '--ref_and_bip', required=False, help='ref_and_bip')
+    parser.add_argument('-df', '--deriv_feats', required=False, help='deriv_feats')
     return parser
 
 
@@ -52,6 +54,7 @@ if __name__ == "__main__":
         bipolar = input('Enter 1 to use bipolar montage and 0 otherwise: ') > '0'
         random_forest = input('Enter 1 to save data for random forest format and 0 otherwise: ') > '0'
         pool = input('Enter 1 to pool data by region and 0 otherwise: ') > '0'
+        deriv = input('Enter 1 to generate derived features from preceding data and 0 otherwise: ') > '0'
     else:
         username = args.username
         password = args.password
@@ -66,11 +69,12 @@ if __name__ == "__main__":
         bipolar = args.bipolar > '0'
         random_forest = args.random_forest > '0'
         pool = args.pool > '0'
+        deriv = args.deriv > '0'
     # Create the IEEGDataProcessor object and generate the map
     dataset = IEEGDataProcessor(patient_id, username, password)
     if random_forest:
         dataset.process_all_feats(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
-        normalize, bipolar=bipolar, random_forest=True, pool=pool)
+        normalize, bipolar=bipolar, random_forest=True, pool=pool, deriv=deriv)
     else:
         dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
                              normalize, bipolar=bipolar)

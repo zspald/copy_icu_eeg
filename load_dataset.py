@@ -102,6 +102,30 @@ class IEEGDataLoader:
         batch_data = np.reshape(raw_data, (num, int(length * self.fs), np.size(raw_data, axis=-1)))
         return batch_data
 
+    def load_data_batch_prev(self, num, start, disp, length_prev, eeg_only=True, initial=True):
+        try:
+            if initial:
+                raw_data = self.load_data(start, length_prev + (num - 1)*disp, eeg_only)
+            else:
+                raw_data = self.load_data(start, num*disp, eeg_only)
+        except IeegConnectionError:  # Too much data is loaded from IEEG
+            data_left = self.load_data_batch_prev(math.floor(num / 2), start, disp, length_prev)
+            data_right = self.load_data_batch_prev(math.ceil(num / 2), length_prev + (math.floor(num / 2) - 1)*disp, disp, 
+                                              length_prev, initial=False)
+            raw_data = np.r_[data_left, data_right]
+
+        # reshape data into N X S x C array, where N is the number of segments, S is the number of samples 
+        # (fs * prev_length), and C is the number of valid channels. Because each segment has a length longer
+        # than the displacement, there will be an overlap in values (so that each segment is associated with a
+        # long window of preceding data)
+        batch_data = np.zeros((num, int(length_prev * self.fs), np.size(raw_data, axis=-1)))
+        for i in range(num):
+            start = int(disp*i*self.fs)
+            stop = int((disp*i + length_prev)*self.fs)
+            batch_data[i, :, :] = raw_data[start:stop, :]
+
+        return batch_data
+
     # Loads annotations from IEEG.org for the specified batch of EEG
     # Inputs
     #   num: number of EEG batches to load

@@ -267,17 +267,19 @@ class IEEGDataProcessor(IEEGDataLoader):
     def get_features(self, num, start, length, curr_iter, rejection_log_df, norm='off', use_filter=True, eeg_only=True, method=None, bipolar=False, 
                      pool_region=False, deriv=False):
         output_data, output_labels, _, channels_to_remove, rejection_log_df = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only,
-                                                                              save_artifacts=False, method=method)
-        if deriv:
-            #TODO
-            # make new function for processing previous data (need different functionality of overlapping batches)
-            # clean data from new function with same method as for normal data
-            prev_data, _, _, _, _ = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only, save_artifacts=False, method=method)
-        
+                                                                              save_artifacts=False, method=method)        
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None, None, rejection_log_df
-        output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=pool_region, bipolar=bipolar, deriv=deriv)
+
+        if deriv:
+            length_prev = 60 # seconds
+            prev_data, _, _, _, _ = self.process_data_prev(num, start-length_prev, length, length_prev, curr_iter, rejection_log_df, use_filter, 
+                                                           eeg_only, save_artifacts=False, method=method)
+            output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=pool_region, bipolar=bipolar, deriv=True, prev_data=prev_data)  
+        else:      
+            output_feats = EEGFeatures.extract_features(output_data, fs, normalize=norm, pool_region=pool_region, bipolar=bipolar)
+            
         return output_feats, output_labels, channels_to_remove, rejection_log_df
 
     # Processes data from IEEG.org in multiple batches
@@ -317,6 +319,28 @@ class IEEGDataProcessor(IEEGDataLoader):
         if save_artifacts:
             Artifacts.save_artifacts(self.id, indices_to_remove, start, length)
         return output_data, output_labels, indices_to_remove, channels_to_remove, rejection_log_df
+
+    def process_data_prev(self, num, start, length, length_prev, curr_iter, rejection_log_df, use_filter=True, eeg_only=True, 
+                          save_artifacts=False, method=None):
+        # Load raw data and labels
+        input_data = IEEGDataLoader.load_data_batch_prev(self, num, start, length, length_prev, eeg_only)
+        input_data = np.swapaxes(input_data, 1, 2)
+        # input_labels = IEEGDataLoader.load_annots(self, num, start, length, use_file=USE_FILE_ANNOTS)
+        fs = IEEGDataLoader.sampling_frequency(self)
+        # Filter from 0.5 to 20 Hz if selected
+        if use_filter:
+            coeff = butter(4, [0.5 / (fs / 2), 20 / (fs / 2)], 'bandpass')
+            input_data = filtfilt(coeff[0], coeff[1], input_data, axis=-1)
+        # Perform artifact rejection over the input data
+        output_data = self.clean_data_prev(input_data, fs, curr_iter, rejection_log_df, artifact=ARTIFACT_METHOD, method=method)
+        # Postprocess data structure for channels removed
+        # if channels_to_remove is not None:
+        #     channels_to_remove = np.array([channels_to_remove[ii] for ii in range(np.size(channels_to_remove, axis=0))
+        #                                    if indices_to_remove[ii] == 0])
+        # Save artifact information if required
+        # if save_artifacts:
+        #     Artifacts.save_artifacts(self.id, indices_to_remove, start, length)
+        return output_data
 
     # Performs artifact rejection over all EEG recordings within the given dataset
     # and updates the annotation file in accordance with the processed EEG data
@@ -382,6 +406,27 @@ class IEEGDataProcessor(IEEGDataLoader):
         # Update labels to match the size of the clean recordings
         output_labels = np.array([input_labels[idx] for idx, element in enumerate(indices_to_remove) if element == 0])
         return output_data, output_labels, indices_to_remove, channels_to_remove, rejection_log_df
+
+    def clean_data_prev(self, input_data, fs, curr_iter, rejection_log_df, artifact='threshold', method='none'):
+        # Perform artifact rejection (in place)
+        indices_to_remove, channels_to_remove, _ = Artifacts.remove_artifacts(input_data, fs, curr_iter, rejection_log_df, channel_limit=6,
+                                                                           method=artifact)
+
+        # Remove cross-channel artifact data
+        indices_to_keep = (1 - indices_to_remove).astype('float')
+        indices_to_keep[indices_to_keep == 0] = np.nan
+        output_data = indices_to_keep[:, None, None] * input_data # comment out for artifact clip visualization
+        # Remove channel-specific artifact data
+        channels_to_keep = (1 - channels_to_remove).astype('float')
+        channels_to_keep[channels_to_keep == 0] = np.nan
+        output_data = np.expand_dims(channels_to_keep, axis=-1) * output_data # comment out for artifact clip visualization
+        # Return None if output data only contains NaNs
+        if np.isnan(indices_to_keep).all():
+            return None, None, None, None, rejection_log_df
+        # Remove artifact portions of the EEG data
+        output_data = output_data[(1-indices_to_remove).astype(bool), :, :] # comment out for artifact clip visualization
+
+        return output_data
 
     # Cherry-picks EEG non-seizure data that is appropriate for further use
     # Inputs

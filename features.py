@@ -106,18 +106,19 @@ class EEGFeatures:
         # derive feature rates of change over course of input previous data (usually 60 seconds prior)
         if deriv:
             # define bin size and number of bins (M)
-            prev_length = prev_data.shape[0] / fs
-            bin_length = 5
+            prev_length = prev_data.shape[2] / fs
+            bin_length = 5 # seconds
             num_bins = int(prev_length / bin_length)
 
             # separate prev data into n equal bins
-            prev_bins = np.array_split(prev_data, num_bins)
+            prev_bins = np.reshape(prev_data, (prev_data.shape[0], prev_data.shape[1], num_bins, -1))
             
-            # calculate features at each bin and add to an (M + 1) x F matrix (+1 is for current data as well as bins in prev_data)
-            prev_feats = np.zeros((num_bins + 1, len(EEG_FEATS)))
+            # calculate features at each bin and add to an N x C x (M + 1) x F matrix (+1 is for current data as well as bins in prev_data)
+            prev_feats = np.zeros((len(EEG_FEATS), prev_data.shape[0], prev_data.shape[1], num_bins + 1,))
             for i in range(num_bins):
                 # get data for the current bin
-                bin_data = prev_bins[i]
+                bin_data = prev_bins[:, :, i, :]
+                print(f'Bin data shape: {bin_data.shape}')
 
                 # Feature Calculation
                 # Line length
@@ -140,17 +141,17 @@ class EEGFeatures:
                 bin_wt_ent = EEGFeatures.wavelet_entropy(bin_data)
 
                 # add features to the ith row of the matrix
-                prev_feats[i,:] = [np.array([bin_llength, bin_bdpower_delta, bin_bdpower_theta, bin_bdpower_alpha,
-                                    bin_bdpower_beta, bin_skew, bin_kurt, bin_envp, bin_wt_ent])]
+                prev_feats[:, :, :, i] = np.array([bin_llength, bin_bdpower_delta, bin_bdpower_theta, bin_bdpower_alpha,
+                                    bin_bdpower_beta, bin_skew, bin_kurt, bin_envp, bin_wt_ent])
 
             # assign features from the current data segment to the final row of the matrix
-            prev_feats[-1, :] = curr_feats
+            prev_feats[:, :, :, -1] = curr_feats
 
             # get inter-bin rate of change of features (including final bin -> current data)
-            bin_diffs = np.diff(prev_feats, axis=0)
+            bin_diffs = np.diff(prev_feats, axis=-1)
 
             # get average feature rate of change across all bin differences by feature
-            avg_feat_rates = np.mean(bin_diffs, axis=0)
+            avg_feat_rates = np.mean(bin_diffs, axis=-1)
 
             # save these derived feature rate of changes as new features with the features from the current data (size of ouptut feats doubles)
             all_feats = np.r_[curr_feats, avg_feat_rates]
@@ -383,11 +384,11 @@ class EEGFeatures:
         decomp_level = len(cD)
 
         # calculate mean energy of detail coefficients
+        mean_nrg_levels = np.zeros((N, C, decomp_level + 1))
         for level in range(decomp_level):
             coeff_arr = np.array(cD[level])
             num_coeffs = coeff_arr.shape[-1]
 
-            mean_nrg_levels = np.zeros((N, C, decomp_level + 1))
             level_sum = np.zeros((N, C))
             for k in range(num_coeffs):
                 level_sum += abs(coeff_arr[:,:,k])**2

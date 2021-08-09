@@ -152,13 +152,13 @@ class EEGEvaluator:
             if EEGEvaluator.overlap_interval(start, stop, pred_start_stop):
                 true_positive += 1
 
-        sz_spec = true_positive / num_sz
+        sz_sens = true_positive / num_sz
         if display:
             print('Total number of seizures: ', num_sz)
             print('Number of seizures detected: ', true_positive)
-            print('Seizure Specificity: ', sz_spec)
+            print('Seizure Sensitivity: ', sz_sens)
 
-        return true_positive, num_sz, sz_spec
+        return true_positive, num_sz, sz_sens
 
     # Method header: TODO
     @staticmethod
