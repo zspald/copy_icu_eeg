@@ -267,9 +267,12 @@ class IEEGDataProcessor(IEEGDataLoader):
     def get_features(self, num, start, length, curr_iter, rejection_log_df, norm='off', use_filter=True, eeg_only=True, method=None, bipolar=False, 
                      pool_region=False, deriv=False):
         output_data, output_labels, _, channels_to_remove, rejection_log_df = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only,
-                                                                              save_artifacts=False, method=method, deriv=False)
+                                                                              save_artifacts=False, method=method)
         if deriv:
-            prev_data, _, _, _, _ = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only, save_artifacts=False, method=method, deriv=True)
+            #TODO
+            # make new function for processing previous data (need different functionality of overlapping batches)
+            # clean data from new function with same method as for normal data
+            prev_data, _, _, _, _ = self.process_data(num, start, length, curr_iter, rejection_log_df, use_filter, eeg_only, save_artifacts=False, method=method)
         
         fs = self.sampling_frequency()
         if output_data is None:
