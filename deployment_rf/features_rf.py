@@ -30,7 +30,7 @@ BIPOLAR_CENTER = ['Fz-Cz', 'Cz-Pz']
 
 # List of statistical EEG features
 EEG_FEATS = ['Line Length', 'Delta Power', 'Theta Power', 'Alpha Power', 'Beta Power',
-             'Skewness', 'Kurtosis', 'Envelope']
+             'Skewness', 'Kurtosis', 'Envelope', 'Wavelet Entropy']
 
 
 # A class that contains methods for extracting statistical EEG features
@@ -75,9 +75,11 @@ class EEGFeatures:
         kurt = scipy.stats.kurtosis(input_data, axis=-1)
         # Envelope
         envp = EEGFeatures.envelope(input_data)
+        # Wavelet Entropy
+        wt_ent = EEGFeatures.wavelet_entropy(input_data)
         # Aggregate all features and compute mean over specified channels
         all_feats = np.array([llength, bdpower_delta, bdpower_theta, bdpower_alpha,
-                                   bdpower_beta, skew, kurt, envp])
+                                   bdpower_beta, skew, kurt, envp, wt_ent])
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
             if bipolar:
@@ -211,6 +213,61 @@ class EEGFeatures:
         envelope_output = np.abs(analytic_signal)
         envelope_values = np.median(envelope_output, axis=-1)
         return envelope_values
+
+     # calculation of wavelet entropy from detail and approximate coefficients (https://ieeexplore.ieee.org/document/6663415)
+    # input: EEG data in form N x C x S (num segments, num channels, num samples per segment)
+    # output: Wavelet entropy by segment and channel (N x C)
+    @staticmethod
+    def wavelet_entropy(input_data, wlt_fam='sym9', decomp_level=None):
+        # number of EEG segments
+        N = input_data.shape[0]
+
+        # number of EEG channels
+        C = input_data.shape[1]        
+
+        # get wavelet coefficients using wavedec
+        coeffs = pywt.wavedec(input_data, wavelet=wlt_fam, level=decomp_level)
+        cA = coeffs[0] # approximate coefficients
+        cD = coeffs[1:] # detail coefficients
+
+        # get decomposition level
+        decomp_level = len(cD)
+
+        # calculate mean energy of detail coefficients
+        mean_nrg_levels = np.zeros((N, C, decomp_level + 1))
+        for level in range(decomp_level):
+            coeff_arr = np.array(cD[level])
+            num_coeffs = coeff_arr.shape[-1]
+
+            level_sum = np.zeros((N, C))
+            for k in range(num_coeffs):
+                level_sum += abs(coeff_arr[:,:,k])**2
+            mean_nrg = level_sum / num_coeffs
+
+            mean_nrg_levels[:,:,level] = mean_nrg
+
+        # calculate mean energy of approximate coefficients
+        cA = np.array(cA)
+        num_coeffs_A = cA.shape[-1]
+        A_sum = np.zeros((N, C))
+        for k in range(num_coeffs_A):
+            A_sum += abs(cA[:,:,k])**2
+        mean_nrg_A = A_sum / num_coeffs_A
+
+        mean_nrg_levels[:,:,-1] = mean_nrg_A
+
+        # get total energy of signal 
+        tot_nrg = np.sum(mean_nrg_levels, axis=-1)
+
+        # get array of relative wavelet energy at each level
+        p_array = np.zeros((N, C, decomp_level + 1))
+        for i in range(decomp_level + 1):
+            p_array[:,:,i] = mean_nrg_levels[:,:,i] / tot_nrg 
+            
+        # calculate wavelet entropy from relative wavelet energies
+        wt_entropy = scipy.stats.entropy(p_array, axis=-1)
+
+        return wt_entropy
 
     @staticmethod
     def to_bipolar(input_data):

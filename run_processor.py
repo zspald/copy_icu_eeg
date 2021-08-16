@@ -54,6 +54,7 @@ if __name__ == "__main__":
         bipolar = input('Enter 1 to use bipolar montage and 0 otherwise: ') > '0'
         random_forest = input('Enter 1 to save data for random forest format and 0 otherwise: ') > '0'
         pool = input('Enter 1 to pool data by region and 0 otherwise: ') > '0'
+        ref_and_bip = input('Enter 1 to use referential and bipolar montage and 0 otherwise: ') > '0'
         deriv = input('Enter 1 to generate derived features from preceding data and 0 otherwise: ') > '0'
     else:
         username = args.username
@@ -69,12 +70,13 @@ if __name__ == "__main__":
         bipolar = args.bipolar > '0'
         random_forest = args.random_forest > '0'
         pool = args.pool > '0'
-        deriv = args.deriv > '0'
+        ref_and_bip = args.ref_and_bip > '0'
+        deriv = args.deriv_feats > '0'
     # Create the IEEGDataProcessor object and generate the map
     dataset = IEEGDataProcessor(patient_id, username, password)
     if random_forest:
         dataset.process_all_feats(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
-        normalize, bipolar=bipolar, random_forest=True, pool=pool, deriv=deriv)
+        normalize, bipolar=bipolar, random_forest=True, pool=pool, ref_and_bip=ref_and_bip, deriv=deriv)
     else:
         dataset.generate_map(int(num_iter), int(num_batch), int(start), int(length), use_filter, eeg_only,
                              normalize, bipolar=bipolar)

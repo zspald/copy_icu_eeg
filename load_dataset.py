@@ -14,6 +14,7 @@ import pandas as pd
 import pickle
 import re
 
+
 # List of all scalp EEG channels
 EEG_CHANNELS_REF = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
                 'T3', 'T4', 'T5', 'T6']
@@ -157,7 +158,7 @@ class IEEGDataLoader:
     def load_annots_source(self, annot_idx=0, use_file=True):
         if use_file:
             # Read the .csv file and return the seizure intervals
-            with open('dataset/' + self.id + '.pkl', 'rb') as file:
+            with open('dataset/from_json/' + self.id + '_from_json.pkl', 'rb') as file:
                 dataframe = pickle.load(file)
             dataframe = dataframe[dataframe.event == 'seizure']
             sz_start = np.asarray(dataframe)[:, 1]

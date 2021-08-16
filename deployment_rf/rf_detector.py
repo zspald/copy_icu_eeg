@@ -15,7 +15,7 @@ import pandas as pd
 import pickle
 
 # Pre-define EEG sample length as trained by the model
-sample_len = 1 # 1
+sample_len = 3 # 1
 
 # User inputs and corresponding prompts
 # inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
@@ -110,12 +110,12 @@ def __main__():
     timepoint = max(recording_start, start)
 
     # Load in test patients dictionary
-    test_pts_filename='model_test_pts'
+    test_pts_filename='model_test_pts_wt'
     if bipolar:
         test_pts_filename += '_bipolar'
     if pool:
         test_pts_filename += '_pool'
-    test_pts_filename += '.pkl'
+    test_pts_filename += '_%ds.pkl' % sample_len
 
     # Determine which model to use based on the list of test patients for each model and the current patient
     model_num = -1
@@ -130,12 +130,12 @@ def __main__():
         model_num = 0
 
     # Load in the proper rf model for the patient (to avoid predictions on a pt the model was trained on)
-    model_filename='rf_models'
+    model_filename='rf_models_wt'
     if bipolar:
         model_filename += '_bipolar'
     if pool:
         model_filename += '_pool'
-    model_filename += '.npy'
+    model_filename += '_%ds.npy' % sample_len
     model_arr = np.load(model_filename, allow_pickle=True)
     model = model_arr[model_num]
     model.set_params(rf_classifier__verbose = 0)
@@ -146,7 +146,7 @@ def __main__():
     processor.initialize_stats(1800, timepoint, sample_len, bipolar=bipolar)
     pred_list = []
     while timepoint + inputs['length'] <= stop:
-        print('--- Predictions starting from %d seconds ---' % timepoint)
+        # print('--- Predictions starting from %d seconds ---' % timepoint)
         # eeg_maps, eeg_indices = processor.generate_map(inputs['length'], timepoint, sample_len)
         eeg_feats, eeg_indices = processor.process_feats(inputs['length'], timepoint, sample_len, bipolar=bipolar)
         # Check whether the given EEG segment is artifact
@@ -179,7 +179,7 @@ def __main__():
     with open(file_path + '.json', 'w') as file:
         json.dump(sz_events_json, file)
     sz_events.to_pickle(file_path + '.pkl')
-    pred_filename = "pred_data/%s_predictions_rf_%ds" % (inputs['patient_id'], sample_len)
+    pred_filename = "pred_data/%s_predictions_rf__%d_%ds" % (inputs['patient_id'], inputs['threshold'], sample_len)
     if bipolar:
         pred_filename += '-bipolar'
     if pool:

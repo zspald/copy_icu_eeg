@@ -129,7 +129,7 @@ class EEGEvaluator:
     @staticmethod
     def sz_sens(id, predictions, pred_length=60, display=True):
         # access seizure labels
-        with open('dataset/' + id + '.pkl', 'rb') as file:
+        with open('dataset/from_json/' + id + '_from_json.pkl', 'rb') as file:
             label_df = pickle.load(file)
         label_df = label_df.sort_values(by=['start'], ignore_index=True)
         start_time = label_df.start.iloc[0]
@@ -169,7 +169,7 @@ class EEGEvaluator:
         start = patient_times[0,1]
         end = patient_times[-1,2]
 
-        filename_pick = 'dataset/%s.pkl' % id
+        filename_pick = 'dataset/from_json/' + id + '_from_json.pkl'
         labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, end, 
                                                pred_length=pred_length)
         labels = labels[:predictions.shape[0]]
@@ -190,9 +190,10 @@ class EEGEvaluator:
 
         return true_negative, tot_negative, data_reduc
 
+    @staticmethod
     def false_alert_rate(id, predictions, pred_length=1, display=True):
         # access seizure labels
-        with open('dataset/' + id + '.pkl', 'rb') as file:
+        with open('dataset/from_json/' + id + '_from_json.pkl', 'rb') as file:
             label_df = pickle.load(file)
         label_df = label_df.sort_values(by=['start'], ignore_index=True)
         start_time = label_df.start.iloc[0]
@@ -554,7 +555,7 @@ class EEGEvaluator:
 
     # Method header: TODO
     @staticmethod
-    def compare_outputs_plot(id, pred_list, length=120, pred_length=5, save=False, filename=None):
+    def compare_outputs_plot(id, pred_list, length=120, pred_length=5, save=False, filename=None, show=True):
         # get seziure sensitivity and data reduction
         _, _, sz_sens = EEGEvaluator.sz_sens(id, pred_list, pred_length=pred_length, display=False)
         if sz_sens is None:
@@ -575,7 +576,7 @@ class EEGEvaluator:
         height = 2
 
         #access seizure labels
-        with open('dataset/' + id + '.pkl', 'rb') as file:
+        with open('dataset/from_json/' + id + '_from_json.pkl', 'rb') as file:
                 label_df = pickle.load(file)
         label_df = label_df.sort_values(by=['start'], ignore_index=True)
         start_time = label_df.start[0]
@@ -618,5 +619,8 @@ class EEGEvaluator:
                 filename = 'output_figs/%s_outputs_labels_rf.pdf'
             plt.savefig(filename % id, bbox_inches='tight')
         
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
         return 
