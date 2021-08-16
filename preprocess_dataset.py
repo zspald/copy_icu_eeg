@@ -7,7 +7,7 @@
 # Import libraries
 from random import random
 from artifacts import Artifacts
-from features import EEGFeatures, EEG_FEATS
+from features import EEGFeatures, EEG_FEATS, REF_ALL, BIPOLAR_ALL
 from features_2d import EEGMap
 from load_dataset import IEEGDataLoader
 from scipy.signal import butter, filtfilt
@@ -74,11 +74,11 @@ class IEEGDataProcessor(IEEGDataLoader):
         if ref_and_bip:
             print("Combining referential and bipolar montage")
             filename += "_refbip"
-            chan_length = 37       
+            chan_length = len(REF_ALL) + len(BIPOLAR_ALL)       
         elif bipolar:
             print("Using bipolar montage (double banana)")
             filename += "_bipolar"
-            chan_length = 18
+            chan_length = len(BIPOLAR_ALL)
         else:
             print("Using referential montage")
         if pool:
@@ -88,6 +88,9 @@ class IEEGDataProcessor(IEEGDataLoader):
                 chan_length = 4 
             else:
                 chan_length = 3
+        if deriv:
+            print("Using additional derived features")
+            filename += "_deriv"
         if random_forest:
             print("Saving data in random forest format")
             filename += "_rf"

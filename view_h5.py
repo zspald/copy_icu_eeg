@@ -92,7 +92,7 @@ for pkl_filename in dir:
     start_stop_times = start_stop_times.append(to_append, ignore_index=True)
     f_pick.close()
 print(start_stop_times)
-start_stop_times.to_pickle("dataset/patient_start_stop.pkl")
+# start_stop_times.to_pickle("dataset/patient_start_stop.pkl")
 
 
 # 

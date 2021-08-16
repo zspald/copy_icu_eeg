@@ -14,15 +14,15 @@ from scipy.signal import hilbert
 # EEG electrodes
 # ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
 #        'T3', 'T4', 'T5', 'T6']
-ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fz' 'Fp1', 'Fp2', 'T3', 'T4', 'T5', 'T6', 'Pz',
+REF_ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fz' 'Fp1', 'Fp2', 'T3', 'T4', 'T5', 'T6', 'Pz',
        'P3', 'P4', 'O1', 'O2']  
-LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
-RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
+REF_LEFT = ['C3', 'F3', 'F7', 'Fp1', 'O1', 'P3', 'T3', 'T5']
+REF_RIGHT = ['C4', 'F4', 'F8', 'Fp2', 'O2', 'P4', 'T4', 'T6']
 
 # Bipolar Montage
-# BIPOLAR_CHANNELS = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 'Fp1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
+# BIPOLAR_ALL = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 'Fp1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
 #                     'F4-C4', 'C4-P4', 'P4-O2', 'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2']
-BIPOLAR_CHANNELS = ['Fp1-F7', 'Fp1-F3', 'F7-T3', 'F3-C3', 'T3-T5', 'C3-P3', 'T5-O1', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
+BIPOLAR_ALL = ['Fp1-F7', 'Fp1-F3', 'F7-T3', 'F3-C3', 'T3-T5', 'C3-P3', 'T5-O1', 'P3-O1', 'Fz-Cz', 'Cz-Pz', 'Fp2-F4',
                     'Fp2-F8', 'F4-C4', 'F8-T4', 'C4-P4', 'T4-T6', 'P4-O2', 'T6-O2']
 # map indicating channel subtractions based on indices in the channel list at the top of file 
 # (assuming channel order in data is same as order in list)
@@ -164,11 +164,11 @@ class EEGFeatures:
         # Apply regional pooling over specified regions of scalp electrodes based on user input
         if pool_region:
             if bipolar:
-                categories = [BIPOLAR_CHANNELS, BIPOLAR_LEFT, BIPOLAR_RIGHT, BIPOLAR_CENTER]
-                source = BIPOLAR_CHANNELS
+                categories = [BIPOLAR_ALL, BIPOLAR_LEFT, BIPOLAR_RIGHT, BIPOLAR_CENTER]
+                source = BIPOLAR_ALL
             else:
-                categories = [ALL, LEFT, RIGHT]
-                source = ALL
+                categories = [REF_ALL, REF_LEFT, REF_RIGHT]
+                source = REF_ALL
             # Iterate through different types of electrode
             for category in categories:
                 # Determine indices of intersection and filter the input data
@@ -422,7 +422,7 @@ class EEGFeatures:
     @staticmethod
     def to_bipolar(input_data):
         # create bipolar data array (18 channels instead of 19 in original input data)
-        bipolar_shape = (input_data.shape[0], len(BIPOLAR_CHANNELS), input_data.shape[2])
+        bipolar_shape = (input_data.shape[0], len(BIPOLAR_ALL), input_data.shape[2])
         bipolar_data = np.zeros(bipolar_shape)
 
         # fill bipolar data array with proper subtractions based off of channel indices

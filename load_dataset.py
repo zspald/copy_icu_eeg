@@ -159,6 +159,7 @@ class IEEGDataLoader:
         if use_file:
             # Read the .csv file and return the seizure intervals
             with open('dataset/from_json/' + self.id + '_from_json.pkl', 'rb') as file:
+            # with open('dataset/' + self.id +'.pkl', 'rb') as file:
                 dataframe = pickle.load(file)
             dataframe = dataframe[dataframe.event == 'seizure']
             sz_start = np.asarray(dataframe)[:, 1]
