@@ -46,6 +46,9 @@ pt_list_sz = np.array(['ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0
                        'ICUDataRedux_0040', 'ICUDataRedux_0042',
                        'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'])
 
+# True if combining referential and bipolar montage, false for single montage
+ref_and_bip = True
+
 # True if using bipolar montage, false for referential montage
 bipolar = False
 
@@ -55,7 +58,8 @@ pool = False
 # penalty for sz misclassification
 penalty = 500 # (fron John B's matlab RF)
 # class_weight = {0: 1, 1: penalty}
-class_weight = 'balanced'
+# class_weight = 'balanced'
+class_weight = 'balanced_subsample'
 n_folds = 5
 
 # threshold for window smoothing (see postprocess_outputs in evaluate.py)
@@ -63,23 +67,63 @@ sz_thresh = 0.45
 
 # filename for saving model
 model_filename = "rf_models_wt_3s"
+if ref_and_bip:
+    model_filename += "_refbip"
+elif bipolar:
+    model_filename += "_bipolar"
+if pool:
+    model_filename += "_pool"
+model_filename += ".npy"
+
+# filename for saving patients associated to each model (by fold for CV)
 test_pts_filename = "model_test_pts_wt_3s"
+if ref_and_bip:
+    model_filename += "_refbip"
+elif bipolar:
+    test_pts_filename += "_bipolar"
+if pool:
+    test_pts_filename += "_pool"
+test_pts_filename += ".pkl"
+
+# format for patient data filenames
+data_file_format = "data/%s_data_wt"
+if ref_and_bip:
+    data_file_format += "_refbip"
+elif bipolar:
+    data_file_format += "_bipolar"
+if pool:
+    data_file_format += "_pool"
+data_file_format += "_rf.h5"
 
 # %% 5-Fold CV for Model
-
-if bipolar:
+if ref_and_bip:
+    print("Combining referential and bipolar montage")
+elif bipolar:
     print("Using bipolar montage")
 else:
     print("Using referential montage")
+
 if pool:
     print("Using region-pooled features")
 else:
     print("Using channel-based features")
 
+# model (hyperparameters from tuning section below)
 rfc = Pipeline([
     # ('pca_feature_selection', PCA(n_components=10)),
-    ('rf_classifier', RandomForestClassifier(n_estimators=400, class_weight=class_weight, verbose=1))
-])
+    # ('rf_classifier', RandomForestClassifier(n_estimators=2000,
+    #                                          min_samples_split=2,
+    #                                          min_samples_leaf=4,
+    #                                          max_features='log2',
+    #                                          max_depth=100,
+    #                                          class_weight=class_weight,
+    #                                         #  n_jobs=-1,
+    #                                          verbose=1))
+    ('rf_classifier', RandomForestClassifier(n_estimators=400,
+                                             class_weight=class_weight,
+                                            #  n_jobs=-1,
+                                             verbose=1))
+    ])
 # print(rfc.get_params(())
 
 # create kfold objects to split sz and nsz data
@@ -114,14 +158,9 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
 
     for pt in pt_train_list:
         # print(f'Patient: {pt}')
-        # load data from proper montage and format
-        filename = "data/%s_data_wt" % pt
-        if bipolar:
-            filename += "_bipolar"
-        if pool:
-            filename += "_pool"
-        filename += "_rf.h5"
-
+        # get data filename for current patient
+        filename = data_file_format % pt
+        
         # access h5 file with data to extract features
         with h5py.File(filename) as pt_data:
             # load in features and labels for current patient
@@ -158,29 +197,19 @@ for i in tqdm(range(n_folds), desc='Training Fold', file=sys.stdout):
     pts_by_fold[i] = pt_test_list
 
 # save models as h5 file
-if bipolar:
-    model_filename += "_bipolar"
-if pool:
-    model_filename += "_pool"
-model_filename += ".npy"
 np.save(model_filename, models)
 
 # save dictionary containing the test patients for the corresponding model
-if bipolar:
-    test_pts_filename += "_bipolar"
-if pool:
-    test_pts_filename += "_pool"
-test_pts_filename += ".pkl"
 with open(test_pts_filename, 'wb') as pkl_file:
     pickle.dump(pts_by_fold, pkl_file)
 
 # %% Test Predictions
 
 # load model array
-model_folds = np.load("rf_models_wt.npy", allow_pickle=True)
+model_folds = np.load("rf_models_wt_3s_sub.npy", allow_pickle=True)
 
 # load test patient lists by fold
-test_pts = pickle.load(open("model_test_pts_wt.pkl", 'rb'))
+test_pts = pickle.load(open("model_test_pts_wt_3s_sub.pkl", 'rb'))
 
 output_dict = {}
 for i in range(model_folds.shape[0]):
@@ -262,7 +291,7 @@ print("Precision (normal): ", mean_metrics[4])
 # deployment_rf folder to work on the model predictions from that output
 
 pt_id = "ICUDataRedux_0064"
-length=1
+length=3
 
 preds = (output_dict[pt_id])[0]
 
@@ -288,25 +317,75 @@ stats_sz = EEGEvaluator.sz_sens(pt_id, preds, pred_length=length)
 stats_non_sz = EEGEvaluator.data_reduc(pt_id, preds, pred_length=length)
 EEGEvaluator.compare_outputs_plot(pt_id, preds, length=(stop-start)/60, pred_length=length)
 
-# %% Model Cross Validation 
+# %% Hyperparameter Tuning
 
-# # hyper parameter tuning with randomized search CV over the parameter space below
-# random_grid = {'rf_classifier__bootstrap': [True, False],
-#                'rf_classifier__max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, None],
-#                'rf_classifier__min_samples_leaf': [1, 2, 4],
-#                'rf_classifier__min_samples_split': [2, 5, 10],
-#                'rf_classifier__n_estimators': [130, 180, 230]}
+hpt_model = RandomForestClassifier(n_estimators=400, class_weight=class_weight, n_jobs=-1, verbose=1)
+hpt_rfc = Pipeline([
+    # ('pca_feature_selection', PCA(n_components=100)),
+    ('rf_classifier', hpt_model)
+])
+# print(hpt_rfc.get_params())
 
-# param_search = RandomizedSearchCV(rfc, random_grid)
-# param_search.fit(tot_feats, tot_labels)
-# print(param_search.best_params_)
+# iterate over desired patients
+hpt_feats = None
+hpt_labels = None
+hpt_list = np.r_[pt_list_nsz, pt_list_sz]
+for pt in hpt_list:
+    filename = "data/%s_data_wt" % pt
+    if bipolar:
+        filename += "_bipolar"
+    if pool:
+        filename += "_pool"
+    filename += "_rf.h5"
+
+    # access h5 file with data to extract features
+    with h5py.File(filename) as pt_data:
+        # load in features and labels for current patient
+        feats = (pt_data['feats'])[:]
+        feats = feats.reshape(feats.shape[0], -1)
+        # zero rejected (nan) channels
+        feats = np.nan_to_num(feats)
+
+        # add feats from current pt to total for fold
+        if hpt_feats is not None:
+            hpt_feats = np.r_[hpt_feats, feats]
+        else:
+            hpt_feats = feats
+
+        labels = (pt_data['labels'])[:,0]
+        if hpt_labels is not None:
+            hpt_labels = np.r_[hpt_labels, labels]
+        else:
+            hpt_labels = labels
+
+# # Testing number of components for pca
+# pca = PCA()
+# var_thresh = 0.95
+# pca.fit_transform(hpt_feats)
+# expl_var = np.array(pca.explained_variance_ratio_).cumsum()
+# print(f"Number of PCs for > {str(var_thresh)[-2:]}% Var Explained {(np.where(expl_var > var_thresh)[0])[0] + 1}")
+
+
+# hyper parameter tuning with randomized search CV over the parameter space below
+random_grid = {'rf_classifier__max_depth': [25, 50, 75, 100, 125, 150, None],
+               'rf_classifier__max_features': ['auto', 'sqrt', 'log2'],
+               'rf_classifier__min_samples_leaf': [1, 2, 4, 8, 12],
+               'rf_classifier__min_samples_split': [2, 5, 10, 15],
+               'rf_classifier__n_estimators': [300, 400, 500, 750, 1000, 1250, 1500, 1750, 2000]}
+
+param_search = RandomizedSearchCV(hpt_rfc, random_grid)
+print('Performing random hyperparameter search...')
+param_search.fit(hpt_feats, hpt_labels)
+print('...done')
+print('Best Params:')
+print(param_search.best_params_)
 
 ######### Best Params ##############
-#n_estimators = 130
+# n_estimators = 2000    
 # min_samples_split = 2 
 # min_samples_leaf = 4 
-# max_depth = 90 
-# bootstrap = True
+# max_features = 'log_2'
+# max_depth = 100
 
 # %% Tuned Model Training
 

@@ -7,14 +7,14 @@ import pickle
 from evaluate import EEGEvaluator
 import pandas as pd
 
-length = 1
+length = 3
 save = True
 
 bipolar = False
 pool = False
 random_forest = True
 
-fig_filename = 'output_figs/%s_outputs_labels_wt_0.25'
+fig_filename = 'output_figs/%s_outputs_labels_wt_0.45_tuned'
 if bipolar:
     fig_filename += '_bipolar'
 if pool:
@@ -24,7 +24,7 @@ if random_forest:
 fig_filename += '.pdf'
 
 if random_forest:
-    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.25'
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45_tuned'
 else:
     pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
 if bipolar:
@@ -132,7 +132,7 @@ for i in range(pt_list.shape[0]):
     preds = np.load(pred_file)
     if length == 60:
         preds = np.nanmax(preds, 1)
-    elif length == 1:
+    else:
         preds = preds.flatten()
     # preds = EEGEvaluator.postprocess_outputs(preds, length)
     # print("Predictions:")

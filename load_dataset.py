@@ -115,6 +115,7 @@ class IEEGDataLoader:
                                               length_prev, initial=False)
             raw_data = np.r_[data_left, data_right]
 
+        print(raw_data.shape)
         # reshape data into N X S x C array, where N is the number of segments, S is the number of samples 
         # (fs * prev_length), and C is the number of valid channels. Because each segment has a length longer
         # than the displacement, there will be an overlap in values (so that each segment is associated with a
@@ -123,6 +124,7 @@ class IEEGDataLoader:
         for i in range(num):
             start = int(disp*i*self.fs)
             stop = int((disp*i + length_prev)*self.fs)
+            # print(f'{i} / {num-1}')
             batch_data[i, :, :] = raw_data[start:stop, :]
 
         return batch_data

@@ -53,13 +53,13 @@ def __init__():
 
 # Main method for the real-time detector
 def __main__():
-    print('====================================================================')
-    print('===================== ICU-EEG Seizure Detector =====================')
-    print('====================================================================')
-    print('=== Developed by Penn Center for Neuroengineering & Therapeutics ===')
-    print('====================================================================')
-    print('==================== University of Pennsylvania ====================')
-    print('====================================================================')
+    # print('====================================================================')
+    # print('===================== ICU-EEG Seizure Detector =====================')
+    # print('====================================================================')
+    # print('=== Developed by Penn Center for Neuroengineering & Therapeutics ===')
+    # print('====================================================================')
+    # print('==================== University of Pennsylvania ====================')
+    # print('====================================================================')
     parser_main = __init__()
     args = parser_main.parse_args()
     # Iterate over the given arguments and fill in any missing ones
@@ -72,6 +72,9 @@ def __main__():
         else:
             inputs[key] = value
     # inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
+    print('====================================================================')
+    print("Starting processing for %s." % inputs['patient_id'])
+    print('====================================================================')
 
     # print(f"Bipolar option: {inputs['bipolar']}")
     # determine montage type
@@ -115,7 +118,8 @@ def __main__():
         test_pts_filename += '_bipolar'
     if pool:
         test_pts_filename += '_pool'
-    test_pts_filename += '_%ds.pkl' % sample_len
+    test_pts_filename += '_%ds' % sample_len
+    test_pts_filename += '_tuned.pkl'
 
     # Determine which model to use based on the list of test patients for each model and the current patient
     model_num = -1
@@ -135,7 +139,8 @@ def __main__():
         model_filename += '_bipolar'
     if pool:
         model_filename += '_pool'
-    model_filename += '_%ds.npy' % sample_len
+    model_filename += '_%ds' % sample_len
+    model_filename += '_tuned.npy'
     model_arr = np.load(model_filename, allow_pickle=True)
     model = model_arr[model_num]
     model.set_params(rf_classifier__verbose = 0)
@@ -175,11 +180,11 @@ def __main__():
         file_path += '-bipolar'
     if pool:
         file_path += '-pool'
-    print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
-    with open(file_path + '.json', 'w') as file:
-        json.dump(sz_events_json, file)
-    sz_events.to_pickle(file_path + '.pkl')
-    pred_filename = "pred_data/%s_predictions_rf__%d_%ds" % (inputs['patient_id'], inputs['threshold'], sample_len)
+    # print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
+    # with open(file_path + '.json', 'w') as file:
+    #     json.dump(sz_events_json, file)
+    # sz_events.to_pickle(file_path + '.pkl')
+    pred_filename = "pred_data/%s_predictions_rf_0.%ds_%s" % (inputs['patient_id'], sample_len, str(inputs['threshold'])[-2:])
     if bipolar:
         pred_filename += '-bipolar'
     if pool:
