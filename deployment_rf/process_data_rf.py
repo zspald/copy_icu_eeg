@@ -16,7 +16,6 @@ import numpy as np
 # Artifact rejection method
 ARTIFACT_METHOD = 'threshold'
 
-
 # A class that preprocesses IEEG data for the specified patient
 # Inherits fields and methods from the IEEGDataLoader class
 class IEEGDataProcessor(IEEGDataLoader):
@@ -58,8 +57,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     #     return map_outputs, map_indices
 
     # replacement of generate_map for random_forest model (method header TODO)
-    def process_feats(self, num, start, length, bipolar=False):
-        patient_feats, patient_indices, _ = self.get_features(num, start, length, bipolar=bipolar)
+    def process_feats(self, num, start, length, bipolar=False, pool_region=False, ref_and_bip=False):
+        patient_feats, patient_indices, _ = self.get_features(num, start, length, bipolar=bipolar, pool_region=pool_region, ref_and_bip=ref_and_bip)
         
         if patient_feats is None:
             return None, None
@@ -78,8 +77,8 @@ class IEEGDataProcessor(IEEGDataLoader):
     # Outputs
     #   self.mean: the mean of all channels and features, with shape C x F as described above
     #   self.std: the standard deviation of all channels and features, with shape C x F as described above
-    def initialize_stats(self, num_batches, start, length, bipolar=False):
-        patient_feats, _, _ = self.get_features(num_batches, start, length, bipolar=bipolar)
+    def initialize_stats(self, num_batches, start, length, bipolar=False, pool_region=False, ref_and_bip=False):
+        patient_feats, _, _ = self.get_features(num_batches, start, length, bipolar=bipolar, pool_region=pool_region, ref_and_bip=ref_and_bip)
         self.mean, self.std = EEGFeatures.compute_stats(patient_feats)
         return self.mean, self.std
 
@@ -95,12 +94,25 @@ class IEEGDataProcessor(IEEGDataLoader):
     #   indices_to_remove: a list indicating whether each EEG segment should be removed, with length N
     #   channels_to_remove: a N* x C array that indicates whether each channel in each segment should be removed
     #   returns None if no preprocessed data is available
-    def get_features(self, num, start, length, bipolar=False):
+    def get_features(self, num, start, length, bipolar=False, pool_region=False, ref_and_bip=False):
         output_data, indices_to_remove, channels_to_remove = self.process_data(num, start, length)
         fs = self.sampling_frequency()
         if output_data is None:
             return None, None, None
-        output_feats = EEGFeatures.extract_features(output_data, fs, pool_region=False, bipolar=bipolar)
+
+        if ref_and_bip:
+            ref_feats = EEGFeatures.extract_features(output_data, fs, pool_region=pool_region, bipolar=False)
+            bip_feats = EEGFeatures.extract_features(output_data, fs, pool_region=pool_region, bipolar=True)
+
+            if ref_feats is None and bip_feats is None:
+                output_feats = None
+            else:
+                output_feats = np.zeros((ref_feats.shape[0], ref_feats.shape[1] + bip_feats.shape[1], ref_feats.shape[-1]))
+                output_feats[:, :ref_feats.shape[1], :] = ref_feats
+                output_feats[:, ref_feats.shape[1]:, :] = bip_feats
+        else:
+            output_feats = EEGFeatures.extract_features(output_data, fs, pool_region=False, bipolar=bipolar)
+
         return output_feats, indices_to_remove, channels_to_remove
 
     # Processes data from IEEG.org in multiple batches

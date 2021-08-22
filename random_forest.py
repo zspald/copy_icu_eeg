@@ -78,7 +78,7 @@ model_filename += ".npy"
 # filename for saving patients associated to each model (by fold for CV)
 test_pts_filename = "model_test_pts_wt_3s"
 if ref_and_bip:
-    model_filename += "_refbip"
+    test_pts_filename += "_refbip"
 elif bipolar:
     test_pts_filename += "_bipolar"
 if pool:

@@ -14,7 +14,7 @@ bipolar = False
 pool = False
 random_forest = True
 
-fig_filename = 'output_figs/%s_outputs_labels_wt_0.45_tuned'
+fig_filename = 'output_figs/%s_outputs_labels_wt_0.45_refbip'
 if bipolar:
     fig_filename += '_bipolar'
 if pool:
@@ -24,7 +24,7 @@ if random_forest:
 fig_filename += '.pdf'
 
 if random_forest:
-    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45_tuned'
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45_refbip'
 else:
     pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
 if bipolar:

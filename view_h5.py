@@ -33,9 +33,9 @@ for filename in glob.glob("data/*_data_wt_rf.h5"):
 # %% Re-organize prediction data
 
 for file_path in glob.glob("deployment_rf/pred_data/*.npy"):
-    if file_path.endswith("_45_3s.npy"):
+    if file_path.endswith("_0_3s_0.45_refbip.npy"):
         filename = os.path.basename(file_path)
-        filename = filename[:-10] + '_3s_0.45_tuned.npy'
+        filename = filename[:-21] + '_3s_0.45_refbip.npy'
         # print(filename)
         os.rename(file_path, 'deployment_rf/pred_data/%s' % filename)
 
