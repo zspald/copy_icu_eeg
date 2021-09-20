@@ -6,6 +6,7 @@ import numpy as np
 import pickle
 from evaluate import EEGEvaluator
 import pandas as pd
+import matplotlib.pyplot as plt
 
 length = 3
 save = True
@@ -32,6 +33,48 @@ if bipolar:
 if pool:
     pred_filename += '_pool'
 pred_filename += '.npy'
+
+def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False):
+    # sort values in ascending order
+    sorted_sz_sens = np.sort(sz_sens_arr)
+    sorted_data_reduc = np.sort(data_reduc_arr)
+
+    # create 2x2 figure (Figure 6 from ICU EEG skeleton paper)
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=[15,12])
+
+    # plot sz sens histogram
+    ax1.hist(sz_sens_arr, color='lightskyblue', edgecolor='black')
+    ax1.axvline(np.mean(sz_sens_arr), color='red', label='Mean Sz Sens')
+    ax1.axvline(np.median(sz_sens_arr), color='blue', label='Median Sz Sens')
+    ax1.set_xlabel('Detection Rate')
+    ax1.set_ylabel('Frequency')
+    ax1.set_title('Seizure Detection Rate Distribution')
+    ax1.legend()
+
+    # plot sz sens data for all patients
+    ax2.bar(np.arange(len(sorted_sz_sens)), sorted_sz_sens, color='lightskyblue', edgecolor='black')
+    ax2.set_xlabel('Patient')
+    ax2.set_ylabel('Detection Rate')
+    ax2.set_title('Seizure Detection Rates for All Patients')
+
+    # plot data reduc histogram
+    ax3.hist(data_reduc_arr, color='lightskyblue', edgecolor='black')
+    ax3.axvline(np.mean(data_reduc_arr), color='red', label='Mean Sz Sens')
+    ax3.axvline(np.median(data_reduc_arr), color='blue', label='Median Sz Sens')
+    ax3.set_xlabel('Reduction Ratio')
+    ax3.set_ylabel('Frequency')
+    ax3.set_title('Data Reduction Ratio Distribution')
+    ax3.legend()
+
+    # plot sz sens data for all patients
+    ax4.bar(np.arange(len(sorted_data_reduc)),sorted_data_reduc, color='lightskyblue', edgecolor='black')
+    ax4.set_xlabel('Patient')
+    ax4.set_ylabel('Reduction Ratio')
+    ax4.set_title('Seizure Detection Rates for All Patients')
+
+    if save:
+        plt.savefig('output_figs/summary_stats')
+    plt.show()
 
 # %%  Single patient testing
 
@@ -176,5 +219,8 @@ false_alert_arr = false_alert_arr[np.where(false_alert_arr != -1)[0]]
 print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
 print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
 print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
+
+print('Summary Stats Visualization:')
+plot_stats_by_patient(sz_sens_arr, data_reduc_arr)
 
 # %%
