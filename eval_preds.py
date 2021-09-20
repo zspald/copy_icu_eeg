@@ -211,14 +211,17 @@ for i in range(pt_list.shape[0]):
     false_alert_arr[i] = stats_false_alerts[1]
     EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
 
-# remove non-sz patients from sz sens calculation
+# remove non-sz patients from sz sens calculation and any missing patients
 sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]
 data_reduc_arr = data_reduc_arr[np.where(data_reduc_arr != -1)[0]]
 false_alert_arr = false_alert_arr[np.where(false_alert_arr != -1)[0]]
 
 print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
+print(f'Median sz sens: {np.median(sz_sens_arr)}')
 print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
+print(f'Median data reduc: {np.median(data_reduc_arr)}')
 print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
+print(f'Mean false alert rate: {np.median(false_alert_arr)}')
 
 print('Summary Stats Visualization:')
 plot_stats_by_patient(sz_sens_arr, data_reduc_arr)
