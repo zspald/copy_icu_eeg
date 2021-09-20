@@ -14,7 +14,7 @@ bipolar = False
 pool = False
 random_forest = True
 
-fig_filename = 'output_figs/%s_outputs_labels_wt_0.45_refbip'
+fig_filename = 'output_figs/%s_outputs_labels_wt_0.45proba05'
 if bipolar:
     fig_filename += '_bipolar'
 if pool:
@@ -24,7 +24,7 @@ if random_forest:
 fig_filename += '.pdf'
 
 if random_forest:
-    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45_refbip'
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45proba05'
 else:
     pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
 if bipolar:
@@ -84,7 +84,8 @@ EEGEvaluator.compare_outputs_plot(patient_id, preds, length=(stop-start)/60, pre
 
 # %% Looped Evalauations
 
-pt_list_nsz = np.array(['CNT684', 'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
+pt_list_nsz = np.array([
+                        'CNT684', 'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
                         'CNT692', 'CNT694', 'CNT695', 'CNT698', 'CNT700', 'CNT701', 'CNT702', 
                         'CNT705', 'CNT706', 'CNT708', 'CNT710', 'CNT711', 'CNT713', 'CNT715', 
                         'CNT720', 'CNT723', 'CNT724', 'CNT725', 'CNT726', 'CNT729', 'CNT730', 
@@ -94,9 +95,11 @@ pt_list_nsz = np.array(['CNT684', 'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT69
                         'ICUDataRedux_0023', 'ICUDataRedux_0026', 'ICUDataRedux_0029',
                         'ICUDataRedux_0030', 'ICUDataRedux_0034', 'ICUDataRedux_0035', 
                         'ICUDataRedux_0043', 'ICUDataRedux_0044', 'ICUDataRedux_0047', 
-                        'ICUDataRedux_0048'])
+                        'ICUDataRedux_0048'
+                        ])
 
-pt_list_sz = np.array(['ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0062',
+pt_list_sz = np.array([
+                       'ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0062',
                        'ICUDataRedux_0063', 'ICUDataRedux_0064', 'ICUDataRedux_0065',
                        'ICUDataRedux_0066', 'ICUDataRedux_0067', 'ICUDataRedux_0068',
                        'ICUDataRedux_0069', 'ICUDataRedux_0072', 'ICUDataRedux_0073',
@@ -107,15 +110,17 @@ pt_list_sz = np.array(['ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0
                        'ICUDataRedux_0003', 'ICUDataRedux_0004', 'ICUDataRedux_0006',
                        'CNT929', 'ICUDataRedux_0027', 'ICUDataRedux_0028', 'ICUDataRedux_0033',
                        'ICUDataRedux_0036', 'ICUDataRedux_0040', 'ICUDataRedux_0042',
-                       'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'])
+                       'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'
+                       ])
+
 
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
 
 start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
 
-sz_sens_arr = np.zeros((pt_list.shape[0], 1))
-data_reduc_arr = np.zeros((pt_list.shape[0], 1))
-false_alert_arr = np.zeros((pt_list.shape[0], 1))
+sz_sens_arr = np.ones((pt_list.shape[0], 1)) * -1
+data_reduc_arr = np.ones((pt_list.shape[0], 1)) * -1
+false_alert_arr = np.ones((pt_list.shape[0], 1)) * -1
 for i in range(pt_list.shape[0]):
     pt = pt_list[i]
     # get start and stop times
@@ -163,7 +168,13 @@ for i in range(pt_list.shape[0]):
     false_alert_arr[i] = stats_false_alerts[1]
     EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
 
+# remove non-sz patients from sz sens calculation
+sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]
+data_reduc_arr = data_reduc_arr[np.where(data_reduc_arr != -1)[0]]
+false_alert_arr = false_alert_arr[np.where(false_alert_arr != -1)[0]]
+
 print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
 print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
 print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
+
 # %%

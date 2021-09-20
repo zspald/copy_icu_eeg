@@ -73,7 +73,7 @@ elif bipolar:
     model_filename += "_bipolar"
 if pool:
     model_filename += "_pool"
-model_filename += ".npy"
+model_filename += "2500.npy"
 
 # filename for saving patients associated to each model (by fold for CV)
 test_pts_filename = "model_test_pts_wt_3s"
@@ -83,7 +83,7 @@ elif bipolar:
     test_pts_filename += "_bipolar"
 if pool:
     test_pts_filename += "_pool"
-test_pts_filename += ".pkl"
+test_pts_filename += "2500.pkl"
 
 # format for patient data filenames
 data_file_format = "data/%s_data_wt"
@@ -119,7 +119,7 @@ rfc = Pipeline([
     #                                          class_weight=class_weight,
     #                                         #  n_jobs=-1,
     #                                          verbose=1))
-    ('rf_classifier', RandomForestClassifier(n_estimators=400,
+    ('rf_classifier', RandomForestClassifier(n_estimators=2500,
                                              class_weight=class_weight,
                                             #  n_jobs=-1,
                                              verbose=1))

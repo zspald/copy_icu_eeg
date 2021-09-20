@@ -17,6 +17,9 @@ import pickle
 # Pre-define EEG sample length as trained by the model
 sample_len = 3 # 1
 
+# define probability threshold to assign seizure label
+predict_thresh = 0.2
+
 # User inputs and corresponding prompts
 # inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
 #           'threshold': 0.45}
@@ -179,7 +182,8 @@ def __main__():
         else:
             eeg_feats = eeg_feats.reshape(eeg_feats.shape[0], -1)
             eeg_feats = np.nan_to_num(eeg_feats)
-            predict = model.predict(eeg_feats)
+            # predict = model.predict(eeg_feats)
+            predict = (model.predict_proba(eeg_feats)[:,1] >= predict_thresh).astype('int')
             # print(predict)
             # Post-process the model outputs
             predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
@@ -211,6 +215,8 @@ def __main__():
         pred_filename += '_bipolar'
     if pool:
         pred_filename += '_pool'
+    proba_suffix = '_proba' + str(int(predict_thresh*100))
+    pred_filename += proba_suffix
     np.save(pred_filename + '.npy', pred_list)
     print('====================================================================')
     print("Real-time processing complete for %s." % inputs['patient_id'])
