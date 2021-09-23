@@ -13,26 +13,37 @@ save = True
 
 bipolar = False
 pool = False
+ref_and_bip = False
 random_forest = True
+predict_proba = 0.10
 
-fig_filename = 'output_figs/%s_outputs_labels_wt_0.45proba05'
-if bipolar:
+fig_filename = 'output_figs/patient_prediction_outputs/%s_outputs_labels_wt_0.45'
+if ref_and_bip:
+    fig_filename += '_refbip'
+elif bipolar:
     fig_filename += '_bipolar'
 if pool:
     fig_filename += '_pool'
 if random_forest:
     fig_filename += '_rf'
+predict_proba_str = '%0.2f' % predict_proba
+fig_filename += '_proba' + predict_proba_str
 fig_filename += '.pdf'
+print(fig_filename)
 
 if random_forest:
-    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45proba05'
+    pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45'
 else:
     pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
-if bipolar:
+if ref_and_bip:
+    pred_filename += '_refbip'
+elif bipolar:
     pred_filename += '_bipolar'
 if pool:
     pred_filename += '_pool'
+pred_filename += '_proba' + predict_proba_str
 pred_filename += '.npy'
+print(pred_filename)
 
 def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False):
     # sort values in ascending order
@@ -70,10 +81,22 @@ def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False):
     ax4.bar(np.arange(len(sorted_data_reduc)),sorted_data_reduc, color='lightskyblue', edgecolor='black')
     ax4.set_xlabel('Patient')
     ax4.set_ylabel('Reduction Ratio')
-    ax4.set_title('Seizure Detection Rates for All Patients')
+    ax4.set_title('Data Reduction Ratios for All Patients')
 
     if save:
-        plt.savefig('output_figs/summary_stats')
+        fig_title = 'output_figs/summary_stats/summary_stats'
+        if ref_and_bip:
+            fig_title += '_refbip'
+        elif bipolar:
+            fig_title += '_bipolar'
+        if pool:
+            fig_title += '_pool'
+        if random_forest:
+            fig_title += '_rf'
+        predict_proba_str = '%0.2f' % predict_proba
+        fig_title += '_proba' + predict_proba_str
+        fig_title += '.pdf'
+        plt.savefig(fig_title, bbox_inches='tight')
     plt.show()
 
 # %%  Single patient testing
@@ -220,10 +243,10 @@ print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
 print(f'Median sz sens: {np.median(sz_sens_arr)}')
 print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
 print(f'Median data reduc: {np.median(data_reduc_arr)}')
-print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
-print(f'Mean false alert rate: {np.median(false_alert_arr)}')
+# print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
+# print(f'Mean false alert rate: {np.median(false_alert_arr)}')
 
 print('Summary Stats Visualization:')
-plot_stats_by_patient(sz_sens_arr, data_reduc_arr)
+plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=True)
 
 # %%

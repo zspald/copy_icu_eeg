@@ -18,7 +18,7 @@ import pickle
 sample_len = 3 # 1
 
 # define probability threshold to assign seizure label
-predict_thresh = 0.2
+predict_thresh = 0.1
 
 # User inputs and corresponding prompts
 # inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
@@ -215,7 +215,8 @@ def __main__():
         pred_filename += '_bipolar'
     if pool:
         pred_filename += '_pool'
-    proba_suffix = '_proba' + str(int(predict_thresh*100))
+    predict_thresh_str = '%.2f' % predict_thresh
+    proba_suffix = '_proba0.%s' % predict_thresh_str[-2:]
     pred_filename += proba_suffix
     np.save(pred_filename + '.npy', pred_list)
     print('====================================================================')
