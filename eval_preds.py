@@ -4,7 +4,6 @@ from evaluate import EEGEvaluator
 from load_dataset import IEEGDataLoader
 import numpy as np
 import pickle
-from evaluate import EEGEvaluator
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -16,6 +15,8 @@ pool = False
 ref_and_bip = False
 random_forest = True
 predict_proba = 0.10
+# smooth_thresh = 0.45
+smooth_range = np.arange(0, 1.01, 0.05)
 
 fig_filename = 'output_figs/patient_prediction_outputs/%s_outputs_labels_wt_0.45'
 if ref_and_bip:
@@ -45,7 +46,7 @@ pred_filename += '_proba' + predict_proba_str
 pred_filename += '.npy'
 print(pred_filename)
 
-def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False):
+def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False, fig_name=None):
     # sort values in ascending order
     sorted_sz_sens = np.sort(sz_sens_arr)
     sorted_data_reduc = np.sort(data_reduc_arr)
@@ -82,23 +83,66 @@ def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False):
     ax4.set_xlabel('Patient')
     ax4.set_ylabel('Reduction Ratio')
     ax4.set_title('Data Reduction Ratios for All Patients')
+    
+    # set figure title
+    if fig_name is not None:
+        fig_title = fig_name.replace('_', ' ').title()
+        plt.suptitle(fig_title)
 
     if save:
-        fig_title = 'output_figs/summary_stats/summary_stats'
-        if ref_and_bip:
-            fig_title += '_refbip'
-        elif bipolar:
-            fig_title += '_bipolar'
-        if pool:
-            fig_title += '_pool'
-        if random_forest:
-            fig_title += '_rf'
-        predict_proba_str = '%0.2f' % predict_proba
-        fig_title += '_proba' + predict_proba_str
-        fig_title += '.pdf'
-        plt.savefig(fig_title, bbox_inches='tight')
+        if fig_name is None:
+            fig_name = 'output_figs/summary_stats/summary_stats'
+            if ref_and_bip:
+                fig_name += '_refbip'
+            elif bipolar:
+                fig_name += '_bipolar'
+            if pool:
+                fig_name += '_pool'
+            if random_forest:
+                fig_name += '_rf'
+            predict_proba_str = '%0.2f' % predict_proba
+            fig_name += '_proba' + predict_proba_str
+
+        fig_name = 'output_figs/summary_stats/' + fig_name
+        fig_name += '.pdf'
+        plt.savefig(fig_name, bbox_inches='tight')
     plt.show()
 
+def plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=False, fig_name=None):
+    f, (ax1, ax2) = plt.subplots(1,2, figsize=[12,6])
+
+    ax1.plot(mean_sz_sens_to_data_reduc[1], mean_sz_sens_to_data_reduc[0], marker='o')
+    ax1.set_xlabel('Data Reduction (0-1)')
+    ax1.set_ylabel('Seizure Sensitivity (0-1')
+    ax1.set_title('Mean Seizure Sensitivity vs Data Reduction')
+
+    ax2.plot(median_sz_sens_to_data_reduc[1], median_sz_sens_to_data_reduc[0], marker='o')
+    ax2.set_xlabel('Data Reduction (0-1)')
+    ax2.set_ylabel('Seizure Sensitivity (0-1')
+    ax2.set_title('Median Seizure Sensitivity vs Data Reduction')
+
+    if fig_name is not None:
+        fig_title = fig_name.replace('_', ' ').title()
+        plt.suptitle(fig_title)
+
+    if save:
+        if fig_name is None:
+            fig_name = 'output_figs/summary_stats/smoothing_cruve'
+            if ref_and_bip:
+                fig_name += '_refbip'
+            elif bipolar:
+                fig_name += '_bipolar'
+            if pool:
+                fig_name += '_pool'
+            if random_forest:
+                fig_name += '_rf'
+            predict_proba_str = '%0.2f' % predict_proba
+            fig_name += '_proba' + predict_proba_str
+
+        fig_name = 'output_figs/summary_stats/' + fig_name
+        fig_name += '.pdf'
+        plt.savefig(fig_name, bbox_inches='tight')
+    plt.show()    
 # %%  Single patient testing
 
 patient_id = "ICUDataRedux_0089"
@@ -165,88 +209,102 @@ pt_list_nsz = np.array([
                         ])
 
 pt_list_sz = np.array([
-                       'ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0062',
-                       'ICUDataRedux_0063', 'ICUDataRedux_0064', 'ICUDataRedux_0065',
-                       'ICUDataRedux_0066', 'ICUDataRedux_0067', 'ICUDataRedux_0068',
-                       'ICUDataRedux_0069', 'ICUDataRedux_0072', 'ICUDataRedux_0073',
-                       'ICUDataRedux_0074', 'ICUDataRedux_0054', 'ICUDataRedux_0078',
-                       'ICUDataRedux_0082', 'ICUDataRedux_0083', 'ICUDataRedux_0084',
-                       'ICUDataRedux_0085', 'ICUDataRedux_0086', 'ICUDataRedux_0087',
-                       'ICUDataRedux_0089', 'ICUDataRedux_0090', 'ICUDataRedux_0091',
-                       'ICUDataRedux_0003', 'ICUDataRedux_0004', 'ICUDataRedux_0006',
-                       'CNT929', 'ICUDataRedux_0027', 'ICUDataRedux_0028', 'ICUDataRedux_0033',
-                       'ICUDataRedux_0036', 'ICUDataRedux_0040', 'ICUDataRedux_0042',
-                       'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'
-                       ])
-
+                    'ICUDataRedux_0060', 'ICUDataRedux_0061', 'ICUDataRedux_0062',
+                    'ICUDataRedux_0063', 'ICUDataRedux_0064', 'ICUDataRedux_0065',
+                    'ICUDataRedux_0066', 'ICUDataRedux_0067', 'ICUDataRedux_0068',
+                    'ICUDataRedux_0069', 'ICUDataRedux_0072', 'ICUDataRedux_0073',
+                    'ICUDataRedux_0074', 'ICUDataRedux_0054', 'ICUDataRedux_0078',
+                    'ICUDataRedux_0082', 'ICUDataRedux_0083', 'ICUDataRedux_0084',
+                    'ICUDataRedux_0085', 'ICUDataRedux_0086', 'ICUDataRedux_0087',
+                    'ICUDataRedux_0089', 'ICUDataRedux_0090', 'ICUDataRedux_0091',
+                    'ICUDataRedux_0003', 'ICUDataRedux_0004', 'ICUDataRedux_0006',
+                    'CNT929', 'ICUDataRedux_0027', 'ICUDataRedux_0028', 'ICUDataRedux_0033',
+                    'ICUDataRedux_0036', 'ICUDataRedux_0040', 'ICUDataRedux_0042',
+                    'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'
+                    ])
 
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
 
 start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
 
-sz_sens_arr = np.ones((pt_list.shape[0], 1)) * -1
-data_reduc_arr = np.ones((pt_list.shape[0], 1)) * -1
-false_alert_arr = np.ones((pt_list.shape[0], 1)) * -1
-for i in range(pt_list.shape[0]):
-    pt = pt_list[i]
-    # get start and stop times
-    patient_times = start_stop_df[start_stop_df['patient_id'] == pt].values
-    start = patient_times[0,1]
-    end = patient_times[-1,2]
+# iterate over different post-processing thresholds and save association btw sz sensitivity and data reduction
+mean_sz_sens_to_data_reduc = np.zeros((len(smooth_range), 2))
+median_sz_sens_to_data_reduc = np.zeros((len(smooth_range), 2))
+for i in len(smooth_range):
+    smooth_thresh = smooth_range[i]
 
-    # load in predictions
-    try:
-        pred_file = open(pred_filename % pt, 'rb')
-    except FileNotFoundError:
-        print(f'{pt} predictions not found. Skipping patient.')
-        continue
-    preds = np.load(pred_file)
-    if length == 60:
-        preds = np.nanmax(preds, 1)
-    else:
-        preds = preds.flatten()
-    # preds = EEGEvaluator.postprocess_outputs(preds, length)
-    # print("Predictions:")
-    # print(preds)
-    # print(f"Shape of predictions: {preds.shape}")
-    pred_file.close()
+    sz_sens_arr = np.ones((pt_list.shape[0], 1)) * -1
+    data_reduc_arr = np.ones((pt_list.shape[0], 1)) * -1
+    false_alert_arr = np.ones((pt_list.shape[0], 1)) * -1
+    for i in range(pt_list.shape[0]):
+        pt = pt_list[i]
+        # get start and stop times
+        patient_times = start_stop_df[start_stop_df['patient_id'] == pt].values
+        start = patient_times[0,1]
+        end = patient_times[-1,2]
 
-    # get labels
-    filename_pick = 'dataset/from_json/%s_from_json.pkl' % pt
-    f_pick = open(filename_pick, 'rb')
-    annots = pickle.load(f_pick)
-    annots = annots.sort_values(by=['start'], ignore_index=True)
-    # print(annots)
-    annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
-    # print(annots)
-    f_pick.close()
+        # load in predictions
+        try:
+            pred_file = open(pred_filename % pt, 'rb')
+        except FileNotFoundError:
+            print(f'{pt} predictions not found. Skipping patient.')
+            continue
+        preds = np.load(pred_file)
+        if length == 60:
+            preds = np.nanmax(preds, 1)
+        else:
+            preds = preds.flatten()
+        preds = EEGEvaluator.postprocess_outputs(preds, length, threshold=smooth_thresh)
+        # print("Predictions:")
+        # print(preds)
+        # print(f"Shape of predictions: {preds.shape}")
+        pred_file.close()
 
-    # perform evaluations
-    print("Results for predictions from %s" % pt)
-    # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
-    # EEGEvaluator.test_results(metrics)
-    stats_sz_sens = EEGEvaluator.sz_sens(pt, preds, pred_length=length)
-    if not stats_sz_sens[2] is None:
-        sz_sens_arr[i] = stats_sz_sens[2]
-    stats_data_reduc = EEGEvaluator.data_reduc(pt, preds, pred_length=length)
-    data_reduc_arr[i] = stats_data_reduc[2]
-    stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
-    false_alert_arr[i] = stats_false_alerts[1]
-    EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
+        # get labels
+        filename_pick = 'dataset/from_json/%s_from_json.pkl' % pt
+        f_pick = open(filename_pick, 'rb')
+        annots = pickle.load(f_pick)
+        annots = annots.sort_values(by=['start'], ignore_index=True)
+        # print(annots)
+        annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
+        # print(annots)
+        f_pick.close()
 
-# remove non-sz patients from sz sens calculation and any missing patients
-sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]
-data_reduc_arr = data_reduc_arr[np.where(data_reduc_arr != -1)[0]]
-false_alert_arr = false_alert_arr[np.where(false_alert_arr != -1)[0]]
+        # perform evaluations
+        print("Results for predictions from %s" % pt)
+        # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
+        # EEGEvaluator.test_results(metrics)
+        stats_sz_sens = EEGEvaluator.sz_sens(pt, preds, pred_length=length)
+        if not stats_sz_sens[2] is None:
+            sz_sens_arr[i] = stats_sz_sens[2]
+        stats_data_reduc = EEGEvaluator.data_reduc(pt, preds, pred_length=length)
+        data_reduc_arr[i] = stats_data_reduc[2]
+        stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
+        false_alert_arr[i] = stats_false_alerts[1]
+        EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
 
-print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
-print(f'Median sz sens: {np.median(sz_sens_arr)}')
-print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
-print(f'Median data reduc: {np.median(data_reduc_arr)}')
-# print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
-# print(f'Mean false alert rate: {np.median(false_alert_arr)}')
+    # remove non-sz patients from sz sens calculation and any missing patients
+    sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]
+    data_reduc_arr = data_reduc_arr[np.where(data_reduc_arr != -1)[0]]
+    false_alert_arr = false_alert_arr[np.where(false_alert_arr != -1)[0]]
 
-print('Summary Stats Visualization:')
-plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=True)
+    print(f'Mean sz sens: {np.mean(sz_sens_arr)} +\- {np.std(sz_sens_arr)} (SD)')
+    print(f'Median sz sens: {np.median(sz_sens_arr)}')
+    print(f'Mean data reduc: {np.mean(data_reduc_arr)} +\- {np.std(data_reduc_arr)} (SD)')
+    print(f'Median data reduc: {np.median(data_reduc_arr)}')
+    # print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
+    # print(f'Mean false alert rate: {np.median(false_alert_arr)}')
+
+    mean_sz_sens_to_data_reduc[i, 0] = np.mean(sz_sens_arr)
+    mean_sz_sens_to_data_reduc[i, 1] = np.mean(data_reduc_arr)
+    median_sz_sens_to_data_reduc[i, 0] = np.median(sz_sens_arr)
+    median_sz_sens_to_data_reduc[i, 1] = np.median(data_reduc_arr)
+
+    print('Summary Stats Visualization:')
+    plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=True, fig_name='summary_stats_referential_%.2f_predict_threshold_%.2f_smoothing' % (predict_proba, smooth_thresh))
+
+plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=True, fig_name='smoothing_curve_referential_%.2f_predict_threshold' % predict_proba)
+
+
 
 # %%

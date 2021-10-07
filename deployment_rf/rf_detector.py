@@ -18,7 +18,7 @@ import pickle
 sample_len = 3 # 1
 
 # define probability threshold to assign seizure label
-predict_thresh = 0.1
+predict_thresh = 0.07
 
 # User inputs and corresponding prompts
 # inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
@@ -185,8 +185,8 @@ def __main__():
             # predict = model.predict(eeg_feats)
             predict = (model.predict_proba(eeg_feats)[:,1] >= predict_thresh).astype('int')
             # print(predict)
-            # Post-process the model outputs
-            predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
+            # # Post-process the model outputs
+            # predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
             # print(predict)
             predict = processor.fill_predictions(predict, eeg_indices)
             # print(predict)
