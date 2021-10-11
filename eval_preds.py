@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 length = 3
-save = True
+save = False
 
 bipolar = False
 pool = False
@@ -34,6 +34,7 @@ print(fig_filename)
 
 if random_forest:
     pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45'
+    # pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_1s'
 else:
     pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
 if ref_and_bip:
@@ -111,12 +112,12 @@ def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False, fig_name=None
 def plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=False, fig_name=None):
     f, (ax1, ax2) = plt.subplots(1,2, figsize=[12,6])
 
-    ax1.plot(mean_sz_sens_to_data_reduc[1], mean_sz_sens_to_data_reduc[0], marker='o')
+    ax1.plot(mean_sz_sens_to_data_reduc[:,1], mean_sz_sens_to_data_reduc[:,0], marker='o')
     ax1.set_xlabel('Data Reduction (0-1)')
     ax1.set_ylabel('Seizure Sensitivity (0-1')
     ax1.set_title('Mean Seizure Sensitivity vs Data Reduction')
 
-    ax2.plot(median_sz_sens_to_data_reduc[1], median_sz_sens_to_data_reduc[0], marker='o')
+    ax2.plot(median_sz_sens_to_data_reduc[:,1], median_sz_sens_to_data_reduc[:,0], marker='o')
     ax2.set_xlabel('Data Reduction (0-1)')
     ax2.set_ylabel('Seizure Sensitivity (0-1')
     ax2.set_title('Median Seizure Sensitivity vs Data Reduction')
@@ -143,6 +144,31 @@ def plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_da
         fig_name += '.pdf'
         plt.savefig(fig_name, bbox_inches='tight')
     plt.show()    
+
+def get_best_smoothing_val(smooth_range, mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc):
+
+    sqrt_mean = np.sqrt(mean_sz_sens_to_data_reduc)
+    sqrt_med = np.sqrt(median_sz_sens_to_data_reduc)
+
+    mean_max = 0
+    mean_max_ind = -1
+    med_max = 0
+    med_max_ind = -1
+    for i in range(len(smooth_range)):
+        mean_val = sqrt_mean[i,0] + sqrt_mean[i,1]
+        med_val = sqrt_med[i,0] + sqrt_med[i,1]
+
+        if mean_val > mean_max:
+            mean_max = mean_val
+            mean_max_ind = i
+        if med_val > med_max:
+            med_max = med_val
+            med_max_ind = i
+
+    print(f'Best Smoothing for Mean Sz Sens and Data Reduc: {smooth_range[mean_max_ind]}')
+    print(f'Best Smoothing for Median Sz Sens and Data Reduc: {smooth_range[med_max_ind]}')
+
+    return (smooth_range[mean_max_ind], mean_max_ind), (smooth_range[med_max_ind], med_max_ind)
 # %%  Single patient testing
 
 patient_id = "ICUDataRedux_0089"
@@ -195,12 +221,20 @@ EEGEvaluator.compare_outputs_plot(patient_id, preds, length=(stop-start)/60, pre
 # %% Looped Evalauations
 
 pt_list_nsz = np.array([
-                        'CNT684', 'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
+                        'CNT684', 
+                        'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
                         'CNT692', 'CNT694', 'CNT695', 'CNT698', 'CNT700', 'CNT701', 'CNT702', 
-                        'CNT705', 'CNT706', 'CNT708', 'CNT710', 'CNT711', 'CNT713', 'CNT715', 
-                        'CNT720', 'CNT723', 'CNT724', 'CNT725', 'CNT726', 'CNT729', 'CNT730', 
+                        'CNT705', 'CNT706', 'CNT708', 'CNT710', 'CNT711', 'CNT713', 
+                        # 'CNT715', 
+                        'CNT720', 
+                        # 'CNT723', 
+                        'CNT724', 'CNT725', 
+                        # 'CNT726', 
+                        'CNT729', 'CNT730', 
                         'CNT731', 'CNT732', 'CNT733', 'CNT734', 'CNT737', 'CNT740', 'CNT741', 
-                        'CNT742', 'CNT743', 'CNT748', 'CNT750', 'CNT757', 'CNT758', 'CNT765', 
+                        'CNT742', 'CNT743', 
+                        # 'CNT748', 
+                        'CNT750', 'CNT757', 'CNT758', 'CNT765', 
                         'CNT773', 'CNT774', 'CNT775', 'CNT776', 'CNT778', 'CNT782', 
                         'ICUDataRedux_0023', 'ICUDataRedux_0026', 'ICUDataRedux_0029',
                         'ICUDataRedux_0030', 'ICUDataRedux_0034', 'ICUDataRedux_0035', 
@@ -230,8 +264,8 @@ start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
 # iterate over different post-processing thresholds and save association btw sz sensitivity and data reduction
 mean_sz_sens_to_data_reduc = np.zeros((len(smooth_range), 2))
 median_sz_sens_to_data_reduc = np.zeros((len(smooth_range), 2))
-for i in len(smooth_range):
-    smooth_thresh = smooth_range[i]
+for j in range(len(smooth_range)):
+    smooth_thresh = smooth_range[j]
 
     sz_sens_arr = np.ones((pt_list.shape[0], 1)) * -1
     data_reduc_arr = np.ones((pt_list.shape[0], 1)) * -1
@@ -295,16 +329,16 @@ for i in len(smooth_range):
     # print(f'Mean false alert rate: {np.mean(false_alert_arr)} +\- {np.std(false_alert_arr)} (SD)')
     # print(f'Mean false alert rate: {np.median(false_alert_arr)}')
 
-    mean_sz_sens_to_data_reduc[i, 0] = np.mean(sz_sens_arr)
-    mean_sz_sens_to_data_reduc[i, 1] = np.mean(data_reduc_arr)
-    median_sz_sens_to_data_reduc[i, 0] = np.median(sz_sens_arr)
-    median_sz_sens_to_data_reduc[i, 1] = np.median(data_reduc_arr)
+    mean_sz_sens_to_data_reduc[j, 0] = np.mean(sz_sens_arr)
+    mean_sz_sens_to_data_reduc[j, 1] = np.mean(data_reduc_arr)
+    median_sz_sens_to_data_reduc[j, 0] = np.median(sz_sens_arr)
+    median_sz_sens_to_data_reduc[j, 1] = np.median(data_reduc_arr)
 
     print('Summary Stats Visualization:')
-    plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=True, fig_name='summary_stats_referential_%.2f_predict_threshold_%.2f_smoothing' % (predict_proba, smooth_thresh))
+    plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=save, fig_name='summary_stats_referential_%.2f_predict_threshold_%.2f_smoothing' % (predict_proba, smooth_thresh))
 
-plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=True, fig_name='smoothing_curve_referential_%.2f_predict_threshold' % predict_proba)
-
+plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=save, fig_name='smoothing_curve_referential_%.2f_predict_threshold' % predict_proba)
+get_best_smoothing_val(smooth_range, mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc)
 
 
 # %%
