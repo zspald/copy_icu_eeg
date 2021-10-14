@@ -186,7 +186,7 @@ def __main__():
             predict = (model.predict_proba(eeg_feats)[:,1] >= predict_thresh).astype('int')
             # print(predict)
             # # Post-process the model outputs
-            # predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
+            predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
             # print(predict)
             predict = processor.fill_predictions(predict, eeg_indices)
             # print(predict)
