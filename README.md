@@ -1,5 +1,5 @@
 # Cross-patient Seizure Detection with Feature-Mapped Convolutional Neural Networks on Scalp EEG
-Modification of ICU EEG Seizure Detector from @danieljkim0118 at the Center of Neuroengineering and Therapeutics at the University of Pennsylvania.
+Modification of ICU EEG Seizure Detector from [@danieljkim0118](https://github.com/danieljkim0118) at the Center of Neuroengineering and Therapeutics at the University of Pennsylvania.
 
 Continuous EEG (cEEG) monitoring has been increasingly demonstrated to be important for diagnosing patients’ conditions within intensive care units (ICUs), 
 being linked to lower mortality rates. Most notably, seizures arise from patients who not only suffer from epilepsy or neurological injury, but also from 
