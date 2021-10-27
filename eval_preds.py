@@ -8,42 +8,48 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 length = 3
+batch_length = 60
 save = False
 
 bipolar = False
 pool = False
 ref_and_bip = False
 random_forest = True
-predict_proba = 0.10
+predict_proba = 0.08
 # smooth_thresh = 0.45
 smooth_range = np.arange(0, 1.01, 0.05)
+# smooth_range = np.array([0.45])
 
-fig_filename = 'output_figs/patient_prediction_outputs/%s_outputs_labels_wt_0.45'
-if ref_and_bip:
-    fig_filename += '_refbip'
-elif bipolar:
-    fig_filename += '_bipolar'
-if pool:
-    fig_filename += '_pool'
 if random_forest:
-    fig_filename += '_rf'
-predict_proba_str = '%0.2f' % predict_proba
-fig_filename += '_proba' + predict_proba_str
+    fig_filename = 'output_figs/patient_prediction_outputs/rf_%s_outputs_labels_wt_0.45'
+    if ref_and_bip:
+        fig_filename += '_refbip'
+    elif bipolar:
+        fig_filename += '_bipolar'
+    if pool:
+        fig_filename += '_pool'
+    if random_forest:
+        fig_filename += '_rf'
+    predict_proba_str = '%0.2f' % predict_proba
+    fig_filename += '_proba' + predict_proba_str
+else:
+    fig_filename = 'output_figs/patient_prediction_outputs/cnn_%s_outputs_labels_wt_0.45'
 fig_filename += '.pdf'
 print(fig_filename)
 
 if random_forest:
     pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_3s_0.45'
     # pred_filename = 'deployment_rf/pred_data/%s_predictions_rf_1s'
+    if ref_and_bip:
+        pred_filename += '_refbip'
+    elif bipolar:
+        pred_filename += '_bipolar'
+    if pool:
+        pred_filename += '_pool'
+    pred_filename += '_proba' + predict_proba_str
 else:
-    pred_filename = 'deployment/%s_predictions_ICU-EEG-conv-50'
-if ref_and_bip:
-    pred_filename += '_refbip'
-elif bipolar:
-    pred_filename += '_bipolar'
-if pool:
-    pred_filename += '_pool'
-pred_filename += '_proba' + predict_proba_str
+    pred_filename = 'deployment_cnn/pred_data/%s_predictions_3s_0.45'
+
 pred_filename += '.npy'
 print(pred_filename)
 
@@ -109,17 +115,17 @@ def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False, fig_name=None
         plt.savefig(fig_name, bbox_inches='tight')
     plt.show()
 
-def plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=False, fig_name=None):
+def plot_smoothing_thresh_curve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=False, fig_name=None):
     f, (ax1, ax2) = plt.subplots(1,2, figsize=[12,6])
 
     ax1.plot(mean_sz_sens_to_data_reduc[:,1], mean_sz_sens_to_data_reduc[:,0], marker='o')
     ax1.set_xlabel('Data Reduction (0-1)')
-    ax1.set_ylabel('Seizure Sensitivity (0-1')
+    ax1.set_ylabel('Seizure Sensitivity (0-1)')
     ax1.set_title('Mean Seizure Sensitivity vs Data Reduction')
 
     ax2.plot(median_sz_sens_to_data_reduc[:,1], median_sz_sens_to_data_reduc[:,0], marker='o')
     ax2.set_xlabel('Data Reduction (0-1)')
-    ax2.set_ylabel('Seizure Sensitivity (0-1')
+    ax2.set_ylabel('Seizure Sensitivity (0-1)')
     ax2.set_title('Median Seizure Sensitivity vs Data Reduction')
 
     if fig_name is not None:
@@ -158,6 +164,9 @@ def get_best_smoothing_val(smooth_range, mean_sz_sens_to_data_reduc, median_sz_s
         mean_val = sqrt_mean[i,0] + sqrt_mean[i,1]
         med_val = sqrt_med[i,0] + sqrt_med[i,1]
 
+        # print(f'Thresh: {smooth_range[i]} -> mean_val: {mean_val}')
+        # print(f'Thresh: {smooth_range[i]} -> med_val: {med_val}')
+
         if mean_val > mean_max:
             mean_max = mean_val
             mean_max_ind = i
@@ -171,21 +180,23 @@ def get_best_smoothing_val(smooth_range, mean_sz_sens_to_data_reduc, median_sz_s
     return (smooth_range[mean_max_ind], mean_max_ind), (smooth_range[med_max_ind], med_max_ind)
 # %%  Single patient testing
 
-patient_id = "ICUDataRedux_0089"
+patient_id = "ICUDataRedux_0085"
 
 start_stop_df = pickle.load(open("dataset/patient_start_stop.pkl", 'rb'))
 patient_times = start_stop_df[start_stop_df['patient_id'] == patient_id].values
 start = patient_times[0,1]
 stop = patient_times[-1,2]
 print(start)
+print(stop)
 
 pred_file = open(pred_filename % patient_id, 'rb')
 preds = np.load(pred_file)
 if length == 60:
     preds = np.nanmax(preds, 1)
-elif length == 1:
+else:
     preds = preds.flatten()
-# preds = EEGEvaluator.postprocess_outputs(preds, length)
+preds = EEGEvaluator.postprocess_outputs(preds, length)
+preds = np.nan_to_num(preds)
 print("Predictions:")
 print(preds)
 print(f"Shape of predictions: {preds.shape}")
@@ -207,8 +218,6 @@ print("Labels:")
 print(labels)
 print(f"Shape of labels: {labels.shape}")
 
-# %%
-# Evaluate predictions
 
 print("Results for predictions from %s" % patient_id)
 # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
@@ -221,7 +230,7 @@ EEGEvaluator.compare_outputs_plot(patient_id, preds, length=(stop-start)/60, pre
 # %% Looped Evalauations
 
 pt_list_nsz = np.array([
-                        'CNT684', 
+                        # 'CNT684', 
                         'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
                         'CNT692', 'CNT694', 'CNT695', 'CNT698', 'CNT700', 'CNT701', 'CNT702', 
                         'CNT705', 'CNT706', 'CNT708', 'CNT710', 'CNT711', 'CNT713', 
@@ -258,8 +267,12 @@ pt_list_sz = np.array([
                     ])
 
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
+# pt_list = np.array(['CNT690', 'CNT691'])
+# pt_list = np.array(['ICUDataRedux_0040'])
 
 start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
+pred_map = {}
+label_map = {}
 
 # iterate over different post-processing thresholds and save association btw sz sensitivity and data reduction
 mean_sz_sens_to_data_reduc = np.zeros((len(smooth_range), 2))
@@ -283,12 +296,23 @@ for j in range(len(smooth_range)):
         except FileNotFoundError:
             print(f'{pt} predictions not found. Skipping patient.')
             continue
-        preds = np.load(pred_file)
+        preds = np.load(pred_file, allow_pickle=False)
         if length == 60:
             preds = np.nanmax(preds, 1)
         else:
             preds = preds.flatten()
+        
+        # Set artifacts as inter-ictal
+        preds = np.nan_to_num(preds)
+
+        # Smooth preds based on given threshold
         preds = EEGEvaluator.postprocess_outputs(preds, length, threshold=smooth_thresh)
+
+        # get number of prediction samples from deployment
+        num_samp = int((batch_length / length) * int((end - start) / batch_length))
+
+        print('Results for %s' % pt)
+
         # print("Predictions:")
         # print(preds)
         # print(f"Shape of predictions: {preds.shape}")
@@ -296,26 +320,35 @@ for j in range(len(smooth_range)):
 
         # get labels
         filename_pick = 'dataset/from_json/%s_from_json.pkl' % pt
-        f_pick = open(filename_pick, 'rb')
-        annots = pickle.load(f_pick)
-        annots = annots.sort_values(by=['start'], ignore_index=True)
-        # print(annots)
-        annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
-        # print(annots)
-        f_pick.close()
+        labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, end, pred_length=length)
+        labels = labels[:num_samp]
+        labels = labels[-preds.shape[0]:]
+
+        # labels = labels[:preds.shape[0]]
+        # print("Labels:")
+        # print(labels)
+        # print(f"Shape of labels: {labels.shape}")
+        # f_pick = open(filename_pick, 'rb')
+        # annots = pickle.load(f_pick)
+        # annots = annots.sort_values(by=['start'], ignore_index=True)
+        # # print(annots)
+        # annots['event'] = annots['event'].apply(lambda x: 1 if x == 'seizure' else 0)
+        # # print(annots)
+        # f_pick.close()
+
+        pred_map[pt] = preds 
+        label_map[pt] = labels
 
         # perform evaluations
-        print("Results for predictions from %s" % pt)
-        # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
-        # EEGEvaluator.test_results(metrics)
-        stats_sz_sens = EEGEvaluator.sz_sens(pt, preds, pred_length=length)
+        stats_sz_sens = EEGEvaluator.sz_sens(pt, preds, batch_length=batch_length, pred_length=length)
         if not stats_sz_sens[2] is None:
             sz_sens_arr[i] = stats_sz_sens[2]
-        stats_data_reduc = EEGEvaluator.data_reduc(pt, preds, pred_length=length)
+        stats_data_reduc = EEGEvaluator.data_reduc(pt, preds, batch_length=batch_length, pred_length=length)
         data_reduc_arr[i] = stats_data_reduc[2]
-        stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
-        false_alert_arr[i] = stats_false_alerts[1]
-        EEGEvaluator.compare_outputs_plot(pt, preds, length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
+        # stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
+        # false_alert_arr[i] = stats_false_alerts[1]
+        EEGEvaluator.compare_outputs_plot(pt, preds, plot_length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
+        # EEGEvaluator.compare_outputs_plot(pt, preds, pred_length=length, save=save, filename=fig_filename, show=True)
 
     # remove non-sz patients from sz sens calculation and any missing patients
     sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]
@@ -337,7 +370,7 @@ for j in range(len(smooth_range)):
     print('Summary Stats Visualization:')
     plot_stats_by_patient(sz_sens_arr.flatten(), data_reduc_arr.flatten(), save=save, fig_name='summary_stats_referential_%.2f_predict_threshold_%.2f_smoothing' % (predict_proba, smooth_thresh))
 
-plot_smoothing_thresh_cruve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=save, fig_name='smoothing_curve_referential_%.2f_predict_threshold' % predict_proba)
+plot_smoothing_thresh_curve(mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc, save=save, fig_name='smoothing_curve_referential_%.2f_predict_threshold' % predict_proba)
 get_best_smoothing_val(smooth_range, mean_sz_sens_to_data_reduc, median_sz_sens_to_data_reduc)
 
 

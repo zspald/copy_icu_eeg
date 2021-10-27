@@ -1,5 +1,11 @@
+# %% Imports
+
 from train import EEGLearner
 import numpy as np
+import h5py
+import os
+
+# %% Training
 
 # Train a CNN model on sample patient data
 # patient_list = ["ICUDataRedux_0061", "ICUDataRedux_0062", "ICUDataRedux_0063", "ICUDataRedux_0064", "ICUDataRedux_0065", 
@@ -60,6 +66,29 @@ print("========== Training example ==========")
 # train_module = EEGLearner(patient_list_cv_true)
 train_module = EEGLearner(pt_list, pt_list_sz, pt_list_nsz)
 # print(len(train_module.patient_list))
-train_module.train_cnn(epochs=50, control=1800, kfold=True, save=True, verbose=1)
+train_module.train_cnn(epochs=50, control=1800, k_fold=True, save=True, verbose=1)
 # train_module.train_convolutional_gru(epochs=20, batch_size=100, control=1800, save=True, seq_len=20, verbose=1)
 # train_module.train_conv_lstm(epochs=20, cross_val=False, save=True, seq_len=20, verbose=1)
+
+# %% Misc
+# name = 'conv'
+# i = 1
+# new_dir = 'model-%s' % name
+# counter = 0
+# check_name = new_dir
+# while os.path.exists(os.path.join('cnn_models', check_name)):
+
+#     # update counter
+#     counter += 1
+
+#     # update directory to check for
+#     check_name = new_dir + '_' + str(counter)
+
+# if counter > 0:
+#     new_dir = new_dir + '_' + str(counter)  
+
+# os.makedirs('cnn_models\%s' % new_dir)
+# model.save('cnn_models\%s\%s-fold-%d.h5' % (new_dir, name, i), save_format='h5')
+
+
+# %%

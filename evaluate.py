@@ -127,7 +127,21 @@ class EEGEvaluator:
 
     # Method header: TODO
     @staticmethod
-    def sz_sens(id, predictions, pred_length=60, display=True):
+    def sz_sens(id, predictions, batch_length=60, pred_length=1, display=True, return_preds=False):
+
+        # get start and stop times
+        start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
+        patient_times = start_stop_df[start_stop_df['patient_id'] == id].values
+        start = patient_times[0,1]
+        end = patient_times[-1,2]
+
+        # pad predictions to proper length if cutoff occurred from crawl_data
+        n = int((batch_length / pred_length) * int((end - start) / batch_length))
+        to_fill = n - predictions.shape[0]
+        pre = np.zeros((to_fill,))
+        preds = np.r_[pre, predictions]
+        # print(f'Preds Shape: {preds.shape}')
+
         # access seizure labels
         with open('dataset/from_json/' + id + '_from_json.pkl', 'rb') as file:
             label_df = pickle.load(file)
@@ -139,10 +153,13 @@ class EEGEvaluator:
         if num_sz == 0:
             if display:
                 print("No seizures in patient " + id)
-            return None, None, None
+            if return_preds:
+                return None, None, None, preds
+            else:
+                return None, None, None
         
         # create seizure interval dataframe for current predictions
-        pred_start_stop = EEGEvaluator.pred_to_df(predictions, start_time, 
+        pred_start_stop = EEGEvaluator.pred_to_df(preds, start_time, 
                                     pred_length=pred_length)
 
         true_positive = 0
@@ -158,21 +175,34 @@ class EEGEvaluator:
             print('Number of seizures detected: ', true_positive)
             print('Seizure Sensitivity: ', sz_sens)
 
-        return true_positive, num_sz, sz_sens
+        if return_preds:
+            # print('returning modified predictions')
+            return true_positive, num_sz, sz_sens, preds
+        else:
+            return true_positive, num_sz, sz_sens
 
     # Method header: TODO
     @staticmethod
-    def data_reduc(id, predictions, pred_length=1, display=True):
+    def data_reduc(id, predictions, batch_length=60, pred_length=1, display=True):
 
         start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
         patient_times = start_stop_df[start_stop_df['patient_id'] == id].values
         start = patient_times[0,1]
         end = patient_times[-1,2]
 
+        # define cutoff for excess from labels missed by batch length
+        n = int((batch_length / pred_length) * int((end - start) / batch_length))
+
         filename_pick = 'dataset/from_json/' + id + '_from_json.pkl'
         labels = EEGEvaluator.annots_pkl_to_1D(filename_pick, start, end, 
                                                pred_length=pred_length)
-        labels = labels[:predictions.shape[0]]
+        # trim label excess
+        labels = labels[:n]
+        # pull from end of labels to match prediction length
+        # (predictions may start later than defined start time due to crawl_data)
+        labels = labels[-predictions.shape[0]:]
+        labels = np.nan_to_num(labels)
+        # print(f'Labels Shape: {labels.shape}')
 
         tot_negative = 0
         true_negative = 0
@@ -191,7 +221,20 @@ class EEGEvaluator:
         return true_negative, tot_negative, data_reduc
 
     @staticmethod
-    def false_alert_rate(id, predictions, pred_length=1, display=True):
+    def false_alert_rate(id, predictions, batch_length=60, pred_length=3, display=True):
+
+        # get start and stop times
+        start_stop_df = pickle.load(open('dataset/patient_start_stop.pkl', 'rb'))
+        patient_times = start_stop_df[start_stop_df['patient_id'] == id].values
+        start = patient_times[0,1]
+        end = patient_times[-1,2]
+
+        # pad predictions to proper length if cutoff occurred from crawl_data
+        n = int((batch_length / pred_length) * int((end - start) / batch_length))
+        to_fill = n - predictions.shape[0]
+        pre = np.zeros((to_fill,))
+        preds = np.r_[pre, predictions]
+
         # access seizure labels
         with open('dataset/from_json/' + id + '_from_json.pkl', 'rb') as file:
             label_df = pickle.load(file)
@@ -555,24 +598,25 @@ class EEGEvaluator:
 
     # Method header: TODO
     @staticmethod
-    def compare_outputs_plot(id, pred_list, length=120, pred_length=5, save=False, filename=None, show=True):
+    def compare_outputs_plot(id, pred_list, batch_length=60, plot_length=120, pred_length=3, save=False, filename=None, show=True):
         # get seziure sensitivity and data reduction
-        _, _, sz_sens = EEGEvaluator.sz_sens(id, pred_list, pred_length=pred_length, display=False)
+        _, _, sz_sens, preds = EEGEvaluator.sz_sens(id, pred_list, pred_length=pred_length, display=False, return_preds=True)
         if sz_sens is None:
             sz_sens = 'N/A'
         else:
             sz_sens = round(sz_sens, 3)
-        _, _, data_reduc = EEGEvaluator.data_reduc(id, pred_list, pred_length=pred_length, display=False)
+        _, _, data_reduc = EEGEvaluator.data_reduc(id, pred_list, batch_length=batch_length, pred_length=pred_length, display=False)
         data_reduc = round(data_reduc, 3)
 
-        _, false_alert_rate = EEGEvaluator.false_alert_rate(id, pred_list, pred_length=pred_length, display=False)
+        _, false_alert_rate = EEGEvaluator.false_alert_rate(id, pred_list, batch_length=batch_length, pred_length=pred_length, display=False)
         false_alert_rate = round(false_alert_rate, 3)
 
         #create figure with parameters for rectangles
+        conversion = 60
         fig, ax = plt.subplots()
         label_y = 2.25
         pred_y = 0
-        width = pred_length / length
+        width = pred_length / (plot_length * conversion)
         height = 2
 
         #access seizure labels
@@ -580,7 +624,7 @@ class EEGEvaluator:
                 label_df = pickle.load(file)
         label_df = label_df.sort_values(by=['start'], ignore_index=True)
         start_time = label_df.start[0]
-        bound = start_time + length*60
+        bound = start_time + plot_length*conversion
         label_df = label_df[label_df.event == 'seizure'].reset_index(drop=True)
 
         if not label_df.empty:
@@ -590,26 +634,32 @@ class EEGEvaluator:
 
             #create label visuals from annotations
             for i in range(sz_start.shape[0]):
-                start = sz_start[i] / 60
-                stop = sz_stop[i] / 60
+                start = sz_start[i] / conversion
+                stop = sz_stop[i] / conversion
                 if stop > bound:
-                    stop = length
+                    # stop = length
+                    stop = bound
                 label_width = stop - start
-                ax.add_patch(Rectangle((start - (start_time/60), label_y), label_width, 
+                ax.add_patch(Rectangle((start - (start_time/conversion), label_y), label_width, 
                 height, edgecolor = 'r', facecolor='r', fill=True))
+
+        # test line
+        # ax.add_patch(Rectangle((80, label_y), width, height, edgecolor = 'k', facecolor='k', fill=True))
             
         #create prediction visuals from model output
-        for idx, val in enumerate(pred_list):
-            if val == 1:
-                ax.add_patch(Rectangle((idx / (60 / pred_length), pred_y), width, height,
+        for idx, val in enumerate(preds):
+            idx_in_min = idx * pred_length / conversion
+            if val == 1 and idx_in_min <= plot_length:
+                ax.add_patch(Rectangle((idx_in_min, pred_y), width, height,
                 edgecolor='g', facecolor='g', fill=True))
+        
 
         #format plot
         plt.title(f'Results for {id}')
         plt.yticks([pred_y + height / 2, label_y + height / 2], ['Outputs', 'Labels'])
         ax.set_xlabel('Time in Recording (min)')
         ax.set_ylim(bottom=-1, top=label_y + height + 1)
-        ax.set_xlim(left = 0, right=length)
+        ax.set_xlim(left = 0, right=plot_length)
 
         # save figure with seizure sensitivty and data reduction labeled
         if save:

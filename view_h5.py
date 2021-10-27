@@ -19,16 +19,16 @@ from evaluate import EEGEvaluator
 # f.close()
 
 
-for filename in glob.glob("data/*_data_wt_rf.h5"):
+for filename in glob.glob("data/*_data_wt.h5"):
     f = h5py.File(filename, 'r')
-    if f['feats'][:].shape[0] == 0:
-        print(f"{filename}: {f['feats'][:].shape}")
-    # try:
-    #     print(f"{filename}: {f['maps'].shape[0]}")
-    #     f.close()
-    # except KeyError:
-    #     print(f"{filename}: Maps empty")
-    #     f.close()
+    # if f['feats'][:].shape[0] == 0:
+    #     print(f"{filename}: {f['feats'][:].shape}")
+    try:
+        print(f"{filename}: {f['maps'].shape[0]}")
+        f.close()
+    except KeyError:
+        print(f"{filename}: Maps empty")
+        f.close()
 
 # %% Re-organize prediction data
 
@@ -39,7 +39,11 @@ for file_path in glob.glob("deployment_rf/pred_data/*.npy"):
         # print(filename)
         os.rename(file_path, 'deployment_rf/pred_data/%s' % filename)
 
+# %% 
 
+# Load in test patients dictionary
+test_pts_filename='cnn_models\model-conv\cnn_test_pts_by_fold.pkl'
+test_pts = pickle.load(open(test_pts_filename, 'rb'))
 
 # %%
 

@@ -10,14 +10,15 @@ filter=1
 eeg=1
 norm=1
 bipolar=0
-random_forest=1
+random_forest=0
 pool=0
-ref_and_bip=1
+ref_and_bip=0
 deriv=0
 # declare -a PATIENTS=(ICUDataRedux_0054 ICUDataRedux_0065 ICUDataRedux_0067 ICUDataRedux_0068 
 # 					ICUDataRedux_0072 ICUDataRedux_0082 ICUDataRedux_0083)
 declare -a PATIENTS=(
-				CNT684 CNT685 CNT687
+				# CNT684 
+				CNT685 CNT687
 				CNT688 CNT689 CNT690 CNT691
 				CNT692 CNT694 CNT695 CNT698 
 				CNT700 CNT701 CNT702 CNT705
@@ -42,8 +43,6 @@ declare -a PATIENTS=(
 				ICUDataRedux_0082 ICUDataRedux_0083 ICUDataRedux_0084 ICUDataRedux_0085 
 				ICUDataRedux_0086 ICUDataRedux_0087 ICUDataRedux_0089 ICUDataRedux_0090 
 				ICUDataRedux_0091)
-# declare -a PATIENTS=(CNT684)
-
 # declare -a PATIENTS=(CNT684)
 num_pts=${#PATIENTS[@]}
 num_par=4

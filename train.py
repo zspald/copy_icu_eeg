@@ -14,6 +14,7 @@ import numpy as np
 import os
 import random
 from sklearn.model_selection import KFold
+import pickle
 
 # A class that runs a 2D convolutional neural network
 class EEGLearner:
@@ -35,7 +36,7 @@ class EEGLearner:
         self.nsz_list = nsz_list
         self.loss_weights = {0: 1.0, 1: 2.0}
         # Check the shape of the EEG data
-        file = h5py.File('data/%s_data.h5' % patient_list[0], 'r')
+        file = h5py.File('data/%s_data_wt.h5' % patient_list[0], 'r')
         self.shape = file['maps'][0].shape
         self.length = file['labels'][0, 2] - file['labels'][0, 1]
         file.close()
@@ -208,16 +209,25 @@ class EEGLearner:
         history_list = [None for _ in range(len(self.patient_list))]
         metric_list = [None for _ in range(len(self.patient_list))]
 
-        sz_split, nsz_split = get_fold_splits(self.sz_list, self.nsz_list, folds)
+        sz_split, nsz_split = EEGLearner.get_fold_splits(self.sz_list, self.nsz_list, folds)
+
+        # dictionary to track test patients for separate model folds
+        pts_by_fold = {}
+
+        # create directory for model data
+        if save:
+            # create proper directory for model without overwriting
+            new_dir = 'model-%s' % name
+            new_dir = EEGLearner.make_save_dir(new_dir)
 
         # Iterate over all patients for cross validation (kfold)
         for i in range(folds):
-            print('Fold: {i}')
+            print(f'Fold: {i}')
             # Initialize generators for training, validation and testing data
-            train_patients, validation_patients, test_patients = self.split_data_kfold(sz_split, nsz_split, i, train_split=0.9)
+            train_patients, validation_patients, test_patients = self.split_data_kfold(self.sz_list, self.nsz_list, sz_split, nsz_split, i, train_split=0.9)
             train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, control=control,
                                                 sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
-            validation_generator = EEGDataGenerator(valid_patients, batch_size=batch_size, control=control,
+            validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size, control=control,
                                                     sample_len=self.length, seq_len=seq_len, shuffle=False,
                                                     use_seq=use_seq)
             test_generator = EEGDataGenerator(test_patients, batch_size=batch_size, sample_len=self.length,
@@ -226,12 +236,12 @@ class EEGLearner:
             history = model.fit_generator(generator=train_generator, validation_data=validation_generator,
                                             class_weight=self.loss_weights, epochs=epochs, shuffle=True,
                                             verbose=verbose)
-            history_list[ii] = history
+            history_list[i] = history
+            # save test patients for corresponding model
+            pts_by_fold[i] = test_patients
             # Save model and obtain predictions for test data
             if save:
-                new_dir = 'model-%s' % name
-                os.mkdir('cnn_models\%s' % new_dir)
-                model.save('cnn_models\%s\%s-fold-%d.h5' % (new_dir, name, fold), save_format='h5')
+                model.save('cnn_models\%s\%s-fold-%d.h5' % (new_dir, name, i), save_format='h5')
             predict = model.predict_generator(test_generator, verbose=0)
             predict = np.argmax(predict, axis=1)
             # Obtain annotations from the test generator
@@ -240,7 +250,14 @@ class EEGLearner:
             predict = EEGEvaluator.postprocess_outputs(predict, length=self.length)
             # Compute evaluation metrics for post-processed outputs
             metrics_postprocess = EEGEvaluator.evaluate_metrics(labels[:, 0], predict)
-            metric_list[ii] = metrics_postprocess
+            metric_list[i] = metrics_postprocess
+
+        # save fold -> test patients mapping as pickle file in model folder
+        if save:
+            test_pts_filename = 'cnn_models\%s\cnn_test_pts_by_fold.pkl' % new_dir
+            with open(test_pts_filename, 'wb') as pkl_file:
+                pickle.dump(pts_by_fold, pkl_file)
+
         # Display results
         if visualize:
             EEGEvaluator.training_curve_cv(history_list)
@@ -322,20 +339,20 @@ class EEGLearner:
     @staticmethod
     def get_fold_splits(sz_list, nsz_list, n_folds):
         # create kfold objects to split sz and nsz data
-        kf_sz = KFold(n_splits=folds, shuffle=True)
-        kf_nsz = KFold(n_splits=folds, shuffle=True)
+        kf_sz = KFold(n_splits=n_folds, shuffle=True)
+        kf_nsz = KFold(n_splits=n_folds, shuffle=True)
 
         # get split indices for all 5 folds
-        sz_split = list(kf_sz.split(self.sz_list))
-        nsz_split = list(kf_nsz.split(self.nsz_list))
+        sz_split = list(kf_sz.split(sz_list))
+        nsz_split = list(kf_nsz.split(nsz_list))
 
         return sz_split, nsz_split
 
     @staticmethod
-    def split_data_kfold(sz_split, nsz_split, curr_fold, train_split=0.9):
+    def split_data_kfold(pt_list_sz, pt_list_nsz, sz_split, nsz_split, curr_fold, train_split=0.9):
         # get train split indices for ith fold
-        train_idx_sz, test_idx_sz = sz_split[i]
-        train_idx_nsz, test_idx_nsz = nsz_split[i]
+        train_idx_sz, test_idx_sz = sz_split[curr_fold]
+        train_idx_nsz, test_idx_nsz = nsz_split[curr_fold]
 
         # construct training set from splits of sz and nsz list
         train_sz = pt_list_sz[train_idx_sz]
@@ -351,3 +368,25 @@ class EEGLearner:
         test_patients = np.r_[test_sz, test_nsz]
 
         return train_patients, validation_patients, test_patients
+
+    @staticmethod
+    def make_save_dir(save_dir):
+
+        # check for previous model directories to prevent overwriting
+        counter = 0
+        while os.path.exists(os.path.join('cnn_models', save_dir)):
+
+            # update counter
+            counter += 1
+
+            # update directory to check for
+            check_name = save_dir + '_' + str(counter)
+
+        # create new directory with proper suffix
+        if counter > 0:
+            new_dir = save_dir + '_' + str(counter) 
+        else:
+            new_dir = save_dir 
+        os.makedirs('cnn_models\%s' % new_dir)
+
+        return new_dir

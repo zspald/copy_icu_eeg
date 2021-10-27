@@ -113,7 +113,7 @@ class EEGDataGenerator(Sequence):
     #   output_labels: labels corresponding to the generated EEG maps
     def __data_generation(self, patient_idx, batch_idx, use_data=True):
         self.patient_idx = patient_idx
-        file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
+        file = h5py.File('data/%s_data_wt.h5' % self.patient_list[patient_idx], 'r')
         output_data = None
         # Check whether batch is the final batch for the dataset
         if batch_idx == self.batch_list[patient_idx] - 1:
@@ -144,7 +144,7 @@ class EEGDataGenerator(Sequence):
         if self.patient_idx != patient_idx:
             if self.patient_idx >= 0:
                 self.patient_file.close()
-            self.patient_file = h5py.File('data/%s_data.h5' % self.patient_list[patient_idx], 'r')
+            self.patient_file = h5py.File('data/%s_data_wt.h5' % self.patient_list[patient_idx], 'r')
             self.patient_idx = patient_idx
             self.dataset, self.labels = self.patient_file['maps'], self.patient_file['labels']
         seq_idx = self.batch_info[patient_idx][batch_idx]
@@ -164,7 +164,7 @@ class EEGDataGenerator(Sequence):
     def initialize_batch(self):
         # Iterate over all patients to determine the total number of samples and batches
         for idx, patient_id in enumerate(self.patient_list):
-            file = h5py.File('data/%s_data.h5' % patient_id, 'r')
+            file = h5py.File('data/%s_data_wt.h5' % patient_id, 'r')
             # Check whether there exists a limit for control samples
             if self.control is not None and "CNT" in patient_id:
                 dataset_size = min(file['maps'].shape[0], int(self.control / self.sample_len))
@@ -192,7 +192,7 @@ class EEGDataGenerator(Sequence):
             sample_idx = 0  # index of the sample within the batch
             seq_pos = 0  # current position of the head of the sequence
             # Open the file and read the labels
-            file = h5py.File('data/%s_data.h5' % patient_id, 'r')
+            file = h5py.File('data/%s_data_wt.h5' % patient_id, 'r')
             data_labels = file['labels']
             # Check whether there exists a limit for control samples
             if self.control is not None and 'CNT' in patient_id:

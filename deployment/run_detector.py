@@ -12,6 +12,7 @@ import json
 import numpy as np
 import os
 import pandas as pd
+import pickle
 
 # Disable tensorflow logging messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -40,10 +41,10 @@ def __init__():
     parser.add_argument('-u', '--username', required=False, help='username')
     parser.add_argument('-p', '--password', required=False, help='password')
     parser.add_argument('-id', '--patient_id', required=False, help='patient_id')
-    parser.add_argument('-m', '--model', required=False, help='model')
+    # parser.add_argument('-m', '--model', required=False, help='model')
     parser.add_argument('-t', '--threshold', required=False, help='threshold')
-    parser.add_argument('-s', '--start', required=False, help='start')
-    parser.add_argument('-e', '--end', required=False, help='end')
+    # parser.add_argument('-s', '--start', required=False, help='start')
+    # parser.add_argument('-e', '--end', required=False, help='end')
     # parser.add_argument('-d', '--duration', required=False, help='segment_duration')
     parser.add_argument('-l', '--length', required=False, help='length')
     return parser
@@ -69,35 +70,64 @@ def __main__():
                 inputs[key] = input(prompts[key])
         else:
             inputs[key] = value
-    inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
+    # inputs['start'], inputs['end'] = int(inputs['start']), int(inputs['end'])
+
+    # get start and stop times for the current patient
+    start_stop_df = pickle.load(open("patient_start_stop.pkl", 'rb'))
+    patient_times = start_stop_df[start_stop_df['patient_id'] == inputs['patient_id']].values
+    start = patient_times[0,1]
+    stop = patient_times[-1,2]
+
     inputs['threshold'] = float(inputs['threshold'])
     # Check whether the processing is done in real-time or batch
     if args.length is None:
         length_input = None
     else:
         length_input = int(args.length)
-    require_input = length_input is None or length_input < 60 or length_input > inputs['end'] - inputs['start']
+    require_input = length_input is None or length_input < 60 or length_input > stop - stop
     while require_input:
         length_input = int(input('Enter the duration of each detection (min 60 seconds): '))
-        require_input = length_input is None or length_input < 60 or length_input > inputs['end'] - inputs['start']
+        require_input = length_input is None or length_input < 60 or length_input > stop - stop
     inputs['length'] = length_input
+
     # Iteratively load the EEG map renderings from IEEG
     processor = IEEGDataProcessor(inputs['patient_id'], inputs['username'], inputs['password'])
     channels_to_use = processor.filter_channels(eeg_only=True)
     recording_start = processor.crawl_data(0, interval_length=600, threshold=1e4, channels_to_use=channels_to_use)
-    timepoint = max(recording_start, inputs['start'])
-    # Define the model path based on user input
-    model_name = "ICU-EEG-conv-50"
-    model_dir = model_name + ".h5"  # default is set to convolutional neural network trained over 50 epochs
-    if inputs['model'] == 'conv':
-        model_dir = 'ICU-EEG-conv-50.h5'
+    timepoint = max(recording_start, start)
+
+    # Load in test patients dictionary
+    test_pts_filename='cnn_test_pts_by_fold.pkl'
+    test_pts = pickle.load(open(test_pts_filename, 'rb'))
+
+    # Determine which model to use based on the list of test patients for each model and the current patient
+    model_num = -1
+    for fold, pts in test_pts.items():
+        if inputs['patient_id'] in pts:
+            model_num = fold
+
+    # handle inability to find proper model
+    if model_num == -1:
+        print("Current patient not found in list of test patients associated to models. Using model at index 0.")
+        model_num = 0
+
+    # Load in the proper rf model for the patient (to avoid predictions on a pt the model was trained on)
+    model_dir ='cnn_models\conv-fold-%d.h5' % model_num
     model = load_model(model_dir)
+
+    # # Define the model path based on user input
+    # model_name = "ICU-EEG-conv-50"
+    # model_dir = 'cnn_models\\' + model_name + ".h5"  # default is set to convolutional neural network trained over 50 epochs
+    # if inputs['model'] == 'conv':
+    #     model_dir = 'ICU-EEG-conv-50.h5'
+    # model = load_model(model_dir)
+
     # Initialize output
     sz_events = list()
     # Use the first 30 minutes to extract patient-specific EEG statistics
     processor.initialize_stats(1800, timepoint, sample_len)
     pred_list = []
-    while timepoint + inputs['length'] <= inputs['end']:
+    while timepoint + inputs['length'] <= stop:
         print('--- Predictions starting from %d seconds ---' % timepoint)
         eeg_maps, eeg_indices = processor.generate_map(inputs['length'], timepoint, sample_len)
         # Check whether the given EEG segment is artifact
@@ -108,7 +138,7 @@ def __main__():
             predict = model.predict(eeg_maps, batch_size=np.size(eeg_maps, axis=0), verbose=0)
             print(predict)
             # Post-process the model outputs
-            print(np.argmax(predict, 1))
+            # print(np.argmax(predict, 1))
             predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
             print(predict)
             predict = processor.fill_predictions(predict, eeg_indices)
@@ -119,8 +149,8 @@ def __main__():
     # Save the predictions into a JSON file
     sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
     sz_events_json = sz_events.to_json()
-    file_path = '%s-%s-%d-%d-%ds-%d' % (inputs['patient_id'], inputs['model'], inputs['start'],
-                                    inputs['end'], sample_len, inputs['length'])
+    file_path = '%s-%s-%d-%d-%ds-%d' % (inputs['patient_id'], inputs['model'], stop,
+                                    stop, sample_len, inputs['length'])
     print('Saving outputs to ' + file_path + '.json' + ' and ' + file_path + '.pkl')
     with open(file_path + '.json', 'w') as file:
         json.dump(sz_events_json, file)

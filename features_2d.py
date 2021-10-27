@@ -67,7 +67,7 @@ class EEGMap:
             x_list = EEG_X
             y_list = EEG_Y
             # Initialize HDF file to store the output array
-            file = h5py.File('data/%s_data.h5' % patient_id, 'a')
+            file = h5py.File('data/%s_data_wt.h5' % patient_id, 'a')
         all_outputs = file.create_dataset('maps', (np.size(input_feats, axis=0), np.size(input_feats, axis=-1), 48, 48)
                                           , compression='gzip', chunks=True)
         # Obtain coordinates for rectangular grid with pre-allocated size

@@ -158,7 +158,7 @@ class IEEGDataProcessor(IEEGDataLoader):
                     print("No seizure data is available from batch #%d" % (idx + 1))
             print(f"Finished at {start}")
         else:
-            print("No seziure data in considered patient range")
+            print("No seizure data in considered patient range")
         # Set non-seizure data extraction method based on seizure occurrence
         method = 'norm-sz' if has_seizure else 'norm'
         start = start_origin

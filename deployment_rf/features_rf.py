@@ -11,6 +11,7 @@ import numpy as np
 import pywt
 import scipy.stats
 from scipy.signal import hilbert
+import warnings
 
 # EEG electrodes
 ALL = ['C3', 'C4', 'Cz', 'F3', 'F4', 'F7', 'F8', 'Fp1', 'Fp2', 'Fz', 'O1', 'O2', 'P3', 'P4', 'Pz',
@@ -139,7 +140,11 @@ class EEGFeatures:
     #   feats_std: the standard deviation of all channels and features, with shape C x F as described above
     @staticmethod
     def compute_stats(input_feats):
-        feats_mean = np.nanmean(input_feats, axis=0)
+        # suppress all nan warning
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            feats_mean = np.nanmean(input_feats, axis=0)
+        
         feats_std = np.nanstd(input_feats, axis=0)
         return feats_mean, feats_std
 
