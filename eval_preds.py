@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 length = 3
 batch_length = 60
-save = False
+save = True
 
 bipolar = False
 pool = False
@@ -17,8 +17,8 @@ ref_and_bip = False
 random_forest = True
 predict_proba = 0.08
 # smooth_thresh = 0.45
-smooth_range = np.arange(0, 1.01, 0.05)
-# smooth_range = np.array([0.45])
+# smooth_range = np.arange(0, 1.01, 0.05)
+smooth_range = np.array([0.45])
 
 if random_forest:
     fig_filename = 'output_figs/patient_prediction_outputs/rf_%s_outputs_labels_wt_0.45'
