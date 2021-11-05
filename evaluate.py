@@ -206,6 +206,7 @@ class EEGEvaluator:
 
         tot_negative = 0
         true_negative = 0
+        print(labels.shape, predictions.shape)
         for i in range(labels.shape[0]):
             if labels[i] == 0:
                 tot_negative += 1
