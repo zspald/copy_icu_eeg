@@ -13,6 +13,8 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+import tqdm
+import sys
 
 # Disable tensorflow logging messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -47,6 +49,7 @@ def __init__():
     # parser.add_argument('-e', '--end', required=False, help='end')
     # parser.add_argument('-d', '--duration', required=False, help='segment_duration')
     parser.add_argument('-l', '--length', required=False, help='length')
+    parser.add_argument('-pos', '--position', required=False, help='tqdm position')
     return parser
 
 
@@ -63,7 +66,7 @@ def __main__():
     args = parser_main.parse_args()
     # Iterate over the given arguments and fill in any missing ones
     for key, value in args.__dict__.items():
-        if value is None and key != 'length':
+        if value is None and key != 'length' and key != 'position':
             if key == 'password':
                 inputs[key] = getpass(prompts[key])
             else:
@@ -131,26 +134,30 @@ def __main__():
     # Use the first 30 minutes to extract patient-specific EEG statistics
     processor.initialize_stats(1800, timepoint, sample_len)
     pred_list = []
-    num_batch = inputs['length'] / sample_len
-    while timepoint + inputs['length'] <= stop:
-        # print('--- Predictions starting from %d seconds ---' % timepoint)
-        eeg_maps, eeg_indices = processor.generate_map(num_batch, timepoint, sample_len)
-        # Check whether the given EEG segment is artifact
-        if eeg_maps is None:
-            print("The given segment has been classified as an artifact.")
-            sz_events.append(['artifact', timepoint, timepoint + inputs['length']])
-        else:
-            predict = model.predict(eeg_maps, batch_size=np.size(eeg_maps, axis=0), verbose=0)
-            # print(predict)
-            # Post-process the model outputs
-            # print(np.argmax(predict, 1))
-            predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
-            # print(predict)
-            predict = processor.fill_predictions(predict, eeg_indices)
-            # print(predict)
-            pred_list.append(predict)
-            sz_events.extend(processor.write_events(predict, timepoint, sample_len, include_artifact=True))
-        timepoint += inputs['length']
+    num_batch = int(inputs['length'] / sample_len)
+    with tqdm(total=(inputs['length']*int((stop - timepoint) / inputs['length'])), desc='%s' % inputs['patient_id'], file=sys.stdout, position=int(inputs['position'])) as pbar:
+        while timepoint + inputs['length'] <= stop:
+            # print('--- Predictions starting from %d seconds ---' % timepoint)
+            eeg_maps, eeg_indices = processor.generate_map(num_batch, timepoint, sample_len)
+            # Check whether the given EEG segment is artifact
+            if eeg_maps is None:
+                # print("The given segment has been classified as an artifact.")
+                sz_events.append(['artifact', timepoint, timepoint + inputs['length']])
+                # fill preds with artifact predictions to maintain proper prediction length
+                pred_list.append(np.empty((num_batch,)) * np.nan)
+            else:
+                predict = model.predict(eeg_maps, batch_size=np.size(eeg_maps, axis=0), verbose=0)
+                # print(predict)
+                # Post-process the model outputs
+                # print(np.argmax(predict, 1))
+                predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
+                # print(predict)
+                predict = processor.fill_predictions(predict, eeg_indices)
+                # print(predict)
+                pred_list.append(predict)
+                sz_events.extend(processor.write_events(predict, timepoint, sample_len, include_artifact=True))
+            timepoint += inputs['length']
+            pbar.update(inputs['length'])
 
     # # Save the predictions into a JSON file
     # sz_events = pd.DataFrame(sz_events, columns=['event', 'start', 'stop'])
@@ -165,9 +172,9 @@ def __main__():
     pred_filename = "pred_data/%s_predictions_%ds_0.%s" % (inputs['patient_id'], sample_len, str(inputs['threshold'])[-2:])
     np.save(pred_filename + '.npy', pred_list)
 
-    print('====================================================================')
-    print("Real-time processing complete for %s." % inputs['patient_id'])
-    print('====================================================================')
+    # print('====================================================================')
+    # print("Real-time processing complete for %s." % inputs['patient_id'])
+    # print('====================================================================')
 
 
 # Run the main method for the detector

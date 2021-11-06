@@ -50,6 +50,7 @@ num_par=3
 # num_par=4
 # echo $length
 
+pos=0
 for (( i=0; i<${num_pts}; i+=4));
 	do
 		temp=()
@@ -65,9 +66,11 @@ for (( i=0; i<${num_pts}; i+=4));
 		for pt in ${temp[@]};
 			do
 				# echo $pt
-				python run_cnn_detector.py -u $username -p $password -id $pt -t $threshold -l $length &
+				python run_cnn_detector.py -u $username -p $password -id $pt -t $threshold -l $length -pos $pos&
+				((pos+=1))
 			done
 			wait
+			pos=0
 	done
 # 	echo $patient
 	# python run_cnn_detector.py -u $username -p $password -id $pt -t $threshold -l $length &

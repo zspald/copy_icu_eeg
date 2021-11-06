@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 length = 3
 batch_length = 60
-save = True
+save = False
 
 bipolar = False
 pool = False
