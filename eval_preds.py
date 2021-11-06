@@ -218,7 +218,6 @@ print("Labels:")
 print(labels)
 print(f"Shape of labels: {labels.shape}")
 
-
 print("Results for predictions from %s" % patient_id)
 # metrics = EEGEvaluator.evaluate_metrics(labels, preds)
 # EEGEvaluator.test_results(metrics)
