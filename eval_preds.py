@@ -14,7 +14,7 @@ save = False
 bipolar = False
 pool = False
 ref_and_bip = False
-random_forest = True
+random_forest = False
 predict_proba = 0.08
 # smooth_thresh = 0.45
 # smooth_range = np.arange(0, 1.01, 0.05)
@@ -78,8 +78,8 @@ def plot_stats_by_patient(sz_sens_arr, data_reduc_arr, save=False, fig_name=None
 
     # plot data reduc histogram
     ax3.hist(data_reduc_arr, color='lightskyblue', edgecolor='black')
-    ax3.axvline(np.mean(data_reduc_arr), color='red', label='Mean Sz Sens')
-    ax3.axvline(np.median(data_reduc_arr), color='blue', label='Median Sz Sens')
+    ax3.axvline(np.mean(data_reduc_arr), color='red', label='Mean Data Reduc')
+    ax3.axvline(np.median(data_reduc_arr), color='blue', label='Median Data Reduc')
     ax3.set_xlabel('Reduction Ratio')
     ax3.set_ylabel('Frequency')
     ax3.set_title('Data Reduction Ratio Distribution')
@@ -266,6 +266,10 @@ pt_list_sz = np.array([
                     ])
 
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
+
+print(len(pt_list_nsz))
+print(len(pt_list_sz))
+print(len(pt_list))
 # pt_list = np.array(['CNT690', 'CNT691'])
 # pt_list = np.array(['ICUDataRedux_0040'])
 

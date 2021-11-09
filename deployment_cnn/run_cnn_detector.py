@@ -13,7 +13,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
-import tqdm
+from tqdm import tqdm
 import sys
 
 # Disable tensorflow logging messages

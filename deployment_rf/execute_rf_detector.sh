@@ -53,7 +53,7 @@ num_par=4
 # echo $length
 
 pos=0
-for (( i=0; i<${num_pts}; i+=4));
+for (( i=0; i<${num_pts}; i+=num_par));
 	do
 		temp=()
 		for (( j=0; j<$num_par; j++));
