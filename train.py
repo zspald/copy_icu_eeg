@@ -34,7 +34,7 @@ class EEGLearner:
         self.patient_list = patient_list
         self.sz_list = sz_list
         self.nsz_list = nsz_list
-        self.loss_weights = {0: 1.0, 1: 2.0}
+        self.loss_weights = {0: 1.0, 1: 17.0}
         # Check the shape of the EEG data
         file = h5py.File('data/%s_data_wt.h5' % patient_list[0], 'r')
         self.shape = file['maps'][0].shape
@@ -225,6 +225,9 @@ class EEGLearner:
             print(f'Fold: {i}')
             # Initialize generators for training, validation and testing data
             train_patients, validation_patients, test_patients = self.split_data_kfold(self.sz_list, self.nsz_list, sz_split, nsz_split, i, train_split=0.9)
+            print(f'Train set: {train_patients}')
+            print(f'Val set: {validation_patients}')
+            print(f'Test set: {test_patients}')
             train_generator = EEGDataGenerator(train_patients, batch_size=batch_size, control=control,
                                                 sample_len=self.length, seq_len=seq_len, use_seq=use_seq)
             validation_generator = EEGDataGenerator(validation_patients, batch_size=batch_size, control=control,
@@ -357,34 +360,43 @@ class EEGLearner:
         # construct training set from splits of sz and nsz list
         train_sz = pt_list_sz[train_idx_sz]
         train_nsz = pt_list_nsz[train_idx_nsz]
-        train_list = np.r_[train_sz, train_nsz]
+        # train_list = np.r_[train_sz, train_nsz]
 
-        train_patients = train_list[:int(train_split*len(train_list))]
-        validation_patients = train_list[int(train_split*len(train_list)):]
+        # split training sets into true training and validation sets by sz and nsz
+        train_patients_sz = train_sz[:int(train_split*len(train_sz))]
+        val_patients_sz = train_sz[int(train_split*len(train_sz)):]
+
+        train_patients_nsz = train_nsz[:int(train_split*len(train_nsz))]
+        val_patients_nsz = train_nsz[int(train_split*len(train_nsz)):]
+
+        # combine sz and nsz sets
+        train_list = np.r_[train_patients_sz, train_patients_nsz]
+        val_list = np.r_[val_patients_sz, val_patients_nsz]
 
         # construct testing set from sz and nsz splits to save with model
         test_sz = pt_list_sz[test_idx_sz]
         test_nsz = pt_list_nsz[test_idx_nsz]
         test_patients = np.r_[test_sz, test_nsz]
 
-        return train_patients, validation_patients, test_patients
+        return train_list, val_list, test_patients
 
     @staticmethod
     def make_save_dir(save_dir):
 
         # check for previous model directories to prevent overwriting
         counter = 0
-        while os.path.exists(os.path.join('cnn_models', save_dir)):
+        check_name = save_dir
+        while os.path.exists(os.path.join('cnn_models', check_name)):
 
             # update counter
             counter += 1
 
             # update directory to check for
-            check_name = save_dir + '_' + str(counter)
+            check_name = save_dir + '-' + str(counter)
 
         # create new directory with proper suffix
         if counter > 0:
-            new_dir = save_dir + '_' + str(counter) 
+            new_dir = check_name
         else:
             new_dir = save_dir 
         os.makedirs('cnn_models\%s' % new_dir)

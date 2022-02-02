@@ -24,6 +24,9 @@ from tensorflow.keras.models import load_model
 # Pre-define EEG sample length as trained by the model
 sample_len = 3 # 1
 
+# define probability threshold to assign seizure label
+predict_thresh = 0.40
+
 # User inputs and corresponding prompts
 inputs = {'username': '', 'password': '', 'patient_id': '', 'model': '', 'start': 0, 'end': 0, 'length': 0,
           'threshold': 0.45}
@@ -150,7 +153,11 @@ def __main__():
                 # print(predict)
                 # Post-process the model outputs
                 # print(np.argmax(predict, 1))
-                predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
+                # print(predict.shape)
+                predict = (predict[:,1] >= predict_thresh).astype('int')
+                # print(predict)
+                predict = processor.postprocess_outputs(predict, sample_len, threshold=inputs['threshold'])
+                # predict = processor.postprocess_outputs(np.argmax(predict, 1), sample_len, threshold=inputs['threshold'])
                 # print(predict)
                 predict = processor.fill_predictions(predict, eeg_indices)
                 # print(predict)
@@ -170,6 +177,9 @@ def __main__():
     # sz_events.to_pickle(file_path + '.pkl')
 
     pred_filename = "pred_data/%s_predictions_%ds_0.%s" % (inputs['patient_id'], sample_len, str(inputs['threshold'])[-2:])
+    predict_thresh_str = '%.2f' % predict_thresh
+    proba_suffix = '_proba0.%s' % predict_thresh_str[-2:]
+    pred_filename += proba_suffix
     np.save(pred_filename + '.npy', pred_list)
 
     # print('====================================================================')

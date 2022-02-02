@@ -664,7 +664,7 @@ class EEGEvaluator:
 
         # save figure with seizure sensitivty and data reduction labeled
         if save:
-            plt.annotate(f'Seizure Sensitivity: {sz_sens}, Data Reduction: {data_reduc}\nFalse Alert Rate: {false_alert_rate}', 
+            plt.annotate(f'Seizure Sensitivity: {sz_sens}, Data Reduction: {data_reduc}', 
                          xy=(0.25, 0.8), xycoords='figure fraction')
             if filename is None:
                 filename = 'output_figs/%s_outputs_labels_rf.pdf'

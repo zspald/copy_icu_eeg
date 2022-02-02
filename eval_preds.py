@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 length = 3
 batch_length = 60
-save = False
+save = True
 
 bipolar = False
 pool = False
 ref_and_bip = False
 random_forest = False
-predict_proba = 0.08
+predict_proba = 0.40
 # smooth_thresh = 0.45
 # smooth_range = np.arange(0, 1.01, 0.05)
 smooth_range = np.array([0.45])
@@ -30,10 +30,10 @@ if random_forest:
         fig_filename += '_pool'
     if random_forest:
         fig_filename += '_rf'
-    predict_proba_str = '%0.2f' % predict_proba
-    fig_filename += '_proba' + predict_proba_str
 else:
     fig_filename = 'output_figs/patient_prediction_outputs/cnn_%s_outputs_labels_wt_0.45'
+predict_proba_str = '%0.2f' % predict_proba
+fig_filename += '_proba' + predict_proba_str
 fig_filename += '.pdf'
 print(fig_filename)
 
@@ -46,10 +46,10 @@ if random_forest:
         pred_filename += '_bipolar'
     if pool:
         pred_filename += '_pool'
-    pred_filename += '_proba' + predict_proba_str
 else:
     pred_filename = 'deployment_cnn/pred_data/%s_predictions_3s_0.45'
 
+pred_filename += '_proba' + predict_proba_str
 pred_filename += '.npy'
 print(pred_filename)
 
@@ -266,9 +266,10 @@ pt_list_sz = np.array([
                     ])
 
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
+# pt_list = np.array(["CNT685", "ICUDataRedux_0060"])
 
-print(len(pt_list_nsz))
-print(len(pt_list_sz))
+# print(len(pt_list_nsz))
+# print(len(pt_list_sz))
 print(len(pt_list))
 # pt_list = np.array(['CNT690', 'CNT691'])
 # pt_list = np.array(['ICUDataRedux_0040'])
@@ -350,8 +351,11 @@ for j in range(len(smooth_range)):
         data_reduc_arr[i] = stats_data_reduc[2]
         # stats_false_alerts = EEGEvaluator.false_alert_rate(pt, preds, pred_length=length)
         # false_alert_arr[i] = stats_false_alerts[1]
-        EEGEvaluator.compare_outputs_plot(pt, preds, plot_length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
-        # EEGEvaluator.compare_outputs_plot(pt, preds, pred_length=length, save=save, filename=fig_filename, show=True)
+        # if sz_sens_arr[i] > 0.9 or data_reduc_arr[i] > 0.98:
+        #     EEGEvaluator.compare_outputs_plot(pt, preds, plot_length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=True)
+        # else:
+        #     EEGEvaluator.compare_outputs_plot(pt, preds, plot_length=(end-start)/60, pred_length=length, save=save, filename=fig_filename, show=False)
+        EEGEvaluator.compare_outputs_plot(pt, preds, pred_length=length, plot_length=(end-start)/60, save=save, filename=fig_filename, show=False)
 
     # remove non-sz patients from sz sens calculation and any missing patients
     sz_sens_arr = sz_sens_arr[np.where(sz_sens_arr != -1)[0]]

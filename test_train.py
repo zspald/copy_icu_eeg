@@ -28,9 +28,9 @@ pt_list_nsz = np.array([
                         'CNT685', 'CNT687', 'CNT688', 'CNT689', 'CNT690', 'CNT691', 
                         'CNT692', 'CNT694', 'CNT695', 'CNT698', 'CNT700', 'CNT701', 'CNT702', 
                         'CNT705', 'CNT706', 'CNT708', 'CNT710', 'CNT711', 'CNT713', 
-                        # 'CNT715', 
+                        'CNT715', 
                         'CNT720', 
-                        # 'CNT723', 
+                        'CNT723', 
                         'CNT724', 'CNT725', 
                         # 'CNT726', 
                         'CNT729', 'CNT730', 
@@ -40,7 +40,8 @@ pt_list_nsz = np.array([
                         'CNT750', 'CNT757', 'CNT758', 'CNT765', 
                         'CNT773', 'CNT774', 'CNT775', 'CNT776', 'CNT778', 'CNT782', 
                         'ICUDataRedux_0023', 'ICUDataRedux_0026', 'ICUDataRedux_0029',
-                        'ICUDataRedux_0030', 'ICUDataRedux_0034', 'ICUDataRedux_0035', 
+                        'ICUDataRedux_0030', 'ICUDataRedux_0034', 
+                        'ICUDataRedux_0035', 
                         'ICUDataRedux_0043', 'ICUDataRedux_0044', 'ICUDataRedux_0047', 
                         'ICUDataRedux_0048'
                         ])
@@ -60,13 +61,15 @@ pt_list_sz = np.array([
                        'ICUDataRedux_0045', 'ICUDataRedux_0049', 'ICUDataRedux_0050'
                        ])
 
+print(len(pt_list_nsz), len(pt_list_sz))
+
 pt_list = np.r_[pt_list_nsz, pt_list_sz]
 
 print("========== Training example ==========")
 # train_module = EEGLearner(patient_list_cv_true)
 train_module = EEGLearner(pt_list, pt_list_sz, pt_list_nsz)
 # print(len(train_module.patient_list))
-train_module.train_cnn(epochs=50, control=1800, k_fold=True, save=True, verbose=1)
+train_module.train_cnn(epochs=5, control=1800, k_fold=True, save=True, verbose=1)
 # train_module.train_convolutional_gru(epochs=20, batch_size=100, control=1800, save=True, seq_len=20, verbose=1)
 # train_module.train_conv_lstm(epochs=20, cross_val=False, save=True, seq_len=20, verbose=1)
 
