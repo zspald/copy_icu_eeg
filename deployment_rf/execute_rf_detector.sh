@@ -1,7 +1,7 @@
 #!/bin/bash
 # A parallel bash scripts that allows the user to generate predictions for EEG data using the rf models
-username="zspald"
-password="FimbleWinter5994@"
+username=""
+password=""
 threshold=0.45 #0.45
 length=60
 bipolar=0
