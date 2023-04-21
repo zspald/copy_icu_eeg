@@ -1,7 +1,7 @@
 #!/bin/bash
 # A parallel bash scripts that allows the user to pre-process the EEG data from IEEG and save for training
-username="zspald"
-password="FimbleWinter5994@"
+username=""
+password=""
 num_iter=20
 batch_size=300 #1000
 start=0
